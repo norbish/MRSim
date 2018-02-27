@@ -1,0 +1,85 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Unity_Visualization
+{
+    public class Frame_Vis
+    {
+        public System.Guid guid;
+        public Mesh mesh;//mesh of the frame
+        public GameObject gameobject;//Have to store the mesh in some way
+
+        public Frame_Vis(System.Guid guid/*, Mesh mesh*/, Vector3 initialpos)
+        {
+            this.guid = guid;
+            //this.mesh = mesh;
+            gameobject = GameObject.CreatePrimitive(PrimitiveType.Cube);//new GameObject();
+            gameobject.name = "Frame";
+            //gameobject.AddComponent<MeshFilter>().mesh = mesh;
+            gameobject.transform.position = initialpos;
+            gameobject.GetComponent<Renderer>().material.color = Random.ColorHSV();
+        }
+
+        public void Update(Vector3 position, Vector3 scale, Vector3 rotation)
+        {
+            gameobject.transform.position = position;
+            gameobject.transform.localScale = scale;
+            gameobject.transform.eulerAngles = rotation;
+        }
+    }
+
+    public class Joint_Vis
+    {
+        public System.Guid guid;
+        public string jointType;
+        public GameObject left_p;
+        public GameObject mid_p;
+        public GameObject right_p;
+        Vector3[] contactPoints = new Vector3[3];//left attachment point, middle of joint, and right attachment point. 
+
+        public Joint_Vis(System.Guid guid)
+        {
+            this.guid = guid;
+            left_p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            mid_p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            right_p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+        }
+        public void Update(Vector3[] contactPoints)
+        {
+            left_p.transform.position = contactPoints[0];
+            mid_p.transform.position = contactPoints[1];
+            right_p.transform.position = contactPoints[2];
+        }
+    }
+
+    public class Scene_Vis
+    {
+        
+        public System.Guid guid;
+        public Mesh mesh;
+        public GameObject terrain;
+        public Scene_Vis(System.Guid guid, List<Vector3> vertices, List<int> triangles, Vector2[] uvs, Vector3 position, Texture2D texture)//REMOVE
+        {
+            //Assign to the mesh, Unity:
+            UnityEngine.Mesh mesh = new Mesh
+            {
+                vertices = vertices.ToArray(),
+                uv = uvs,
+                triangles = triangles.ToArray()
+            };
+
+            terrain = GameObject.CreatePrimitive(PrimitiveType.Cube);//Create the primitive plane 
+            terrain.name = "Terrain";
+            var mesh_Material = terrain.GetComponent<Renderer>().material;
+            mesh_Material.SetTexture("_MainTex", texture);
+
+            terrain.GetComponent<MeshFilter>().sharedMesh = mesh;
+            mesh = terrain.GetComponent<MeshFilter>().mesh;
+
+            terrain.transform.position = position;
+            //heightmapCube.transform.rotation = );// new Vector3(0, 0, 90);//rotate to match AgX
+        }
+    }
+}
