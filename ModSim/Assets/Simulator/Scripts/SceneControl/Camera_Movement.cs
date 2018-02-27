@@ -13,7 +13,7 @@ public class Camera_Movement : MonoBehaviour {
 	
 	// Update is called once per frame
 	void getPos () {
-        this.transform.position = new Vector3(11, 17,robot.transform.position.z-10);
+        this.transform.position = new Vector3(11, 17,robot.transform.position.z-5);
 	}
     void getrobot()
     {

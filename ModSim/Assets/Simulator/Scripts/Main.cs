@@ -51,7 +51,7 @@ public class Main : MonoBehaviour {
         Vector3 frame1Pos = new Vector3(15, 12, 40);
         Vector3 frame2Pos = new Vector3(15, 12, 40);
 
-    for(int i = 0; i < 3 ; i++)
+    for(int i = 0; i < 10 ; i++)
     {
 
             var f1 = new Frame()//test create new object
@@ -130,16 +130,18 @@ public class Main : MonoBehaviour {
 
     public static void Serialize(object item)
     {
+        string fileName = Application.streamingAssetsPath + "/XML/Scenario.xml";
         XmlSerializer serializer = new XmlSerializer(item.GetType());
-        StreamWriter writer = new StreamWriter("Scenario.xml");
+        StreamWriter writer = new StreamWriter(fileName);
         serializer.Serialize(writer.BaseStream, item);
         writer.Close();
     }
 
     public static T Deserialize<T>()
     {
+        string fileName = Application.streamingAssetsPath + "/XML/Scenario.xml";
         XmlSerializer serializer = new XmlSerializer(typeof(T));
-        StreamReader reader = new StreamReader("Scenario.xml");
+        StreamReader reader = new StreamReader(fileName);
         T deserialized = (T)serializer.Deserialize(reader.BaseStream);
         reader.Close();
         return deserialized;
@@ -150,12 +152,12 @@ public class Main : MonoBehaviour {
     void Load_Robot(Robot robot)
     {
         //Initialize modules with joints and frames (+agx objects) : SHOULD BE IN SCENE DESIGNER, send triangles, verts and uvs!
-        string dir = Directory.GetCurrentDirectory();
+        string dir = Application.streamingAssetsPath + "/Robot/";
         Mesh leftMesh = new Mesh();
         Mesh rightMesh = new Mesh();
         ObjImporter import = new ObjImporter();
-        leftMesh = import.ImportFile(dir + "/Assets/Resources/Robot/upper.obj");Bounds leftBound = leftMesh.bounds;
-        rightMesh = import.ImportFile(dir + "/Assets/Resources/Robot/bottom.obj");Bounds rightBound = rightMesh.bounds;
+        leftMesh = import.ImportFile(dir + "upper.obj");Bounds leftBound = leftMesh.bounds;
+        rightMesh = import.ImportFile(dir + "bottom.obj");Bounds rightBound = rightMesh.bounds;
 
         Vector3 start = new Vector3(15, 12, 40);
         //new z pos is start.z - meshLength*i. 
@@ -197,7 +199,7 @@ public class Main : MonoBehaviour {
     {
         //Initialize scene:
         scene.Create();
-        Scene_Vis scene_vis = new Scene_Vis(scene.guid,scene.vertices,scene.triangles,scene.uvs,scene.position, Resources.Load("grass") as Texture2D);
+        Scene_Vis scene_vis = new Scene_Vis(scene.guid,scene.vertices,scene.triangles,scene.uvs,scene.position, Resources.Load("grass") as Texture);
         this.scene = scene;
     }
 

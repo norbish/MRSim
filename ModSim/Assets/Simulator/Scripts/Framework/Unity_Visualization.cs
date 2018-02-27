@@ -29,7 +29,7 @@ namespace Unity_Visualization
             meshFilter.vertices = tmp_verts;*/
 
            filter.mesh = meshFilter;
-
+            renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
             renderer.material.color = Color.blue;
 
             gameobject.transform.position = initialpos;//gameobject.AddComponent<Renderer>();
@@ -75,7 +75,7 @@ namespace Unity_Visualization
         public System.Guid guid;
         public Mesh mesh;
         public GameObject terrain;
-        public Scene_Vis(System.Guid guid, List<Vector3> vertices, List<int> triangles, Vector2[] uvs, Vector3 position, Texture2D texture)//REMOVE
+        public Scene_Vis(System.Guid guid, List<Vector3> vertices, List<int> triangles, Vector2[] uvs, Vector3 position, Texture texture)//REMOVE
         {
             //Assign to the mesh, Unity:
             UnityEngine.Mesh mesh = new Mesh
@@ -87,8 +87,10 @@ namespace Unity_Visualization
 
             terrain = GameObject.CreatePrimitive(PrimitiveType.Cube);//Create the primitive plane 
             terrain.name = "Terrain";
-            var mesh_Material = terrain.GetComponent<Renderer>().material;
-            mesh_Material.SetTexture("_MainTex", texture);
+            MeshRenderer renderer = terrain.GetComponent<MeshRenderer>();
+
+            renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
+            renderer.material.SetTexture("_MainTex", texture);
 
             terrain.GetComponent<MeshFilter>().sharedMesh = mesh;
             mesh = terrain.GetComponent<MeshFilter>().mesh;
