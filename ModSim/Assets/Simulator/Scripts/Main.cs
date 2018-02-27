@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using agxUtil;
-using agxCollide;
 using AgX_Interface;
 using Simulation_Core;
 using Unity_Visualization;
@@ -24,16 +23,22 @@ public class Main : MonoBehaviour {
 
         Agx_Simulation.Start(dt);//Starts the sim.
 
+        SetContactPoints();
+
         Serialization();//Move this to Scene designer
 
         //LOAD:
         Scenario scenario = Deserialize<Scenario>();
         Load_Robot(scenario.robot);
         Load_Scene(scenario.scene);
-        Set_Dynamics();
-
+        
         InvokeRepeating("Update_AGX", 0, dt);
         
+    }
+
+    void SetContactPoints()
+    {
+        Agx_Simulation.AddContactMaterial("Plastic","Rock",0.4f,0.3f, (float)3.654E9);
     }
 
     void Serialization()
@@ -43,51 +48,50 @@ public class Main : MonoBehaviour {
         List<Frame> frames = new List<Frame>();
         List<Simulation_Core.Joint> joints = new List<Simulation_Core.Joint>();
 
-        Vector3 frame1Pos = new Vector3(15, 15, 40);
-        Vector3 frame2Pos = new Vector3(15, 15, 36);
+        Vector3 frame1Pos = new Vector3(15, 12, 40);
+        Vector3 frame2Pos = new Vector3(15, 12, 40);
 
-    for(int i = 0; i < 5; i++)
+    for(int i = 0; i < 3 ; i++)
     {
 
             var f1 = new Frame()//test create new object
             {
                 guid = Guid.NewGuid(),
                 shape = "Box",
-                position = new Vector3(frame1Pos.x, frame1Pos.y, frame1Pos.z - 6 * i),// new Vector3(15, 15, 20 -6*i),//20 = start position
-                size = Vector3.one,
-                /*rotation = Vector3.zero,//*/rotation = i % 2 == 0 ? Vector3.zero : new Vector3(0,0,Mathf.PI/2),
+                position = new Vector3(frame1Pos.x, frame1Pos.y, frame1Pos.z - 1.6f * i),// new Vector3(15, 15, 20 -6*i),//20 = start position
+                scale = 10,
+                /*rotation = Vector3.zero,//*/
+                rotation =  i % 2 == 0 ? new Vector3(-Mathf.PI / 2, 0, 0) : new Vector3(-Mathf.PI / 2, 0, Mathf.PI / 2),//pitch yaw
                 mass = 50,
                 isStatic = false,
-                materialName = "plastic",
-                friction = 0.9f,
-                restitution = 0.1f
+                materialName = "Plastic"
             };
 
-        var f2 = new Frame()//test create new object
-        {
-            guid = Guid.NewGuid(),
-            shape = "Box",
-            position = new Vector3(frame2Pos.x, frame2Pos.y, frame2Pos.z - 6 * i),// new Vector3(15, 15, 16-6*i),
-            size = Vector3.one,
-            /*rotation = Vector3.zero,//*/rotation = i % 2 == 0 ? Vector3.zero : new Vector3(0, 0, Mathf.PI/2),
-            mass = 50,
-            isStatic = false,
-            materialName = "plastic",
-            friction = 0.9f,
-            restitution = 0.1f
-        };
+            var f2 = new Frame()//test create new object
+            {
+                guid = Guid.NewGuid(),
+                shape = "Box",
+                position = new Vector3(frame2Pos.x, frame2Pos.y, frame2Pos.z - 1.6f * i),// new Vector3(15, 15, 16-6*i),
+                scale = 10,
+                /*rotation = Vector3.zero,//*/
+                rotation =  i % 2 == 0 ? new Vector3(-Mathf.PI / 2, 0, 0) : new Vector3(-Mathf.PI/2, 0, Mathf.PI / 2),
+                mass = 50,
+                isStatic = false,
+                materialName = "Plastic"
+            };
 
-        var j1 = new Simulation_Core.Joint()
-        {
-            guid = Guid.NewGuid(),
-            leftFrameGuid = f1.guid, rightFrameGuid = f2.guid,
-            type = "Hinge",
-        };
+            var j1 = new Simulation_Core.Joint()
+            {
+                guid = Guid.NewGuid(),
+                leftFrameGuid = f1.guid,
+                rightFrameGuid = f2.guid,
+                type = "Hinge",
+            };
 
             var module = new Module();
             module.Create(f1, j1, f2);
 
-
+            //Create sensor here, on each left of module (and one on right). 
             
             if(i > 0)
             {
@@ -96,110 +100,21 @@ public class Main : MonoBehaviour {
                 robot_serialize.Add_Module(module/*,lockJoint*/);
             
     }
-    /*
-        var f3 = new Frame()//test create new object
-        {
-            guid = Guid.NewGuid(),
-            shape = "Box",
-            position = new Vector3(15, 15, 14),
-            size = Vector3.one,
-            rotation = Vector3.zero,
-            mass = 50,
-            isStatic = false,
-            materialName = "plastic",
-            friction = 0.9f,
-            restitution = 0.1f
-        }; frames.Add(f3);
-
-        var f4 = new Frame()//test create new object
-        {
-            guid = Guid.NewGuid(),
-            shape = "Box",
-            position = new Vector3(15, 15, 10),
-            size = Vector3.one,
-            rotation = Vector3.zero,
-            mass = 50,
-            isStatic = false,
-            materialName = "plastic",
-            friction = 0.9f,
-            restitution = 0.1f
-        }; frames.Add(f4);
-
-        var j2 = new Simulation_Core.Joint()
-        {
-            guid = Guid.NewGuid(),
-            leftFrameGuid = f3.guid,rightFrameGuid = f4.guid,
-            type = "Hinge"
-        };joints.Add(j2);
-
-        var f5 = new Frame()//test create new object
-        {
-            guid = Guid.NewGuid(),
-            shape = "Box",
-            position = new Vector3(15, 15, 8),
-            size = Vector3.one,
-            rotation = Vector3.zero,
-            mass = 50,
-            isStatic = false,
-            materialName = "plastic",
-            friction = 0.9f,
-            restitution = 0.1f
-        }; frames.Add(f5);
-
-        var f6 = new Frame()//test create new object
-        {
-            guid = Guid.NewGuid(),
-            shape = "Box",
-            position = new Vector3(15, 15, 4),
-            size = Vector3.one,
-            rotation = Vector3.zero,
-            mass = 50,
-            isStatic = false,
-            materialName = "plastic",
-            friction = 0.9f,
-            restitution = 0.1f
-        }; frames.Add(f6);
-
-        var j3 = new Simulation_Core.Joint()
-        {
-            guid = Guid.NewGuid(),
-            leftFrameGuid = f5.guid, rightFrameGuid = f6.guid,
-        };joints.Add(j3);
-
-       
-
-
-        //CREATE modules consisting of 2 frames and 1 joint:
-        List<Module> modules = new List<Module>();
-        for (int i = 0; i<frames.Count;i++)
-        {
-
-            if(i % 2 != 0 )//each 2nd frame, we connect with joint in a module
-            {
-                var mod = new Module();
-                modules.Add(mod);
-                mod.Create(frames[i - 1],new Simulation_Core.Joint(), frames[i]);
-            }
-        }
-
-        //CREATE the robot by adding modules:
-        Robot robot_serialize = new Robot();
-        foreach (Module module in modules)
-        {
-            robot_serialize.Add_Module(module);
-        }*/
 
         //CREATE Terrain:
+        Texture2D hMap = Resources.Load("Heightmap3") as Texture2D;//Rename to terrain
+        byte[] bytes = hMap.EncodeToPNG();
+        
+        
         Scene scene_serialize = new Scene()
         {
             guid = Guid.NewGuid(),
-            heightmap = "Heightmap3",
+            height_Image = Convert.ToBase64String(bytes),
             position = new Vector3(),
-            materialName = "rock",
-            restitution = 0.1f,
-            friction = 0.9f,
+            materialName = "Rock",
             height = 10
         };
+        Debug.Log(bytes.Length);
 
         //Add robot and scene to scenario:
         Scenario scenario_serialize = new Scenario()
@@ -234,16 +149,42 @@ public class Main : MonoBehaviour {
     
     void Load_Robot(Robot robot)
     {
-        //Initialize modules with joints and frames (+agx objects)
+        //Initialize modules with joints and frames (+agx objects) : SHOULD BE IN SCENE DESIGNER, send triangles, verts and uvs!
+        string dir = Directory.GetCurrentDirectory();
+        Mesh leftMesh = new Mesh();
+        Mesh rightMesh = new Mesh();
+        ObjImporter import = new ObjImporter();
+        leftMesh = import.ImportFile(dir + "/Assets/Resources/Robot/upper.obj");Bounds leftBound = leftMesh.bounds;
+        rightMesh = import.ImportFile(dir + "/Assets/Resources/Robot/bottom.obj");Bounds rightBound = rightMesh.bounds;
+
+        Vector3 start = new Vector3(15, 12, 40);
+        //new z pos is start.z - meshLength*i. 
         foreach (Module mod in robot.modules)
         {
+            mod.frames[0].setMesh(leftMesh.vertices, leftMesh.uv, leftMesh.triangles); mod.frames[1].setMesh(rightMesh.vertices, rightMesh.uv, rightMesh.triangles);
+
+            
             foreach (Frame frame in mod.frames)
             {
+                //SHOULD here set position of each frame, based on mesh size, etc. 
+                
+                frame.position = start;
                 frame.Initialize();
-                frameVis.Add(new Frame_Vis(frame.guid, frame.position));
             }
+            //Position modules:
+            float leftPos = start.z + (mod.frames[0].scale * -leftBound.min.y);//y is z before they are rotated in the scene
+            float rightPos = start.z + (mod.frames[0].scale * -rightBound.max.y);
+            start.z = start.z - (leftPos - rightPos) - 0.001f;
+
             mod.Initialize(mod.frames[0], mod.frames[1]);//calls Create_Hinge
-            jointVis.Add(new Joint_Vis(mod.joint.guid));
+
+            Mesh l = new Mesh() { vertices = mod.frames[0].meshVertices, uv = mod.frames[0].meshUvs, triangles = mod.frames[0].meshTriangles };
+            Mesh r = new Mesh() { vertices = mod.frames[1].meshVertices, uv = mod.frames[1].meshUvs, triangles = mod.frames[1].meshTriangles };
+
+            frameVis.Add(new Frame_Vis(mod.frames[0].guid, l, mod.frames[0].position));
+            frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, mod.frames[1].position));
+
+            //jointVis.Add(new Joint_Vis(mod.joint.guid));
 
         }
         robot.Initialize();//Locks modules together
@@ -257,64 +198,31 @@ public class Main : MonoBehaviour {
         //Initialize scene:
         scene.Create();
         Scene_Vis scene_vis = new Scene_Vis(scene.guid,scene.vertices,scene.triangles,scene.uvs,scene.position, Resources.Load("grass") as Texture2D);
-
         this.scene = scene;
     }
 
 
-    Dictionary<Guid, GameObject> vis_obj = new Dictionary<Guid, GameObject>();
     List<Frame_Vis> frameVis = new List<Frame_Vis>();
     List<Joint_Vis> jointVis = new List<Joint_Vis>();
-    float count = 0;
     
-    
-    void Set_Dynamics()
-    {
-        int mod_n = robot.modules.Count;
 
-        Dynamics.amplitudes = new float[mod_n];
-        Dynamics.period = new float[mod_n];
-        Dynamics.phaseDiff = new float[mod_n];
-        Dynamics.offset = new float[mod_n];
-
-        for(int i = 0; i<robot.modules.Count; i++)
-        {
-            Dynamics.amplitudes[i] = 0;
-            Dynamics.period[i] = 5;
-            Dynamics.phaseDiff[i] = 0;
-            Dynamics.offset[i] = 0;
-        }
-
-
-        float phaseOffset = 1.5f;
-        for(int i = 0; i<mod_n; i++)
-        {
-            if (i != 0)
-                Dynamics.phaseDiff[i] = Dynamics.phaseDiff[i - 1] + phaseOffset;
-        }
-    }
 
     void Update_AGX()
     {
         Agx_Simulation.StepForward();
-        float offset = 0;
 
-        Dynamics.Turn(robot, Time.fixedTime);//fixed time might have to be changed to a dt reset when program is changed. 
+        if (Time.fixedTime >= 2)//Wait for robot to settle on terrain
+            if(!Dynamics.Control(robot, Time.fixedTime))//Movement
+                Debug.Log("wrong command");
 
-        foreach(Module module in robot.modules)
+        foreach (Module module in robot.modules)
         {
             foreach (Frame frame in module.frames)
             {
                 frame.Update();
                 //Retrieves Frameobject with GUID, and updates position,size,rotation:
-                try { frameVis.Find(x => x.guid == frame.guid).Update(frame.position, frame.size, frame.rotation); } catch { Debug.Log("Could not find frame with Guid."); }
-            }        
-            //Dynamics:
-            //count += dt*0.2f;
-            //Should instead be inside another class (this formula) and called from robot.controller(dt);
-            //module.joint.MOVE(Mathf.Sin(offset + count * move));offset += 1.2f;
-
-            
+                try { frameVis.Find(x => x.guid == frame.guid).Update(frame.position/*, frame.scale*/, frame.rotation); } catch(NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
+            }
 
             //Joint:
             module.joint.Update();
@@ -322,7 +230,7 @@ public class Main : MonoBehaviour {
             //Dyn:
             module.Update();
 
-            try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch { Debug.Log("Could not find joint with Guid." ); }
+            //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }
 
         }
 

@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using AgX_Interface;
 using System.Xml.Serialization;
+//using UnityEngine.UI;
 
 namespace Simulation_Core
 {
@@ -93,24 +94,38 @@ namespace Simulation_Core
     {
         public Guid guid;
         public string shape;
-        public Vector3 size;
+        public Vector3[] meshVertices; public Vector2[] meshUvs; public int[] meshTriangles;
+        public float scale;
         public Vector3 position;
         public Vector3 rotation;
         private Quaternion quatRotation;
         public float mass;
         public Boolean isStatic;
-        public string materialName; public float restitution; public float friction;
+        public string materialName;
 
         internal AgX_Frame frame;
 
         public void Initialize() //Create frame object
         {
-            frame = new AgX_Frame(this.guid, shape,size,position,rotation,mass,isStatic,materialName,restitution,friction); 
+            ScaleMesh();
+            frame = new AgX_Frame(this.guid, shape,meshVertices, meshUvs, meshTriangles, scale,position,rotation,mass,isStatic,materialName);
+        }
+
+        private void ScaleMesh()
+        {
+            Vector3[] tmp_Vertices = meshVertices;
+            for (int i = 0; i < tmp_Vertices.Length; i++)
+            {
+                tmp_Vertices[i].x *= scale;
+                tmp_Vertices[i].y *= scale;
+                tmp_Vertices[i].z *= scale;
+            }
+            meshVertices = tmp_Vertices;
         }
 
         public void Update()//Update variables
         {
-            size = frame.Get_Size();
+            //scale = frame.Get_Size();
             position = frame.Get_Position();
             rotation = frame.Get_Rotation();
             quatRotation = frame.Get_QuatRotation();
@@ -118,6 +133,12 @@ namespace Simulation_Core
         public Quaternion GetQuatRot()
         {
             return quatRotation;
+        }
+        public void setMesh(Vector3[] vertices, Vector2[] uvs, int[] triangles)
+        {
+            meshVertices = vertices;
+            meshUvs = uvs;
+            meshTriangles = triangles;
         }
     }
 
@@ -130,7 +151,7 @@ namespace Simulation_Core
 
         /*Alternative:*/
         public float Kp = 1;
-        public float max_vel = 2.0f;
+        public float max_vel = 5.0f;
 
         internal AgX_Joint joint;
         internal Frame left, right;
@@ -166,16 +187,28 @@ namespace Simulation_Core
                 joint.Set_Speed(Kp * error);
         }
 
+        public void Reset_Angle()//Resets the joint movement
+        {
+            float error = 0 - joint.Get_Angle();
+
+            if (Kp * error > 0.5f)
+                joint.Set_Speed(0.5f);
+            else if (Kp * error < -0.5f)
+                joint.Set_Speed(-0.5f);
+            else
+                joint.Set_Speed(Kp * error);
+        }
+
         public void Update()
         {
-            mid_Position = left.position - left.GetQuatRot() * Vector3.forward * left.size.z;
+            mid_Position = left.position - left.GetQuatRot() * Vector3.forward;// * left.scale.z;
         }
 
         public Vector3[] Vis_ContactPoints()
         {
             Vector3 p_left = left.position; //left.position.x + Math.Sign((left.position - this.position).magnitude) * left.size;
 
-            mid_Position = left.position - left.GetQuatRot() * Vector3.forward*left.size.z ;//Returns the position of lock
+            mid_Position = left.position - left.GetQuatRot() * Vector3.forward;// *left.scale.z ;//Returns the position of lock
             //Vector3 p_right = new Vector3(right.position.x, right.position.y, right.position.z + right.size.z / 2);
             Vector3 p_right = right.position;//insert angle insteadd of 45
 
@@ -187,14 +220,14 @@ namespace Simulation_Core
     public class Scene
     {
         public Guid guid;
-        public string heightmap;
+        public string height_Image;
 
         public List<Vector3> vertices = new List<Vector3>();
         public List<int> triangles = new List<int>();
         public Vector2[] uvs;
 
         public Vector3 position;
-        public string materialName;public float restitution; public float friction;
+        public string materialName;
         public float height;
         //Water
         //Air
@@ -204,14 +237,16 @@ namespace Simulation_Core
         {
             TerrainFromImage();//Loads the heightmap
 
-            scene = new Agx_Scene(guid, vertices, triangles, position, materialName, restitution, friction, height);
+            scene = new Agx_Scene(guid, vertices, triangles, position, materialName, height);
 
         }
 
         private void TerrainFromImage()
 
         {
-            Texture2D hMap = Resources.Load(heightmap) as Texture2D;
+            // Modified from: https://answers.unity.com/questions/1033085/heightmap-to-mesh.html
+            Texture2D heightMap = new Texture2D(250,250);
+            heightMap.LoadImage(Convert.FromBase64String(height_Image));
 
             //Bottom left section of the map, other sections are similar
             for (int i = 0; i < 250; i++)
@@ -219,7 +254,7 @@ namespace Simulation_Core
                 for (int j = 0; j < 250; j++) //OUTER PIXELS MUST BE 0, fix
                 {
                     //Add each new vertex in the plane
-                    vertices.Add(new Vector3(i, hMap.GetPixel(i, j).grayscale * height, j));
+                    vertices.Add(new Vector3(i, heightMap.GetPixel(i, j).grayscale * height, j));
                     //Skip if a new square on the plane hasn't been formed
                     if (i == 0 || j == 0) continue;
                     //Adds the index of the three vertices in order to make up each of the two tris
@@ -244,6 +279,25 @@ namespace Simulation_Core
         }
     }
 
-    
+    public class Sensor
+    {
+
+        class Force
+        {
+            Guid guid;
+            float value; //sensory value (Force)
+            Vector3 position;
+            internal AgX_Sensor sensor;
+             void Initialize()
+            {
+                sensor = new AgX_Sensor(guid,"plastic",position,1.0f);
+            }
+        }
+        class Distance
+        {
+
+        }
+
+    }
 	
 }

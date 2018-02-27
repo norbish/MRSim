@@ -224,6 +224,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scene Designer\Scripts\Designer_Main.cs" />
     <Compile Include="Assets\Scene Designer\Scripts\Parameters.cs" />
+    <Compile Include="Assets\Simulator\OBJImport\ObjImporter.cs" />
     <Compile Include="Assets\Simulator\Scripts\Dynamics\Dynamics.cs" />
     <Compile Include="Assets\Simulator\Scripts\Framework\AgX_Interface.cs" />
     <Compile Include="Assets\Simulator\Scripts\Framework\Simulation_Core.cs" />

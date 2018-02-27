@@ -7,24 +7,39 @@ namespace Unity_Visualization
     public class Frame_Vis
     {
         public System.Guid guid;
-        public Mesh mesh;//mesh of the frame
+        //public Mesh mesh;//mesh of the frame
         public GameObject gameobject;//Have to store the mesh in some way
 
-        public Frame_Vis(System.Guid guid/*, Mesh mesh*/, Vector3 initialpos)
+        public Frame_Vis(System.Guid guid, Mesh meshFilter, Vector3 initialpos)
         {
             this.guid = guid;
-            //this.mesh = mesh;
-            gameobject = GameObject.CreatePrimitive(PrimitiveType.Cube);//new GameObject();
-            gameobject.name = "Frame";
-            //gameobject.AddComponent<MeshFilter>().mesh = mesh;
-            gameobject.transform.position = initialpos;
-            gameobject.GetComponent<Renderer>().material.color = Random.ColorHSV();
+
+            gameobject = new GameObject("Frame");
+
+            MeshRenderer renderer = gameobject.AddComponent<MeshRenderer>();
+            MeshFilter filter = gameobject.AddComponent<MeshFilter>();
+
+            /*Vector3[] tmp_verts = meshFilter.vertices;
+            for (int i = 0; i < tmp_verts.Length; i++)
+            {
+                tmp_verts[i].x /= 2;
+                tmp_verts[i].y /= 2;
+                tmp_verts[i].z /= 2;
+            }
+            meshFilter.vertices = tmp_verts;*/
+
+           filter.mesh = meshFilter;
+
+            renderer.material.color = Color.blue;
+
+            gameobject.transform.position = initialpos;//gameobject.AddComponent<Renderer>();
+
         }
 
-        public void Update(Vector3 position, Vector3 scale, Vector3 rotation)
+        public void Update(Vector3 position/*, Vector3 scale,*/ ,Vector3 rotation)
         {
             gameobject.transform.position = position;
-            gameobject.transform.localScale = scale;
+            //gameobject.transform.localScale = scale;
             gameobject.transform.eulerAngles = rotation;
         }
     }
@@ -41,16 +56,16 @@ namespace Unity_Visualization
         public Joint_Vis(System.Guid guid)
         {
             this.guid = guid;
-            left_p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            //left_p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             mid_p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            right_p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+           // right_p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
         }
         public void Update(Vector3[] contactPoints)
         {
-            left_p.transform.position = contactPoints[0];
+           // left_p.transform.position = contactPoints[0];
             mid_p.transform.position = contactPoints[1];
-            right_p.transform.position = contactPoints[2];
+           // right_p.transform.position = contactPoints[2];
         }
     }
 
