@@ -8,3 +8,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Simulator/Simulator.unity
     guid: b94d3109be302ab43ae04447e2cf935a
+  - enabled: 0
+    path: Assets/Scene Designer/Scene_Designer.unity
+    guid: 61a2afdcc918c354b9896d3823fd9f1d

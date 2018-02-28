@@ -1,10 +1,9 @@
-﻿/*from Algoryx and Unity To Object class(AUTOclass)
+﻿/*Algoryx Interface class (AgX_Interface)
  * Torstein Sundnes Lenerand
  * NTNU Ålesund
  */
 
  ///This class contains the AgX object. 
- ///Use the Get methods for accessing the object in the main program. 
 
 using System;
 using System.Collections.Generic;
@@ -31,7 +30,7 @@ namespace AgX_Interface
             this.guid = guid;
         }
 
-        public void Create_Hinge(string type, Frame left, Frame right)
+        public void Create_Hinge(string type, Frame left, Frame right, float leftLimit, float rightLimit)
         {
             this.type = type;
 
@@ -46,7 +45,7 @@ namespace AgX_Interface
             Joint.asHinge().getMotor1D().setEnable(true);
             Joint.asHinge().getRange1D().setEnable(true);
             //Might want to have this as a modifyable parameter:
-            Joint.asHinge().getRange1D().setRange(-Mathf.PI / 2, Mathf.PI / 2);
+            Joint.asHinge().getRange1D().setRange(leftLimit,rightLimit/*-Math.PI / 2, Math.PI / 2*/);
 
             //Joint.asHinge().getMotor1D().setSpeed(0.2f);
         }

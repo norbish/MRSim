@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-using agxUtil;
 using AgX_Interface;
 using Simulation_Core;
 using Unity_Visualization;
 using System;
-using agxIO;
 using System.Xml.Serialization;
 
 public class Main : MonoBehaviour {
@@ -34,6 +32,8 @@ public class Main : MonoBehaviour {
         
         InvokeRepeating("Update_AGX", 0, dt);
         
+        
+
     }
 
     void SetContactPoints()
@@ -86,6 +86,9 @@ public class Main : MonoBehaviour {
                 leftFrameGuid = f1.guid,
                 rightFrameGuid = f2.guid,
                 type = "Hinge",
+                leftRangeLimit = -(float)Math.PI / 2, rightRangeLimit = (float)Math.PI / 2,
+                max_vel = 20.0f
+                
             };
 
             var module = new Module();

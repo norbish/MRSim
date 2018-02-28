@@ -92,14 +92,14 @@ public static class Dynamics
             case "Forward":
                 {
                     if (currentAction != newAction)
-                        Initialize(newAction, robot, 4 * (Mathf.PI / 9.0f), 0, 0.5f*Mathf.PI*2.0f/3.0f, 0, 8.0f, 0, 0);
+                        Initialize(newAction, robot, 4 * (Mathf.PI / 9.0f), 0, 0.5f*Mathf.PI*2.0f/3.0f, 0, 4.0f, 0, 0);
                     Forward(robot, t);
                     return true;
                 }
             case "Turn":
                 {
                     if (currentAction != newAction)
-                        Initialize(newAction, robot, 3.0f * (Mathf.PI / 9.0f), 0, Mathf.PI * 2.0f/3.0f, 0, 8.0f, 0, 20 * Mathf.PI / 180);
+                        Initialize(newAction, robot, 3.0f * (Mathf.PI / 9.0f), 0, Mathf.PI * 2.0f/3.0f, 0, 4.0f, 0, 20 * Mathf.PI / 180);
 
                     Turn(robot, t);
                     return true;

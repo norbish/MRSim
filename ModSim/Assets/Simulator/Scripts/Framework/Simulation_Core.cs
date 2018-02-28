@@ -148,10 +148,11 @@ namespace Simulation_Core
         public Guid guid, leftFrameGuid, rightFrameGuid;
         public string type;
         public Vector3 mid_Position;
+        public float leftRangeLimit, rightRangeLimit;
 
         /*Alternative:*/
         public float Kp = 1;
-        public float max_vel = 5.0f;
+        public float max_vel;
 
         internal AgX_Joint joint;
         internal Frame left, right;
@@ -163,7 +164,7 @@ namespace Simulation_Core
             joint = new AgX_Joint(guid);
 
             //Add joint between top and bottom frame
-            joint.Create_Hinge("Hinge", left, right);
+            joint.Create_Hinge("Hinge", left, right, leftRangeLimit, rightRangeLimit);
             joint.AddToSim();
         }
         public void Create_Lock(Frame left, Frame right)
