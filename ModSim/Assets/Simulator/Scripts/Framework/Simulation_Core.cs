@@ -71,17 +71,36 @@ namespace Simulation_Core
         public string Axis;
         public Frame[] frames = new Frame[2];
         public Joint joint;
-        
 
-        public void Create(Frame left,Joint joint, Frame Right)//Creates are for Scecne designer, Initialize is for simulator
+        public ForceSensor sensor;
+        public float leftEdge, rightEdge, top, bot;
+
+        public void Create(Frame left,Joint joint, Frame right)//Creates are for Scecne designer, Initialize is for simulator
         {
-            frames[0] = left; frames[1] = Right;
+            frames[0] = left; frames[1] = right;
             this.joint = joint;
         }
+        public void Create(Frame left, Joint joint, Frame right, ForceSensor sensor)//With sensor
+        {
+            frames[0] = left; frames[1] = right;
+            this.joint = joint;
+            this.sensor = sensor;
+        }
+
         public void Initialize(Frame left, Frame right)
         {
             position = Vector3.Lerp(left.position, right.position,0.5f);
             joint.Create_Hinge(left, right);
+
+            if (sensor != null)//If sensor is attached, position it and initialize:
+            {
+                if (Axis == "Pitch")
+                {
+                    sensor.position = new Vector3(leftEdge, bot - 0.1f, position.z);
+                    //Have one for Yaw too.
+                    sensor.Lock(left);
+                }
+            }
         }
         public void Update()
         {
@@ -103,12 +122,12 @@ namespace Simulation_Core
         public Boolean isStatic;
         public string materialName;
 
-        internal AgX_Frame frame;
+        internal AgX_Frame agxFrame;
 
         public void Initialize() //Create frame object
         {
             ScaleMesh();
-            frame = new AgX_Frame(this.guid, shape,meshVertices, meshUvs, meshTriangles, scale,position,rotation,mass,isStatic,materialName);
+            agxFrame = new AgX_Frame(this.guid, shape,meshVertices, meshUvs, meshTriangles, scale,position,rotation,mass,isStatic,materialName);
         }
 
         private void ScaleMesh()
@@ -126,9 +145,9 @@ namespace Simulation_Core
         public void Update()//Update variables
         {
             //scale = frame.Get_Size();
-            position = frame.Get_Position();
-            rotation = frame.Get_Rotation();
-            quatRotation = frame.Get_QuatRotation();
+            position = agxFrame.Get_Position();
+            rotation = agxFrame.Get_Rotation();
+            quatRotation = agxFrame.Get_QuatRotation();
         }
         public Quaternion GetQuatRot()
         {
@@ -280,25 +299,57 @@ namespace Simulation_Core
         }
     }
 
-    public class Sensor
+    /*public class Sensor
     {
+        public Guid guid;
+        public float value;
+        public Vector3 position;
+        public Vector3 scale;
 
-        class Force
-        {
-            Guid guid;
-            float value; //sensory value (Force)
-            Vector3 position;
-            internal AgX_Sensor sensor;
-             void Initialize()
-            {
-                sensor = new AgX_Sensor(guid,"plastic",position,1.0f);
-            }
-        }
-        class Distance
+        internal AgX_Sensor agxSensor;
+        internal AgX_Joint lockJoint;
+
+        virtual public void Lock(Frame frame)
         {
 
         }
+    }*/
 
+    public class ForceSensor
+    {
+        public Guid guid;
+        public float value;
+        public Vector3 position;
+        public Vector3 scale;
+
+        internal AgX_Sensor agxSensor;
+        internal AgX_Joint lockJoint;
+
+        public void Initialize()
+        {
+            agxSensor = new AgX_Sensor(guid, "plastic", position, scale, 1.0f);
+            lockJoint = new AgX_Joint(guid);//Ikke festet
+
+        }
+
+        public void Lock(Frame frame)
+        {
+            lockJoint.SensorLock(frame, this);
+        }
+
+        public void Update()
+        {
+            position = agxSensor.GetPosition();
+            //rotation
+        }
+    }
+
+    class DistanceSensor
+    {
+        void Initialize()
+        {
+
+        }
     }
 	
 }

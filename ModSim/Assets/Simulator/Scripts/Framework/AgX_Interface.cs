@@ -35,12 +35,12 @@ namespace AgX_Interface
             this.type = type;
 
             //Hinge is locked between the two objects.
-            hinge_Frame.setCenter((left.frame.GetAgxObject().getPosition() + right.frame.GetAgxObject().getPosition()).Divide(2));
+            hinge_Frame.setCenter((left.agxFrame.GetAgxObject().getPosition() + right.agxFrame.GetAgxObject().getPosition()).Divide(2));
             if (left.rotation.z == 0)
                 hinge_Frame.setAxis(new agx.Vec3(1, 0, 0)); //axis along the x direction
             else
                 hinge_Frame.setAxis(new agx.Vec3(0, 1, 0)); //axis along the x direction
-            Joint = new agx.Hinge(hinge_Frame, left.frame.GetAgxObject(), right.frame.GetAgxObject());
+            Joint = new agx.Hinge(hinge_Frame, left.agxFrame.GetAgxObject(), right.agxFrame.GetAgxObject());
             //Joint.asHinge().getLock1D().setEnable(true);
             Joint.asHinge().getMotor1D().setEnable(true);
             Joint.asHinge().getRange1D().setEnable(true);
@@ -52,7 +52,11 @@ namespace AgX_Interface
         public void Create_Lock(string type, Frame left, Frame right)
         {
             //connects right frame of left robot (LEFT) to left frame of right robot (RIGHT)
-            Joint = new agx.LockJoint(left.frame.GetAgxObject(), right.frame.GetAgxObject(), (left.frame.GetAgxObject().getPosition() + right.frame.GetAgxObject().getPosition()).Divide(2));
+            Joint = new agx.LockJoint(left.agxFrame.GetAgxObject(), right.agxFrame.GetAgxObject(), (left.agxFrame.GetAgxObject().getPosition() + right.agxFrame.GetAgxObject().getPosition()).Divide(2));
+        }
+        public void SensorLock(Frame frame, ForceSensor sensor)
+        {
+            Joint = new agx.LockJoint(frame.agxFrame.GetAgxObject(), sensor.agxSensor.GetAgxObject(), Operations.ToAgxVec3(sensor.position));
         }
 
         public float Get_Angle()
@@ -74,16 +78,17 @@ namespace AgX_Interface
     public class AgX_Sensor
     {
         private Guid guid;
-        private Vector3 size;
+        private Vector3 scale;
         private agx.RigidBody agx_Object;
 
-        public AgX_Sensor(Guid guid, string materialName, Vector3 pos, float mass)
+        public AgX_Sensor(Guid guid, string materialName, Vector3 pos, Vector3 scale, float mass)
         {
-
+            this.guid = guid;
+            this.scale = scale;
             
             var dynamicRBGeometry = new agxCollide.Geometry();///AgX
 
-            dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(size)));
+            dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(scale)));
 
             dynamicRBGeometry.setMaterial(new agx.Material(materialName));
 
@@ -96,6 +101,15 @@ namespace AgX_Interface
             agx_Object.getMassProperties().setMass(mass);
 
             Agx_Simulation.sim_Instance.add(agx_Object);
+        }
+
+        public agx.RigidBody GetAgxObject()
+        {
+            return agx_Object;
+        }
+        public Vector3 GetPosition()
+        {
+            return Operations.FromAgxVec3(agx_Object.getLocalPosition());
         }
     }
 

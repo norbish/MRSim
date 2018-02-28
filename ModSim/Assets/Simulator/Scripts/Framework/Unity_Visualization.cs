@@ -4,6 +4,24 @@ using UnityEngine;
 
 namespace Unity_Visualization
 {
+
+    public class Sensor_Vis
+    {
+        public System.Guid guid;
+        public GameObject gameobject;
+
+        public Sensor_Vis(System.Guid guid)
+        {
+            this.guid = guid;
+            gameobject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
+        }
+        public void Update(Vector3 position)
+        {
+            gameobject.transform.position = position;
+        }
+    }
+
     public class Frame_Vis
     {
         public System.Guid guid;

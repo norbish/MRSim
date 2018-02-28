@@ -57,7 +57,7 @@ public static class Dynamics
                                 Dynamics.phaseDiff[i] = Dynamics.phaseDiff[i - 2] + _phaseOffsetPitch;
                             else
                                 Dynamics.phaseDiff[i] = Dynamics.phaseDiff[i - 2] + _phaseOffsetYaw;
-                        }Debug.Log(phaseDiff[i]);
+                        }
                     }
                 }break;
             case "Forward":

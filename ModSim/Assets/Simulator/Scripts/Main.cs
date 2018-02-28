@@ -91,8 +91,14 @@ public class Main : MonoBehaviour {
                 
             };
 
+            ForceSensor yas = new ForceSensor()
+            {
+                guid = Guid.NewGuid(),
+                scale = new Vector3(0.01f,0.0001f,0.001f)
+            };
+
             var module = new Module();
-            module.Create(f1, j1, f2);
+            module.Create(f1, j1, f2,yas);
 
             //Create sensor here, on each left of module (and one on right). 
             
@@ -117,7 +123,6 @@ public class Main : MonoBehaviour {
             materialName = "Rock",
             height = 10
         };
-        Debug.Log(bytes.Length);
 
         //Add robot and scene to scenario:
         Scenario scenario_serialize = new Scenario()
@@ -169,6 +174,7 @@ public class Main : MonoBehaviour {
             mod.frames[0].setMesh(leftMesh.vertices, leftMesh.uv, leftMesh.triangles); mod.frames[1].setMesh(rightMesh.vertices, rightMesh.uv, rightMesh.triangles);
 
             
+
             foreach (Frame frame in mod.frames)
             {
                 //SHOULD here set position of each frame, based on mesh size, etc. 
@@ -176,10 +182,18 @@ public class Main : MonoBehaviour {
                 frame.position = start;
                 frame.Initialize();
             }
-            //Position modules:
-            float leftPos = start.z + (mod.frames[0].scale * -leftBound.min.y);//y is z before they are rotated in the scene
-            float rightPos = start.z + (mod.frames[0].scale * -rightBound.max.y);
-            start.z = start.z - (leftPos - rightPos) - 0.001f;
+
+            
+            //Position of frames in modules based on meshes and scale (0-point is between the two frames):
+            float module_leftEdge = start.z + (mod.frames[0].scale * -leftBound.min.y);//y is z before they are rotated in the scene
+            float module_rightEdge = start.z + (mod.frames[0].scale * -rightBound.max.y);
+            float module_top = start.y + (mod.frames[0].scale * -leftBound.min.x);
+            float module_bot = start.y + (mod.frames[0].scale * -rightBound.max.x);
+            Debug.Log("Start: " + start + "| mod top: " + module_top + "| mod bot: " + module_bot);
+            start.z = start.z - (module_leftEdge - module_rightEdge) - 0.001f;
+
+            //Assign edges of the module, for sensor placement:
+            mod.leftEdge = module_leftEdge;mod.rightEdge = module_rightEdge;mod.top = module_top;mod.bot = module_bot;
 
             mod.Initialize(mod.frames[0], mod.frames[1]);//calls Create_Hinge
 
@@ -189,10 +203,20 @@ public class Main : MonoBehaviour {
             frameVis.Add(new Frame_Vis(mod.frames[0].guid, l, mod.frames[0].position));
             frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, mod.frames[1].position));
 
+            //Sensor vis:
+            
+
             //jointVis.Add(new Joint_Vis(mod.joint.guid));
 
         }
         robot.Initialize();//Locks modules together
+
+        //Gotta know if the sensor is attached to pitch or yaw, so init it after the robot is initialized:
+        foreach (Module mod in robot.modules)
+        {
+            mod.sensor.Initialize();
+            sensorVis.Add(new Sensor_Vis(mod.sensor.guid));
+        }
 
         this.robot = robot;
     }
@@ -206,7 +230,7 @@ public class Main : MonoBehaviour {
         this.scene = scene;
     }
 
-
+    List<Sensor_Vis> sensorVis = new List<Sensor_Vis>();
     List<Frame_Vis> frameVis = new List<Frame_Vis>();
     List<Joint_Vis> jointVis = new List<Joint_Vis>();
     
@@ -234,6 +258,10 @@ public class Main : MonoBehaviour {
 
             //Dyn:
             module.Update();
+
+            module.sensor.Update();
+            sensorVis.Find(x => x.guid == module.sensor.guid).Update(module.sensor.position);
+
 
             //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }
 
