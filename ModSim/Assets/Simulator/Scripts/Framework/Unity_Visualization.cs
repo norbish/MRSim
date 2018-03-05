@@ -10,11 +10,18 @@ namespace Unity_Visualization
         public System.Guid guid;
         public GameObject gameobject;
 
-        public Sensor_Vis(System.Guid guid)
+        public Sensor_Vis(System.Guid guid, Vector3 position, Vector3 scale)
         {
             this.guid = guid;
             gameobject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            MeshRenderer renderer = gameobject.GetComponent<MeshRenderer>();
 
+
+            renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
+            renderer.material.color = Color.white;
+
+            gameobject.transform.localScale = scale*4;
+            gameobject.transform.position = position;
         }
         public void Update(Vector3 position)
         {

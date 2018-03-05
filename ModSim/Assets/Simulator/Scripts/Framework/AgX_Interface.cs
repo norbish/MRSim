@@ -56,7 +56,7 @@ namespace AgX_Interface
         }
         public void SensorLock(Frame frame, ForceSensor sensor)
         {
-            Joint = new agx.LockJoint(frame.agxFrame.GetAgxObject(), sensor.agxSensor.GetAgxObject(), Operations.ToAgxVec3(sensor.position));
+            Joint = new agx.LockJoint(frame.agxFrame.GetAgxObject(), sensor.agxSensor.GetAgxObject(), Operations.ToAgxVec3(sensor.position) );
         }
 
         public float Get_Angle()

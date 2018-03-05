@@ -91,14 +91,22 @@ public class Main : MonoBehaviour {
                 
             };
 
-            ForceSensor yas = new ForceSensor()
-            {
-                guid = Guid.NewGuid(),
-                scale = new Vector3(0.01f,0.0001f,0.001f)
-            };
-
             var module = new Module();
-            module.Create(f1, j1, f2,yas);
+            if (i % 2 == 0)
+            {
+                ForceSensor sensor = new ForceSensor()
+                {
+                    guid = Guid.NewGuid(),
+                    scale = new Vector3(0.15f, 0.01f, 0.02f)
+                };
+
+                ;
+                module.Create(f1, j1, f2, sensor);
+            }
+            else
+            {
+                module.Create(f1, j1, f2);
+            }
 
             //Create sensor here, on each left of module (and one on right). 
             
@@ -193,7 +201,7 @@ public class Main : MonoBehaviour {
             start.z = start.z - (module_leftEdge - module_rightEdge) - 0.001f;
 
             //Assign edges of the module, for sensor placement:
-            mod.leftEdge = module_leftEdge;mod.rightEdge = module_rightEdge;mod.top = module_top;mod.bot = module_bot;
+            mod.z_leftEdge = module_leftEdge;mod.z_rightEdge = module_rightEdge;mod.top = module_top;mod.bot = module_bot;
 
             mod.Initialize(mod.frames[0], mod.frames[1]);//calls Create_Hinge
 
@@ -214,8 +222,11 @@ public class Main : MonoBehaviour {
         //Gotta know if the sensor is attached to pitch or yaw, so init it after the robot is initialized:
         foreach (Module mod in robot.modules)
         {
-            mod.sensor.Initialize();
-            sensorVis.Add(new Sensor_Vis(mod.sensor.guid));
+            if (mod.sensor != null)
+            {
+                mod.Initialize_Sensors();
+                sensorVis.Add(new Sensor_Vis(mod.sensor.guid, mod.sensor.position, mod.sensor.scale));
+            }
         }
 
         this.robot = robot;
@@ -259,8 +270,11 @@ public class Main : MonoBehaviour {
             //Dyn:
             module.Update();
 
-            module.sensor.Update();
-            sensorVis.Find(x => x.guid == module.sensor.guid).Update(module.sensor.position);
+            if (module.sensor != null)
+            {
+                module.sensor.Update();
+                sensorVis.Find(x => x.guid == module.sensor.guid).Update(module.sensor.position);
+            }
 
 
             //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }

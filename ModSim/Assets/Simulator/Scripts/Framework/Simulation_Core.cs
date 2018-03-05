@@ -44,27 +44,9 @@ namespace Simulation_Core
                 module.Axis = module.frames[0].rotation.z == 0 ? "Pitch" : "Yaw";
             
         }
-        void Control()//be changed by the user
-        {
-            
-            //movement.roll() //form another class the user can manipulate.(add new functionality by string script etc.) 
-            //roll();
-            //Custom(params);
-
-        }
-        void Roll()
-        {
-            //one for loop for pitch,
-
-            //one for yaw
-        }
-        void Jumping()
-        {
-
-        }
     }
 
-    
+
     public class Module
     {
         public Vector3 position;
@@ -73,9 +55,9 @@ namespace Simulation_Core
         public Joint joint;
 
         public ForceSensor sensor;
-        public float leftEdge, rightEdge, top, bot;
+        public float z_leftEdge, z_rightEdge, top, bot;
 
-        public void Create(Frame left,Joint joint, Frame right)//Creates are for Scecne designer, Initialize is for simulator
+        public void Create(Frame left, Joint joint, Frame right)//Creates are for Scecne designer, Initialize is for simulator
         {
             frames[0] = left; frames[1] = right;
             this.joint = joint;
@@ -89,17 +71,25 @@ namespace Simulation_Core
 
         public void Initialize(Frame left, Frame right)
         {
-            position = Vector3.Lerp(left.position, right.position,0.5f);
+            position = Vector3.Lerp(left.position, right.position, 0.5f);
             joint.Create_Hinge(left, right);
+        }
+        public void Initialize_Sensors()
+        {
+            
 
             if (sensor != null)//If sensor is attached, position it and initialize:
             {
                 if (Axis == "Pitch")
                 {
-                    sensor.position = new Vector3(leftEdge, bot - 0.1f, position.z);
-                    //Have one for Yaw too.
-                    sensor.Lock(left);
+                    sensor.position = new Vector3(position.x, bot - 0.1f, z_leftEdge); Debug.Log("Leftedge: " + z_leftEdge + "|bot: " + bot + "|zpos: " + position.z);
                 }
+                if (Axis == "Yaw")
+                {
+                    sensor.position = new Vector3(position.x, bot - 01f, z_leftEdge);
+                }
+                sensor.Initialize();
+                sensor.Lock(frames[0]);
             }
         }
         public void Update()
@@ -327,7 +317,7 @@ namespace Simulation_Core
 
         public void Initialize()
         {
-            agxSensor = new AgX_Sensor(guid, "plastic", position, scale, 1.0f);
+            agxSensor = new AgX_Sensor(guid, "Plastic", position, scale, 1.0f);
             lockJoint = new AgX_Joint(guid);//Ikke festet
 
         }
@@ -335,6 +325,7 @@ namespace Simulation_Core
         public void Lock(Frame frame)
         {
             lockJoint.SensorLock(frame, this);
+            lockJoint.AddToSim();
         }
 
         public void Update()
