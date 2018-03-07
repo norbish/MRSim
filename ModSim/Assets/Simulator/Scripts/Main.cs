@@ -29,8 +29,15 @@ public class Main : MonoBehaviour {
         Scenario scenario = Deserialize<Scenario>();
         Load_Robot(scenario.robot);
         Load_Scene(scenario.scene);
-        
-        InvokeRepeating("Update_AGX", 0, dt);
+
+        Visualization.enabled = true;
+
+        if (Visualization.enabled)
+            Load_Vis();
+
+
+
+        InvokeRepeating("Update_Sim", 0, dt);
         
         
 
@@ -51,14 +58,24 @@ public class Main : MonoBehaviour {
         Vector3 frame1Pos = new Vector3(15, 12, 40);
         Vector3 frame2Pos = new Vector3(15, 12, 40);
 
-    for(int i = 0; i < 10 ; i++)
+        Vector3 start = new Vector3(15, 12, 40);
+
+        //For finding the size of the modules:
+        string dir = Application.streamingAssetsPath + "/Robot/";
+        Mesh leftMesh = new Mesh();
+        Mesh rightMesh = new Mesh();
+        ObjImporter import = new ObjImporter();
+        leftMesh = import.ImportFile(dir + "upper.obj"); Bounds leftBound = leftMesh.bounds;
+        rightMesh = import.ImportFile(dir + "bottom.obj"); Bounds rightBound = rightMesh.bounds;
+
+        for (int i = 0; i < 10 ; i++)
     {
 
             var f1 = new Frame()//test create new object
             {
                 guid = Guid.NewGuid(),
                 shape = "Box",
-                position = new Vector3(frame1Pos.x, frame1Pos.y, frame1Pos.z - 1.6f * i),// new Vector3(15, 15, 20 -6*i),//20 = start position
+                position = start,//position = new Vector3(frame1Pos.x, frame1Pos.y, frame1Pos.z - 1.6f * i),// new Vector3(15, 15, 20 -6*i),//20 = start position
                 scale = 10,
                 /*rotation = Vector3.zero,//*/
                 rotation =  i % 2 == 0 ? new Vector3(-Mathf.PI / 2, 0, 0) : new Vector3(-Mathf.PI / 2, 0, Mathf.PI / 2),//pitch yaw
@@ -71,7 +88,7 @@ public class Main : MonoBehaviour {
             {
                 guid = Guid.NewGuid(),
                 shape = "Box",
-                position = new Vector3(frame2Pos.x, frame2Pos.y, frame2Pos.z - 1.6f * i),// new Vector3(15, 15, 16-6*i),
+                position = start,//position = new Vector3(frame2Pos.x, frame2Pos.y, frame2Pos.z - 1.6f * i),// new Vector3(15, 15, 16-6*i),
                 scale = 10,
                 /*rotation = Vector3.zero,//*/
                 rotation =  i % 2 == 0 ? new Vector3(-Mathf.PI / 2, 0, 0) : new Vector3(-Mathf.PI/2, 0, Mathf.PI / 2),
@@ -79,6 +96,14 @@ public class Main : MonoBehaviour {
                 isStatic = false,
                 materialName = "Plastic"
             };
+
+            //Position of frames in modules based on meshes and scale (0-point is between the two frames):
+            float module_leftEdge = start.z + (f1.scale * -leftBound.min.y);//y is z before they are rotated in the scene
+            float module_rightEdge = start.z + (f1.scale * -rightBound.max.y);
+            float module_top = start.y + (f1.scale * -leftBound.min.x);
+            float module_bot = start.y + (f1.scale * -rightBound.max.x);
+            Debug.Log("Start: " + start + "| mod top: " + module_top + "| mod bot: " + module_bot);
+            start.z = start.z - (module_leftEdge - module_rightEdge) - 0.01f;
 
             var j1 = new Simulation_Core.Joint()
             {
@@ -92,7 +117,7 @@ public class Main : MonoBehaviour {
             };
 
             var module = new Module();
-            if (i % 2 == 0)
+            /*if (i % 2 == 0)
             {
                 ForceSensor sensor = new ForceSensor()
                 {
@@ -100,10 +125,9 @@ public class Main : MonoBehaviour {
                     scale = new Vector3(0.15f, 0.01f, 0.02f)
                 };
 
-                ;
                 module.Create(f1, j1, f2, sensor);
             }
-            else
+            else*/
             {
                 module.Create(f1, j1, f2);
             }
@@ -165,54 +189,74 @@ public class Main : MonoBehaviour {
 
     Robot robot;//Global for pos/rot update
     
-    void Load_Robot(Robot robot)
+    void Load_Vis()
     {
-        //Initialize modules with joints and frames (+agx objects) : SHOULD BE IN SCENE DESIGNER, send triangles, verts and uvs!
-        string dir = Application.streamingAssetsPath + "/Robot/";
-        Mesh leftMesh = new Mesh();
-        Mesh rightMesh = new Mesh();
-        ObjImporter import = new ObjImporter();
-        leftMesh = import.ImportFile(dir + "upper.obj");Bounds leftBound = leftMesh.bounds;
-        rightMesh = import.ImportFile(dir + "bottom.obj");Bounds rightBound = rightMesh.bounds;
-
-        Vector3 start = new Vector3(15, 12, 40);
-        //new z pos is start.z - meshLength*i. 
+        //Frames:
         foreach (Module mod in robot.modules)
         {
-            mod.frames[0].setMesh(leftMesh.vertices, leftMesh.uv, leftMesh.triangles); mod.frames[1].setMesh(rightMesh.vertices, rightMesh.uv, rightMesh.triangles);
-
-            
-
-            foreach (Frame frame in mod.frames)
-            {
-                //SHOULD here set position of each frame, based on mesh size, etc. 
-                
-                frame.position = start;
-                frame.Initialize();
-            }
-
-            
-            //Position of frames in modules based on meshes and scale (0-point is between the two frames):
-            float module_leftEdge = start.z + (mod.frames[0].scale * -leftBound.min.y);//y is z before they are rotated in the scene
-            float module_rightEdge = start.z + (mod.frames[0].scale * -rightBound.max.y);
-            float module_top = start.y + (mod.frames[0].scale * -leftBound.min.x);
-            float module_bot = start.y + (mod.frames[0].scale * -rightBound.max.x);
-            Debug.Log("Start: " + start + "| mod top: " + module_top + "| mod bot: " + module_bot);
-            start.z = start.z - (module_leftEdge - module_rightEdge) - 0.001f;
-
-            //Assign edges of the module, for sensor placement:
-            mod.z_leftEdge = module_leftEdge;mod.z_rightEdge = module_rightEdge;mod.top = module_top;mod.bot = module_bot;
-
-            mod.Initialize(mod.frames[0], mod.frames[1]);//calls Create_Hinge
-
             Mesh l = new Mesh() { vertices = mod.frames[0].meshVertices, uv = mod.frames[0].meshUvs, triangles = mod.frames[0].meshTriangles };
             Mesh r = new Mesh() { vertices = mod.frames[1].meshVertices, uv = mod.frames[1].meshUvs, triangles = mod.frames[1].meshTriangles };
 
             frameVis.Add(new Frame_Vis(mod.frames[0].guid, l, mod.frames[0].position));
             frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, mod.frames[1].position));
 
+        }
+
+        //Sensors:
+        foreach (Module mod in robot.modules)
+        {
+            if (mod.sensor != null)
+            {
+                sensorVis.Add(new Sensor_Vis(mod.sensor.guid, mod.sensor.position, mod.sensor.scale));
+            }
+        }
+
+        //Scene:
+        Scene_Vis scene_vis = new Scene_Vis(scene.guid, scene.vertices, scene.triangles, scene.uvs, scene.position, Resources.Load("grass") as Texture);
+
+    }
+
+    void Load_Robot(Robot robot)
+    {
+        //Initialize modules with joints and frames (+agx objects) : SHOULD BE IN SCENE DESIGNER, send triangles, verts and uvs!
+        string dir = Application.streamingAssetsPath + "/Robot/";
+        ObjImporter import = new ObjImporter();
+
+        Mesh leftMesh = import.ImportFile(dir + "upper.obj");Bounds leftBound = leftMesh.bounds;
+        Mesh rightMesh = import.ImportFile(dir + "bottom.obj");Bounds rightBound = rightMesh.bounds;
+ 
+        Vector3 start = new Vector3(15, 12, 40);
+        //new z pos is start.z - meshLength*i. 
+        foreach (Module mod in robot.modules)
+        {
+            mod.frames[0].setMesh(leftMesh.vertices, leftMesh.uv, leftMesh.triangles); mod.frames[1].setMesh(rightMesh.vertices, rightMesh.uv, rightMesh.triangles);
+
+            foreach (Frame frame in mod.frames)
+            {
+                //SHOULD here set position of each frame, based on mesh size, etc. 
+                
+                //frame.position = start;
+                frame.Initialize();
+            }
+
+            //Position of frames in modules based on meshes and scale (0-point is between the two frames):
+            /*float module_leftEdge = start.z + (mod.frames[0].scale * -leftBound.min.y);//y is z before they are rotated in the scene
+            float module_rightEdge = start.z + (mod.frames[0].scale * -rightBound.max.y);
+            float module_top = start.y + (mod.frames[0].scale * -leftBound.min.x);
+            float module_bot = start.y + (mod.frames[0].scale * -rightBound.max.x);
+            Debug.Log("Start: " + start + "| mod top: " + module_top + "| mod bot: " + module_bot);
+            start.z = start.z - (module_leftEdge - module_rightEdge) - 0.001f;*/
+
+            //Assign edges of the module, for sensor placement:
+            //mod.z_leftEdge = module_leftEdge;mod.z_rightEdge = module_rightEdge;mod.top = module_top;mod.bot = module_bot;
+
+            mod.Initialize(mod.frames[0], mod.frames[1]);//calls Create_Hinge
+
             //Sensor vis:
-            
+            if (mod.sensor != null)
+            {
+                mod.Initialize_Sensors();
+            }
 
             //jointVis.Add(new Joint_Vis(mod.joint.guid));
 
@@ -220,14 +264,7 @@ public class Main : MonoBehaviour {
         robot.Initialize();//Locks modules together
 
         //Gotta know if the sensor is attached to pitch or yaw, so init it after the robot is initialized:
-        foreach (Module mod in robot.modules)
-        {
-            if (mod.sensor != null)
-            {
-                mod.Initialize_Sensors();
-                sensorVis.Add(new Sensor_Vis(mod.sensor.guid, mod.sensor.position, mod.sensor.scale));
-            }
-        }
+        
 
         this.robot = robot;
     }
@@ -237,7 +274,6 @@ public class Main : MonoBehaviour {
     {
         //Initialize scene:
         scene.Create();
-        Scene_Vis scene_vis = new Scene_Vis(scene.guid,scene.vertices,scene.triangles,scene.uvs,scene.position, Resources.Load("grass") as Texture);
         this.scene = scene;
     }
 
@@ -247,7 +283,7 @@ public class Main : MonoBehaviour {
     
 
 
-    void Update_AGX()
+    void Update_Sim()
     {
         Agx_Simulation.StepForward();
 
@@ -255,33 +291,31 @@ public class Main : MonoBehaviour {
             if(!Dynamics.Control(robot, Time.fixedTime))//Movement
                 Debug.Log("wrong command");
 
-        foreach (Module module in robot.modules)
+        robot.Update();
+
+        Update_Vis();
+
+    }
+
+    void Update_Vis()
+    {
+        if (Visualization.enabled)
         {
-            foreach (Frame frame in module.frames)
+            foreach (Module module in robot.modules)
             {
-                frame.Update();
-                //Retrieves Frameobject with GUID, and updates position,size,rotation:
-                try { frameVis.Find(x => x.guid == frame.guid).Update(frame.position/*, frame.scale*/, frame.rotation); } catch(NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
+                foreach (Frame frame in module.frames)
+                {
+                    //Retrieves Frameobject with GUID, and updates position,size,rotation:
+                    try { frameVis.Find(x => x.guid == frame.guid).Update(frame.position/*, frame.scale*/, frame.rotation); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
+                }
+
+                if (module.sensor != null)
+                {
+                    sensorVis.Find(x => x.guid == module.sensor.guid).Update(module.sensor.position);
+                }
+                //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }
             }
-
-            //Joint:
-            module.joint.Update();
-
-            //Dyn:
-            module.Update();
-
-            if (module.sensor != null)
-            {
-                module.sensor.Update();
-                sensorVis.Find(x => x.guid == module.sensor.guid).Update(module.sensor.position);
-            }
-
-
-            //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }
-
         }
-
-        
     }
 
     void OnApplicationQuit()///When Unity closes, shutdown AgX.

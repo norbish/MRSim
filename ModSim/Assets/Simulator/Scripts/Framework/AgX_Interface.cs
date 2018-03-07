@@ -113,6 +113,57 @@ namespace AgX_Interface
         }
     }
 
+    public class AgX_Primitive
+    {
+        private Guid guid;
+        private string shape;
+        private Vector3 size;
+        private string materialName;
+
+        private agx.RigidBody agx_Object;
+
+        public AgX_Primitive(Guid guid, string shape, Vector3 pos, Vector3 rot, Vector3 size, float mass, string materialName)
+        {
+            this.guid = guid;
+            this.shape = shape;
+            this.size = size;
+            this.materialName = materialName;
+
+            var dynamicRBGeometry = new agxCollide.Geometry();
+
+            switch (shape)
+            {
+                case "Box": dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(this.size))); break;
+                case "Sphere": dynamicRBGeometry.add(new agxCollide.Sphere((this.size.x + this.size.y + this.size.z) / 3)); break;
+            }
+
+            dynamicRBGeometry.setMaterial(new agx.Material(materialName));
+
+            agx_Object = new agx.RigidBody();
+            agx_Object.add(dynamicRBGeometry);
+            agx_Object.setLocalPosition(Operations.ToAgxVec3(pos));///AgX
+
+            agx_Object.setLocalRotation(new agx.EulerAngles(Operations.ToAgxVec3(rot)));///AgX
+
+            agx_Object.getMassProperties().setMass(mass);
+
+            AddToSim();
+        }
+
+        public Vector3 Get_Position()
+        {
+            return Operations.FromAgxVec3(agx_Object.getLocalPosition());
+        }
+        public Vector3 Get_Rotation()
+        {
+            return Operations.FromAgxQuat(agx_Object.getLocalRotation()).eulerAngles;
+        }
+        public void AddToSim()
+        {
+            Agx_Simulation.sim_Instance.add(agx_Object);
+        }
+    }
+
 
     public class AgX_Frame
     {

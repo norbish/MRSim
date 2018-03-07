@@ -44,6 +44,14 @@ namespace Simulation_Core
                 module.Axis = module.frames[0].rotation.z == 0 ? "Pitch" : "Yaw";
             
         }
+
+        public void Update()
+        {
+            foreach(Module mod in modules)
+            {
+                mod.Update();
+            }
+        }
     }
 
 
@@ -74,7 +82,7 @@ namespace Simulation_Core
             position = Vector3.Lerp(left.position, right.position, 0.5f);
             joint.Create_Hinge(left, right);
         }
-        public void Initialize_Sensors()
+        public void Initialize_Sensors()//(DEPRECATED, sensors should be blocks in robot config)
         {
             
 
@@ -94,7 +102,41 @@ namespace Simulation_Core
         }
         public void Update()
         {
+            foreach(Frame frame in frames)//Update all frames in the module
+            {
+                frame.Update();
+            }
+
+            //Update Joint: (There is always a joint)
+            joint.Update();
+
+            //Update sensor: (deprecated)
+            if(sensor != null)
+                sensor.Update();
+            //Update module position
             position = Vector3.Lerp(frames[0].position, frames[1].position, 0.5f);
+        }
+    }
+
+    public class Sensory_Module //Square
+    {
+        public Guid guid;
+        public Vector3 position;
+        public Vector3 rotation;
+        public Vector3 size;
+        public float mass;
+        public string materialName;
+
+        internal AgX_Primitive agxPrimitive;
+
+        public void Initialize()
+        {
+            agxPrimitive = new AgX_Primitive(guid,"Box",position,rotation,size,mass,materialName);
+        }
+        public void Update()
+        {
+            position = agxPrimitive.Get_Position();
+            rotation = agxPrimitive.Get_Rotation();
         }
     }
     
@@ -103,7 +145,7 @@ namespace Simulation_Core
     {
         public Guid guid;
         public string shape;
-        public Vector3[] meshVertices; public Vector2[] meshUvs; public int[] meshTriangles;
+
         public float scale;
         public Vector3 position;
         public Vector3 rotation;
@@ -112,6 +154,7 @@ namespace Simulation_Core
         public Boolean isStatic;
         public string materialName;
 
+        public Vector3[] meshVertices; public Vector2[] meshUvs; public int[] meshTriangles;
         internal AgX_Frame agxFrame;
 
         public void Initialize() //Create frame object

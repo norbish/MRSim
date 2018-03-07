@@ -4,6 +4,10 @@ using UnityEngine;
 
 namespace Unity_Visualization
 {
+    public static class Visualization//Class for checking if visualization is enabled
+    {
+        public static bool enabled = false;
+    }
 
     public class Sensor_Vis
     {
