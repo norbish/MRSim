@@ -40,7 +40,7 @@ namespace Unity_Visualization
         //public Mesh mesh;//mesh of the frame
         public GameObject gameobject;//Have to store the mesh in some way
 
-        public Frame_Vis(System.Guid guid, Mesh meshFilter, Vector3 initialpos)
+        public Frame_Vis(System.Guid guid, Mesh meshFilter, Vector3 initialpos, float scale)
         {
             this.guid = guid;
 
@@ -49,28 +49,29 @@ namespace Unity_Visualization
             MeshRenderer renderer = gameobject.AddComponent<MeshRenderer>();
             MeshFilter filter = gameobject.AddComponent<MeshFilter>();
 
-            /*Vector3[] tmp_verts = meshFilter.vertices;
-            for (int i = 0; i < tmp_verts.Length; i++)
+            Vector3[] tmp_Vertices = meshFilter.vertices;
+            for (int i = 0; i < tmp_Vertices.Length; i++)
             {
-                tmp_verts[i].x /= 2;
-                tmp_verts[i].y /= 2;
-                tmp_verts[i].z /= 2;
+                tmp_Vertices[i].x *= scale;
+                tmp_Vertices[i].y *= scale;
+                tmp_Vertices[i].z *= scale;
             }
-            meshFilter.vertices = tmp_verts;*/
+            meshFilter.vertices = tmp_Vertices;
 
-           filter.mesh = meshFilter;
-            renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
-            renderer.material.color = Color.blue;
+            filter.mesh = meshFilter;
+            renderer.material = new Material(Shader.Find("Diffuse"));
+            renderer.material.color =  Color.blue;
 
             gameobject.transform.position = initialpos;//gameobject.AddComponent<Renderer>();
 
         }
 
-        public void Update(Vector3 position/*, Vector3 scale,*/ ,Vector3 rotation)
+        public void Update(Vector3 position/*, Vector3 scale,*/ ,Vector3 rotation, string axis)
         {
             gameobject.transform.position = position;
             //gameobject.transform.localScale = scale;
             gameobject.transform.eulerAngles = rotation;
+            gameobject.GetComponent<MeshRenderer>().material.color = axis == "Pitch" ? Color.gray : Color.blue;
         }
     }
 

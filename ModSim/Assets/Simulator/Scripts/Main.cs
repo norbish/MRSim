@@ -16,7 +16,9 @@ public class Main : MonoBehaviour {
     public agxSDK.Simulation mysim;
     public float dt = 1.0f / 100.0f;
 
-    public string dir = "";
+    string dir = "";
+    string upperFrame_directory = "/Robot/upper.obj";
+    string bottomFrame_directory = "/Robot/bottom.obj";
 
     void Start()// Use this for initialization
     {
@@ -118,8 +120,8 @@ public class Main : MonoBehaviour {
         //For finding the size of the modules:
         ObjImporter import = new ObjImporter();
 
-        Mesh leftMesh = import.ImportFile(dir + "/Robot/upper.obj"); Bounds leftBound = leftMesh.bounds;
-        Mesh rightMesh = import.ImportFile(dir + "/Robot/bottom.obj"); Bounds rightBound = rightMesh.bounds;
+        Mesh leftMesh = import.ImportFile(dir + upperFrame_directory); Bounds leftBound = leftMesh.bounds;
+        Mesh rightMesh = import.ImportFile(dir + bottomFrame_directory); Bounds rightBound = rightMesh.bounds;
 
         //Creating modules
         for (int i = 0; i < 10 ; i++)
@@ -131,8 +133,8 @@ public class Main : MonoBehaviour {
             Frame f2 = DefineFrame("Box", start, 10, rot, 50, "Plastic");
 
             //Position of frames in modules based on meshes and scale (0-point is between the two frames):
-            float module_leftEdge = start.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene
-            float module_rightEdge = start.z + (f1.scale * rightBound.min.x);
+            float module_leftEdge = start.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene +
+            float module_rightEdge = start.z + (f1.scale * rightBound.min.x);// -
 
             start.z = start.z - (module_leftEdge - module_rightEdge) - 0.01f;
 
@@ -192,11 +194,15 @@ public class Main : MonoBehaviour {
         //Frames:
         foreach (Module mod in robot.modules)
         {
-            Mesh l = new Mesh() { vertices = mod.frames[0].meshVertices, uv = mod.frames[0].meshUvs, triangles = mod.frames[0].meshTriangles };
-            Mesh r = new Mesh() { vertices = mod.frames[1].meshVertices, uv = mod.frames[1].meshUvs, triangles = mod.frames[1].meshTriangles };
+           /* Mesh l = new Mesh() { vertices = mod.frames[0].meshVertices, uv = mod.frames[0].meshUvs, triangles = mod.frames[0].meshTriangles };
+            Mesh r = new Mesh() { vertices = mod.frames[1].meshVertices, uv = mod.frames[1].meshUvs, triangles = mod.frames[1].meshTriangles };*/
+            ObjImporter import = new ObjImporter();
+            Mesh l = import.ImportFile(dir + upperFrame_directory);//Should make variable: String upperDirectory = ...
+            Mesh r = import.ImportFile(dir + bottomFrame_directory);
 
-            frameVis.Add(new Frame_Vis(mod.frames[0].guid, l, mod.frames[0].position));
-            frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, mod.frames[1].position));
+
+            frameVis.Add(new Frame_Vis(mod.frames[0].guid, l, mod.frames[0].position,mod.frames[0].scale));
+            frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, mod.frames[1].position,mod.frames[1].scale));
 
         }
 
@@ -219,8 +225,8 @@ public class Main : MonoBehaviour {
         //Initialize modules with joints and frames (+agx objects) : SHOULD BE IN SCENE DESIGNER, send triangles, verts and uvs!
         ObjImporter import = new ObjImporter();
 
-        Mesh leftMesh = import.ImportFile(dir + "/Robot/upper.obj");Bounds leftBound = leftMesh.bounds;
-        Mesh rightMesh = import.ImportFile(dir + "/Robot/bottom.obj");Bounds rightBound = rightMesh.bounds;
+        Mesh leftMesh = import.ImportFile(dir + upperFrame_directory);Bounds leftBound = leftMesh.bounds;
+        Mesh rightMesh = import.ImportFile(dir + bottomFrame_directory);Bounds rightBound = rightMesh.bounds;
  
         //new z pos is start.z - meshLength*i. 
         foreach (Module mod in robot.modules)
@@ -287,7 +293,7 @@ public class Main : MonoBehaviour {
             foreach (Frame frame in module.frames)
             {
                 //Retrieves Frameobject with GUID, and updates position,size,rotation:
-                try { frameVis.Find(x => x.guid == frame.guid).Update(frame.position/*, frame.scale*/, frame.rotation); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
+                try { frameVis.Find(x => x.guid == frame.guid).Update(frame.position, frame.rotation,module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
             }
 
             if (module.sensor != null)
