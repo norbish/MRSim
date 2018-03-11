@@ -288,6 +288,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scene Designer\Scripts\SceneDesigner.cs" />
     <Compile Include="Assets\Simulator\OBJImport\ObjImporter.cs" />
     <Compile Include="Assets\Simulator\Scripts\Dynamics\Dynamics.cs" />
     <Compile Include="Assets\Simulator\Scripts\Framework\AgX_Interface.cs" />
