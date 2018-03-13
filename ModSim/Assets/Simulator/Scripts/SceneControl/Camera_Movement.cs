@@ -7,6 +7,10 @@ public class Camera_Movement : MonoBehaviour {
     public GameObject robot;
 	// Use this for initialization
 	void Start () {
+        
+    }
+    public void Initialize()
+    {
         InvokeRepeating("getrobot", 0.5f, 99999);
         InvokeRepeating("getPos", 0.5f, 0.1f);
     }

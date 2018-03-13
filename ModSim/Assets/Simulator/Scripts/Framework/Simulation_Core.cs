@@ -22,6 +22,8 @@ namespace Simulation_Core
         public List<Module> modules = new List<Module>();
         public List<Joint> locks = new List<Joint>();
 
+        public string leftFrameDir, rightFrameDir;
+
         public void Add_Module(Module module)
         {
             modules.Add(module);

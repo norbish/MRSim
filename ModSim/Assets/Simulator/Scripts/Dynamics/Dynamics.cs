@@ -6,7 +6,7 @@ public static class Dynamics
 {
     public static int mode = 1; //Must be changed if the script is customized. 
     public static string currentAction = "Idle";//check this string to see if have to initialize
-    public static string newAction = "Turn";
+    public static string action = "Idle";// = "Turn";
     public static float[] angles;
     public static float[] amplitudes;
     public static float[] period;
@@ -17,7 +17,7 @@ public static class Dynamics
 
     public static void Initialize(string newAction, Simulation_Core.Robot robot, float _ampPitch,float _ampYaw, float _phaseOffsetPitch, float _phaseOffsetYaw, float _period, float _offsetPitch, float _offsetYaw)
     {
-        Dynamics.newAction = newAction;
+        Dynamics.action = newAction;
         int mod_n = robot.modules.Count;
         amplitudes = new float[mod_n];
         period = new float[mod_n];
@@ -75,40 +75,71 @@ public static class Dynamics
 
         Dynamics.currentAction = newAction;
     }
+    public static void SetMovement(string command, float move_dir, float turn_dir)
+    {
+        action = command;
+        if(move_dir != 0)
+            move_direction = move_dir;
+        if(turn_dir != 0)
+            turn_direction = turn_dir;
 
+        NewAction = true;
 
+        Debug.Log("Axis: " + move_direction);
+    }
+    public static void ChangeSpeed(float speed)
+    {
+        if (set_period + speed > 0 && set_period + speed < 20)
+        {
+            set_period = +speed;
+            NewAction = true;
+            Debug.Log("Turning: " + speed);
+        }
+    }
+    static float move_direction = 1;
+    static float turn_direction = 1;
+    static float set_period = 4.0f;
+    static bool NewAction = false;
     public static bool Control(Simulation_Core.Robot robot, float t)
     {
-        if (Time.fixedTime >= 30)
+        /*if (Time.fixedTime >= 30)
             newAction = "Forward";
         else if (Time.fixedTime <= 25)
             newAction = "Turn";
         else
-            newAction = "Reset";//Must have a smooth reset. 
-
-        switch(newAction)
+            newAction = "Reset";//Must have a smooth reset. */
+        //newAction = "Forward";
+        switch(action)
         {
-            default: return false;
+            
             case "Forward":
                 {
-                    if (currentAction != newAction)
-                        Initialize(newAction, robot, 4 * (Mathf.PI / 9.0f), 0, 0.5f*Mathf.PI*2.0f/3.0f, 0, 4.0f, 0, 0);
+                    if (NewAction)
+                        Initialize(action, robot, 4 * (Mathf.PI / 9.0f), 0, move_direction * 0.5f*Mathf.PI*2.0f/3.0f, 0, set_period, 0, 0);
                     Forward(robot, t);
                     return true;
                 }
             case "Turn":
                 {
-                    if (currentAction != newAction)
-                        Initialize(newAction, robot, 3.0f * (Mathf.PI / 9.0f), 0, Mathf.PI * 2.0f/3.0f, 0, 4.0f, 0, 20 * Mathf.PI / 180);
+                    if (NewAction)
+                        Initialize(action, robot, 3.0f * (Mathf.PI / 9.0f), 0, move_direction * Mathf.PI * 2.0f / 3.0f, 0, set_period, 0, turn_direction * 20 * Mathf.PI / 180);
+
 
                     Turn(robot, t);
                     return true;
                 }
+            case "Idle": Idle();return true;
+
             case "Reset":Reset(robot, t);return true;
+
+            default: return false;
         }
 
     }
+    public static void Idle()
+    {
 
+    }
     public static void Reset(Simulation_Core.Robot robot, float t)
     {
         foreach (var mod in robot.modules)

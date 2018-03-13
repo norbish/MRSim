@@ -25,7 +25,7 @@ public class Main : MonoBehaviour {
         Physics.autoSimulation = false; //Turn off Unity Physics
         
         
-        Main_Initialization();
+        //Main_Initialization();
     }
 
     void Main_Initialization()
@@ -36,10 +36,13 @@ public class Main : MonoBehaviour {
         SetContactPoints();//if custom contact points: move to MainInitialization().
 
         //If I start with 3 modules. Then, each time user clicks "Add Module", it adds a new module to the simulation (sim will be started, but not timestep).
-        Serialization();//Move this to Scene designer
+        //Serialization();//Move this to Scene designer
 
         //LOAD:
         Scenario scenario = Deserialize<Scenario>();
+
+        /* Loading the directories for the object files */
+        load_FrameDirectories(scenario.robot);
         Load_Robot(scenario.robot);
         Load_Scene(scenario.scene);
 
@@ -220,6 +223,12 @@ public class Main : MonoBehaviour {
 
     }
 
+    void load_FrameDirectories(Robot robot)
+    {
+        upperFrame_directory = "/Robot/" + robot.leftFrameDir;
+        bottomFrame_directory = "/Robot/" + robot.rightFrameDir;
+    }
+
     void Load_Robot(Robot robot)
     {
         //Initialize modules with joints and frames (+agx objects) : SHOULD BE IN SCENE DESIGNER, send triangles, verts and uvs!
@@ -264,26 +273,53 @@ public class Main : MonoBehaviour {
     List<Sensor_Vis> sensorVis = new List<Sensor_Vis>();
     List<Frame_Vis> frameVis = new List<Frame_Vis>();
     List<Joint_Vis> jointVis = new List<Joint_Vis>();
-    
-
-
+    float simulationTime = 0;
     void Update_Sim()
     {
         if (simulation_Running)//Check if simulation is paused
         {
             Agx_Simulation.StepForward();
+            //Check if a button has been pressed
+            //CheckInputs();
 
-            if (Time.fixedTime >= 2)//Wait for robot to settle on terrain
-                if (!Dynamics.Control(robot, Time.fixedTime))//Movement
+            if (simulationTime >= 2)//Wait for robot to settle on terrain
+                if (!Dynamics.Control(robot, simulationTime))//Movement
                     Debug.Log("wrong command");
 
             robot.Update();
 
             if (Visualization.enabled)
                 Update_Vis();
+
+            simulationTime += Time.deltaTime;
         }
         //Else: 
         //Start the canvas overlay to modify and create new modules
+    }
+    void Update()
+    {
+        CheckInputs();
+    }
+
+    /* Movement commands for the robot: */
+    void CheckInputs()
+    {
+        if(Input.GetButtonUp("Turn"))
+        {
+            Dynamics.SetMovement("Turn",0,Math.Sign(Input.GetAxis("Turn")));
+        }
+        if(Input.GetButtonUp("Forward"))
+        {
+            Dynamics.SetMovement("Forward", Math.Sign(Input.GetAxis("Forward")), 0);
+        }
+        if(Input.GetButtonUp("Reset"))
+        {
+            Dynamics.SetMovement("Reset", 0,0);
+        }
+        if(Input.GetButtonUp("Speed"))
+        {
+           Dynamics.ChangeSpeed(Math.Sign(Input.GetAxis("Speed")));
+        }
     }
 
     void Update_Vis()
