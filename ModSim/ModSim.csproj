@@ -288,7 +288,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scene Designer\Scripts\SceneDesigner.cs" />
     <Compile Include="Assets\Simulator\OBJImport\ObjImporter.cs" />
     <Compile Include="Assets\Simulator\Scripts\Dynamics\Dynamics.cs" />
     <Compile Include="Assets\Simulator\Scripts\Framework\AgX_Interface.cs" />
@@ -296,6 +295,7 @@
     <Compile Include="Assets\Simulator\Scripts\Framework\Unity_Visualization.cs" />
     <Compile Include="Assets\Simulator\Scripts\Main.cs" />
     <Compile Include="Assets\Simulator\Scripts\SceneControl\Camera_Movement.cs" />
+    <Compile Include="Assets\Simulator\Scripts\SceneControl\SceneDesigner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\StreamingAssets\XML\Scenario.xml" />
