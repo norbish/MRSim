@@ -115,9 +115,6 @@ public class Main : MonoBehaviour {
     {
         Robot robot_serialize = new Robot();
 
-        List<Frame> frames = new List<Frame>();
-        List<Simulation_Core.Joint> joints = new List<Simulation_Core.Joint>();
-
         Vector3 start = new Vector3(15, 12, 40);
 
         //For finding the size of the modules:
@@ -141,7 +138,7 @@ public class Main : MonoBehaviour {
 
             start.z = start.z - (module_leftEdge - module_rightEdge) - 0.01f;
 
-            Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, "Hinge", -(float)Math.PI / 2, (float)Math.PI / 2, 20.0f);
+            Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, "Hinge", -(float)Math.PI / 2, (float)Math.PI / 2, 10.0f);
 
             Module module = DefineModule(f1,j1,f2);
 
@@ -318,12 +315,13 @@ public class Main : MonoBehaviour {
         }
         if(Input.GetButtonUp("Speed"))
         {
-           Dynamics.ChangeSpeed(Math.Sign(Input.GetAxis("Speed")));
+           Dynamics.ChangeSpeed((float)Math.Sign(Input.GetAxis("Speed")));
         }
     }
-
+    GameObject go;
     void Update_Vis()
     {
+        
         foreach (Module module in robot.modules)
         {
             foreach (Frame frame in module.frames)

@@ -206,7 +206,7 @@ namespace Simulation_Core
         public float leftRangeLimit, rightRangeLimit;
 
         /*Alternative:*/
-        public float Kp = 1;
+        public float Kp = 3;
         public float max_vel;
 
         internal AgX_Joint joint;

@@ -89,11 +89,11 @@ public static class Dynamics
     }
     public static void ChangeSpeed(float speed)
     {
-        if (set_period + speed > 0 && set_period + speed < 20)
+        if (set_period - speed > 1 && set_period - speed < 20)
         {
-            set_period = +speed;
+            set_period -= speed;
             NewAction = true;
-            Debug.Log("Turning: " + speed);
+            Debug.Log("Speed: " + speed);
         }
     }
     static float move_direction = 1;
