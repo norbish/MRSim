@@ -215,6 +215,16 @@ public class SceneDesigner : MonoBehaviour {
             FirstModule = false;
         }
 
+        PrepareForNextInput();
+
+        AddModules(module_Count);module_Count++;
+
+        Debug.Log("Module created: ");
+
+    }
+
+    void PrepareForNextInput()
+    {
         left_Position_X.text = currentModulePosition.x.ToString();
         left_Position_Y.text = currentModulePosition.y.ToString();
         left_Position_Z.text = currentModulePosition.z.ToString();
@@ -223,17 +233,33 @@ public class SceneDesigner : MonoBehaviour {
         right_Position_Y.text = currentModulePosition.y.ToString();
         right_Position_Z.text = currentModulePosition.z.ToString();
 
-        AddModules(module_Count);module_Count++;
         //Y should always be rotated, atleast propose it:
-        left_Rotation_Y.text = right_Rotation_Y.text = "90";
+        left_Rotation_Y.text = right_Rotation_Y.text = "-90";
 
-        if (module_Count % 2 == 0)
+        if (module_Count % 2 != 0)
             left_Rotation_Z.text = right_Rotation_Z.text ="90";
         else
             left_Rotation_Z.text = right_Rotation_Z.text = "0";
-
-        Debug.Log("Module created: ");
     }
+
+    public void ButtonAddSensoryModule()
+    {
+        if(FirstModule)
+        {
+            currentModulePosition = l_pos;
+            FirstModule = false;
+        }
+
+        Vector3 scale = new Vector3(2, 2, 1);
+
+        Sensory_Module mod = new Sensory_Module()
+        {
+            guid = Guid.NewGuid(),
+            leftMod_Nr = -1,rightMod_Nr = 0, //if left is -1, it is the first module. if right is -1, it is the last module.
+        };
+
+    }
+
     public void RemoveModule()
     {
 

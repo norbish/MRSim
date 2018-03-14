@@ -20,6 +20,7 @@ namespace Simulation_Core
     public class Robot
     {
         public List<Module> modules = new List<Module>();
+        public List<Sensory_Module> sensorModules = new List<Sensory_Module>();
         public List<Joint> locks = new List<Joint>();
 
         public string leftFrameDir, rightFrameDir;
@@ -36,6 +37,11 @@ namespace Simulation_Core
 
         public void Initialize()//Initializes lock joints.
         {
+            foreach(Module mod in modules)
+            {
+                mod.Initialize();
+            }
+
             //Set locks
             for(int i = 0; i<modules.Count-1; i++)
             {
@@ -60,12 +66,12 @@ namespace Simulation_Core
 
     public class Module
     {
+        public int mod_Nr;
         public Vector3 position;
         public string Axis;
         public Frame[] frames = new Frame[2];
         public Joint joint;
 
-        public ForceSensor sensor;
         public float z_leftEdge, z_rightEdge, top, bot;
 
         public void Create(Frame left, Joint joint, Frame right)//Creates are for Scecne designer, Initialize is for simulator
@@ -73,36 +79,16 @@ namespace Simulation_Core
             frames[0] = left; frames[1] = right;
             this.joint = joint;
         }
-        public void Create(Frame left, Joint joint, Frame right, ForceSensor sensor)//With sensor
+
+        public void Initialize()
         {
-            frames[0] = left; frames[1] = right;
-            this.joint = joint;
-            this.sensor = sensor;
+            foreach (Frame frame in frames)
+                frame.Initialize();
+
+            position = Vector3.Lerp(frames[0].position, frames[1].position, 0.5f);
+            joint.Create_Hinge(frames[0], frames[1]);
         }
 
-        public void Initialize(Frame left, Frame right)
-        {
-            position = Vector3.Lerp(left.position, right.position, 0.5f);
-            joint.Create_Hinge(left, right);
-        }
-        public void Initialize_Sensors()//(DEPRECATED, sensors should be blocks in robot config)
-        {
-            
-
-            if (sensor != null)//If sensor is attached, position it and initialize:
-            {
-                if (Axis == "Pitch")
-                {
-                    sensor.position = new Vector3(position.x, bot - 0.1f, z_leftEdge); Debug.Log("Leftedge: " + z_leftEdge + "|bot: " + bot + "|zpos: " + position.z);
-                }
-                if (Axis == "Yaw")
-                {
-                    sensor.position = new Vector3(position.x, bot - 01f, z_leftEdge);
-                }
-                sensor.Initialize();
-                sensor.Lock(frames[0]);
-            }
-        }
         public void Update()
         {
             foreach(Frame frame in frames)//Update all frames in the module
@@ -113,9 +99,6 @@ namespace Simulation_Core
             //Update Joint: (There is always a joint)
             joint.Update();
 
-            //Update sensor: (deprecated)
-            if(sensor != null)
-                sensor.Update();
             //Update module position
             position = Vector3.Lerp(frames[0].position, frames[1].position, 0.5f);
         }
@@ -124,6 +107,8 @@ namespace Simulation_Core
     public class Sensory_Module //Square
     {
         public Guid guid;
+        public int leftMod_Nr, rightMod_Nr;
+
         public Vector3 position;
         public Vector3 rotation;
         public Vector3 size;

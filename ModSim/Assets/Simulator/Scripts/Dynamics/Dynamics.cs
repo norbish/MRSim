@@ -85,15 +85,15 @@ public static class Dynamics
 
         NewAction = true;
 
-        Debug.Log("Axis: " + move_direction);
+        Debug.Log("Action: " + command);
     }
     public static void ChangeSpeed(float speed)
     {
-        if (set_period - speed > 1 && set_period - speed < 20)
+        if (set_period - speed > 0 && set_period - speed < 20)
         {
             set_period -= speed;
             NewAction = true;
-            Debug.Log("Speed: " + speed);
+            Debug.Log("Period: " + set_period);
         }
     }
     static float move_direction = 1;
@@ -115,14 +115,14 @@ public static class Dynamics
             case "Forward":
                 {
                     if (NewAction)
-                        Initialize(action, robot, 4 * (Mathf.PI / 9.0f), 0, move_direction * 0.5f*Mathf.PI*2.0f/3.0f, 0, set_period, 0, 0);
+                        Initialize(action, robot, 2 * (Mathf.PI / 9.0f), 0, move_direction * 0.5f*Mathf.PI*2.0f/3.0f, 0, set_period, 0, 0);
                     Forward(robot, t);
                     return true;
                 }
             case "Turn":
                 {
                     if (NewAction)
-                        Initialize(action, robot, 3.0f * (Mathf.PI / 9.0f), 0, move_direction * Mathf.PI * 2.0f / 3.0f, 0, set_period, 0, turn_direction * 20 * Mathf.PI / 180);
+                        Initialize(action, robot, 2 * (Mathf.PI / 9.0f), 0, move_direction * Mathf.PI * 2.0f / 3.0f, 0, set_period, 0, turn_direction * 20 * Mathf.PI / 180);
 
 
                     Turn(robot, t);
