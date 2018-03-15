@@ -54,6 +54,20 @@ namespace AgX_Interface
             //connects right frame of left robot (LEFT) to left frame of right robot (RIGHT)
             Joint = new agx.LockJoint(left.agxFrame.GetAgxObject(), right.agxFrame.GetAgxObject(), (left.agxFrame.GetAgxObject().getPosition() + right.agxFrame.GetAgxObject().getPosition()).Divide(2));
         }
+
+        //Sensory module lock:
+        public void Create_Lock(string type, Frame right, Sensory_Module s_mod)
+        {
+            //Creates a joint with a specified middle position for the lockframe.
+            //THIS IS NOT THE MIDDLE OF THE LOCK FRAME (frames are longer than sensors)
+            Joint = new agx.LockJoint(right.agxFrame.GetAgxObject(),s_mod.agxPrimitive.GetAgxObject(),(right.agxFrame.GetAgxObject().getPosition() + s_mod.agxPrimitive.GetAgxObject().getPosition()).Divide(2));
+        }
+        public void Create_Lock(string type, Sensory_Module s_mod, Frame left)
+        {
+            //THIS IS NOT THE MIDDLE OF THE LOCK FRAME (frames are longer than sensors)
+            Joint = new agx.LockJoint(s_mod.agxPrimitive.GetAgxObject(), left.agxFrame.GetAgxObject(), (left.agxFrame.GetAgxObject().getPosition() + s_mod.agxPrimitive.GetAgxObject().getPosition()).Divide(2));
+        }
+
         public void SensorLock(Frame frame, ForceSensor sensor)
         {
             Joint = new agx.LockJoint(frame.agxFrame.GetAgxObject(), sensor.agxSensor.GetAgxObject(), Operations.ToAgxVec3(sensor.position) );
@@ -161,6 +175,10 @@ namespace AgX_Interface
         public void AddToSim()
         {
             Agx_Simulation.sim_Instance.add(agx_Object);
+        }
+        public agx.RigidBody GetAgxObject()
+        {
+            return agx_Object;
         }
     }
 

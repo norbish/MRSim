@@ -166,37 +166,42 @@ public class SceneDesigner : MonoBehaviour {
         writer.Close();
     }
 
-    public void AddModules(int count)
-    {
-        //For finding the size of the modules:
+    Bounds leftBound, rightBound;
+    void RefreshBounds()
+    {   //For finding the size of the modules:
         ObjImporter import = new ObjImporter();
 
-        Mesh leftMesh = import.ImportFile(dir + upperFrame_ObjName); Bounds leftBound = leftMesh.bounds;
-        Mesh rightMesh = import.ImportFile(dir + bottomFrame_ObjName); Bounds rightBound = rightMesh.bounds;
+        Mesh leftMesh = import.ImportFile(dir + upperFrame_ObjName); leftBound = leftMesh.bounds;
+        Mesh rightMesh = import.ImportFile(dir + bottomFrame_ObjName); rightBound = rightMesh.bounds;
+    }
+    public void AddModules(int count)
+    {
+        RefreshBounds();
+        //This, user should decide him/herself:
+        var rot = count % 2 == 0 ? new Vector3(0, -Mathf.PI / 2, 0) : new Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
 
-            //This, user should decide him/herself:
-            var rot = count % 2 == 0 ? new Vector3(0, -Mathf.PI / 2, 0) : new Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
+        Frame f1 = DefineFrame("Box", currentModulePosition, l_scale, l_rot, l_mass, l_mat);
+        Frame f2 = DefineFrame("Box", currentModulePosition, r_scale, r_rot, r_mass, r_mat);
 
-            Frame f1 = DefineFrame("Box", currentModulePosition, l_scale, l_rot, l_mass, l_mat);
-            Frame f2 = DefineFrame("Box", currentModulePosition, r_scale, r_rot, r_mass, r_mat);
+        //Position of frames in modules based on meshes and scale (0-point is between the two frames):
+        float module_leftEdge = currentModulePosition.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene +
+        float module_rightEdge = currentModulePosition.z + (f1.scale * rightBound.min.x);// -
 
-            //Position of frames in modules based on meshes and scale (0-point is between the two frames):
-            float module_leftEdge = currentModulePosition.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene +
-            float module_rightEdge = currentModulePosition.z + (f1.scale * rightBound.min.x);// -
+        currentModulePosition.z = currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
 
-            currentModulePosition.z = currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
+        Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, jointType, leftRangeLimit, rightRangeLimit, maxVelocity);
 
-            Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, jointType, leftRangeLimit, rightRangeLimit,maxVelocity);
+        Module module = DefineModule(f1, j1, f2);
+        //Which number, for the sensor modules:
+        module.mod_Nr = count;
 
-            Module module = DefineModule(f1, j1, f2);
-
-            //CREATES A LOCK BETWEEN MODULES when adding new module to robot:
-            if (count > 0)
-            {
-                robot_serialize.Add_Module(module, new Simulation_Core.Joint());
-            }
-            else
-                robot_serialize.Add_Module(module/*,lockJoint*/);
+        //CREATES A LOCK BETWEEN MODULES when adding new module to robot:
+        if (count > 0)
+        {
+            robot_serialize.Add_Module(module, new Simulation_Core.Joint());
+        }
+        else
+            robot_serialize.Add_Module(module/*,lockJoint*/);
 
     }
     /**--------------------------------------------------Adding module----------------------------------------------------*/
@@ -225,13 +230,7 @@ public class SceneDesigner : MonoBehaviour {
 
     void PrepareForNextInput()
     {
-        left_Position_X.text = currentModulePosition.x.ToString();
-        left_Position_Y.text = currentModulePosition.y.ToString();
-        left_Position_Z.text = currentModulePosition.z.ToString();
-
-        right_Position_X.text = currentModulePosition.x.ToString();
-        right_Position_Y.text = currentModulePosition.y.ToString();
-        right_Position_Z.text = currentModulePosition.z.ToString();
+        PrepareNextCurrentPosition();
 
         //Y should always be rotated, atleast propose it:
         left_Rotation_Y.text = right_Rotation_Y.text = "-90";
@@ -241,23 +240,56 @@ public class SceneDesigner : MonoBehaviour {
         else
             left_Rotation_Z.text = right_Rotation_Z.text = "0";
     }
+    void PrepareNextCurrentPosition()
+    {
+        left_Position_X.text = currentModulePosition.x.ToString();
+        left_Position_Y.text = currentModulePosition.y.ToString();
+        left_Position_Z.text = currentModulePosition.z.ToString();
+
+        right_Position_X.text = currentModulePosition.x.ToString();
+        right_Position_Y.text = currentModulePosition.y.ToString();
+        right_Position_Z.text = currentModulePosition.z.ToString();
+    }
 
     public void ButtonAddSensoryModule()
     {
-        if(FirstModule)
+        bool first_ModulePos = false;
+        //Get values just to estimate the frame params. Thus, we can calculate the next position of currentModulePosition.
+        GetFrameValues();GetJointValues();
+        
+        //Ensure the current mesh is calculated:
+        RefreshBounds();
+
+        Vector3 moduleScale = new Vector3(1,1,0.5f);
+        var leftModSize_Z = (l_scale * leftBound.max.z);//width of the left module
+
+        if (FirstModule)
         {
+            //Position for this module center:
             currentModulePosition = l_pos;
             FirstModule = false;
+            first_ModulePos = true;
+        }
+        else//From left, position:
+        {
+            //Position for this module center:
+            currentModulePosition.z = currentModulePosition.z + leftModSize_Z - moduleScale.z/2 - 0.01f;//Sensor.z = sensor.z + (l_scale * leftSize.z) - sensorScale.z/2 (+ because we are going backwards)
         }
 
-        Vector3 scale = new Vector3(2, 2, 1);
+        //Create the sensory module:
+        var mod = DefineSensoryModule(module_Count-1,module_Count,currentModulePosition,moduleScale,10,Vector3.zero,"Plastic");//module count-1 and module count will be the place where sensor module is set.
 
-        Sensory_Module mod = new Sensory_Module()
+        if (first_ModulePos)
         {
-            guid = Guid.NewGuid(),
-            leftMod_Nr = -1,rightMod_Nr = 0, //if left is -1, it is the first module. if right is -1, it is the last module.
-        };
+            robot_serialize.Add_SensorModule(mod, new Simulation_Core.Joint());
+        }
+        else
+            robot_serialize.Add_SensorModule(new Simulation_Core.Joint(), mod, new Simulation_Core.Joint());
 
+        //Position for the next module center:
+        currentModulePosition.z = currentModulePosition.z - moduleScale.z/2 - leftModSize_Z - 0.01f;// currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
+
+        PrepareNextCurrentPosition();
     }
 
     public void RemoveModule()
@@ -302,6 +334,11 @@ public class SceneDesigner : MonoBehaviour {
         float.TryParse(joint_pValue.text, out pValue);
 
         Debug.Log("Joint created");
+    }
+
+    void GetSensoryModuleValues()
+    {
+        
     }
 
     /*------------------------------------------------Hiding the designer-------------------------------------------------*/
@@ -361,6 +398,20 @@ public class SceneDesigner : MonoBehaviour {
             position = new Vector3(),
             materialName = "Rock",
             height = 10
+        };
+    }
+    Sensory_Module DefineSensoryModule(int leftModNr, int rightModNr, Vector3 pos, Vector3 size, float mass, Vector3 rot, string materialName )
+    {
+        return new Sensory_Module()
+        {
+            guid = Guid.NewGuid(),
+            leftMod_Nr = leftModNr,
+            rightMod_Nr = rightModNr, //if left is -1, it is the first module. if right is -1, it is the last module.
+            position = pos,
+            size = size,
+            materialName = materialName,
+            mass = mass,
+            rotation = rot
         };
     }
 }

@@ -35,18 +35,49 @@ namespace Simulation_Core
             locks.Add(lockjoint);
         }
 
+        public void Add_SensorModule(Sensory_Module module, Joint r_lockjoint)
+        {//This just creates the locks, doesnt need more info.
+            sensorModules.Add(module);
+            locks.Add(r_lockjoint);
+        }
+        public void Add_SensorModule(Joint l_lockjoint, Sensory_Module module, Joint r_lockjoint)
+        {
+            sensorModules.Add(module);
+            locks.Add(l_lockjoint);
+            locks.Add(r_lockjoint);
+        }
+
         public void Initialize()//Initializes lock joints.
         {
+            //Creates joints between frames and inits frame objects:
             foreach(Module mod in modules)
             {
                 mod.Initialize();
             }
+            foreach(Sensory_Module mod in sensorModules)
+            {
+                mod.Initialize();
+            }
+            //if sensormodule on 0, attach to first module. 
 
-            //Set locks
+            int count = 0;//USE THIS
+            //Sets locks between modules:
             for(int i = 0; i<modules.Count-1; i++)
             {
+                //IF SENSOR THEN MODULE, IT DOES NOT CONNECT. HOWEVER, SENSOR then TWO MODULES, IT CONNECTS. (Unsure if right connects).
+                //JEG KAN IKKE HA I SOM INTERATOR.. MÅ HA COUNT. BISH
+                if(sensorModules.Any(x => x.rightMod_Nr == i))//if this module is to the right of a sensor module
+                {
+                    locks[i].Create_SensorModuleLock(sensorModules.Find(x => x.rightMod_Nr == i), modules[i].frames[0]);
+                }
+
+                if (sensorModules.Any(x => x.leftMod_Nr == i))//if this module is to the left of a sensor module:
+                {
+                    locks[i].Create_SensorModuleLock(modules[i].frames[1],sensorModules.Find(x => x.leftMod_Nr == i));
+                }
+                else//If this module has no right or left to any sensor
                 locks[i].Create_Lock(modules[i].frames[1], modules[i + 1].frames[0]);
-                
+
             }
             //Set Pitch or Yaw
             foreach (Module module in modules)
@@ -196,7 +227,7 @@ namespace Simulation_Core
 
         internal AgX_Joint joint;
         internal Frame left, right;
-
+        
         public void Create_Hinge(Frame left, Frame right)
         {
             this.left = left; this.right = right;
@@ -213,6 +244,20 @@ namespace Simulation_Core
             type = "Lock";
             joint = new AgX_Joint(guid);
             joint.Create_Lock("Lock", left, right);
+            joint.AddToSim();
+        }
+
+        //Creates an AgX joint that locks a frame and a sensor module together (agxObjects can not be referenced because references are not saved to this joint object). 
+        public void Create_SensorModuleLock(Frame right, Sensory_Module s_mod)//sensor placed last, right frame of left module 
+        {
+            joint = new AgX_Joint(guid);
+            joint.Create_Lock("Lock",right,s_mod);//FIX IN AGX INTERFACE
+            joint.AddToSim();
+        }
+        public void Create_SensorModuleLock(Sensory_Module s_mod, Frame left)//sensor placed first, left frame of right module
+        {
+            joint = new AgX_Joint(guid);
+            joint.Create_Lock("Lock", s_mod, left);//FIX IN AGX INTERFACE
             joint.AddToSim();
         }
 
@@ -242,7 +287,7 @@ namespace Simulation_Core
 
         public void Update()
         {
-            mid_Position = left.position - left.GetQuatRot() * Vector3.forward;// * left.scale.z;
+            //mid_Position = left.position - left.GetQuatRot() * Vector3.forward;// * left.scale.z;
         }
 
         public Vector3[] Vis_ContactPoints()
