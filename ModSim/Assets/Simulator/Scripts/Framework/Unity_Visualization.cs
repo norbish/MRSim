@@ -25,12 +25,13 @@ namespace Unity_Visualization
             renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
             renderer.material.color = Color.white;
 
-            gameobject.transform.localScale = scale*4;
+            gameobject.transform.localScale = scale*2;
             gameobject.transform.position = position;
         }
-        public void Update(Vector3 position)
+        public void Update(Vector3 position, Vector3 rotation)
         {
             gameobject.transform.position = position;
+            gameobject.transform.eulerAngles = rotation;
         }
     }
 

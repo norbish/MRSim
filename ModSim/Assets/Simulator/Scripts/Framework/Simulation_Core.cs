@@ -25,6 +25,8 @@ namespace Simulation_Core
 
         public string leftFrameDir, rightFrameDir;
 
+        internal Vector3 position;
+
         public void Add_Module(Module module)
         {
             modules.Add(module);
@@ -60,23 +62,29 @@ namespace Simulation_Core
             }
             //if sensormodule on 0, attach to first module. 
 
-            int count = 0;//USE THIS
+            int lockNrCount = 0;//USE THIS
+            Debug.Log(locks.Count);
             //Sets locks between modules:
-            for(int i = 0; i<modules.Count-1; i++)
+            for(int i = 0; i<modules.Count; i++)
             {
-                //IF SENSOR THEN MODULE, IT DOES NOT CONNECT. HOWEVER, SENSOR then TWO MODULES, IT CONNECTS. (Unsure if right connects).
-                //JEG KAN IKKE HA I SOM INTERATOR.. MÅ HA COUNT. BISH
-                if(sensorModules.Any(x => x.rightMod_Nr == i))//if this module is to the right of a sensor module
+
+                if(sensorModules.Any(x => x.rightMod_Nr == i))//if this module is to the right of a sensor moduleif(sensorModules.Any(x => x.rightMod_Nr == modules[i].number)
                 {
-                    locks[i].Create_SensorModuleLock(sensorModules.Find(x => x.rightMod_Nr == i), modules[i].frames[0]);
+                    locks[lockNrCount].Create_SensorModuleLock(sensorModules.Find(x => x.rightMod_Nr == i), modules[i].frames[0]);
+                    lockNrCount++;
                 }
 
                 if (sensorModules.Any(x => x.leftMod_Nr == i))//if this module is to the left of a sensor module:
                 {
-                    locks[i].Create_SensorModuleLock(modules[i].frames[1],sensorModules.Find(x => x.leftMod_Nr == i));
+                    locks[lockNrCount].Create_SensorModuleLock(modules[i].frames[1], sensorModules.Find(x => x.leftMod_Nr == i));
+                    lockNrCount++;
                 }
-                else//If this module has no right or left to any sensor
-                locks[i].Create_Lock(modules[i].frames[1], modules[i + 1].frames[0]);
+
+                if(i+1 < modules.Count && !sensorModules.Any(x => x.leftMod_Nr == i || x.rightMod_Nr == i))//If the iterator is not exceeding module count, and this module and has no right or left to any sensor
+                {
+                    locks[lockNrCount].Create_Lock(modules[i].frames[1], modules[i + 1].frames[0]);
+                    lockNrCount++;
+                }
 
             }
             //Set Pitch or Yaw
@@ -87,7 +95,14 @@ namespace Simulation_Core
 
         public void Update()
         {
+            position = Vector3.zero;
             foreach(Module mod in modules)
+            {
+                mod.Update();
+                position += mod.position;
+            }
+            position /= modules.Count;
+            foreach(Sensory_Module mod in sensorModules)
             {
                 mod.Update();
             }
@@ -365,21 +380,6 @@ namespace Simulation_Core
         }
     }
 
-    /*public class Sensor
-    {
-        public Guid guid;
-        public float value;
-        public Vector3 position;
-        public Vector3 scale;
-
-        internal AgX_Sensor agxSensor;
-        internal AgX_Joint lockJoint;
-
-        virtual public void Lock(Frame frame)
-        {
-
-        }
-    }*/
 
     public class ForceSensor
     {
@@ -418,5 +418,6 @@ namespace Simulation_Core
 
         }
     }
-	
+
+
 }

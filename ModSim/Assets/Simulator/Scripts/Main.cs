@@ -117,6 +117,7 @@ public class Main : MonoBehaviour {
         this.scene = scene;
     }
 
+
     void Load_Vis()
     {
         //Frames:
@@ -128,10 +129,14 @@ public class Main : MonoBehaviour {
             Mesh l = import.ImportFile(dir + upperFrame_directory);//Should make variable: String upperDirectory = ...
             Mesh r = import.ImportFile(dir + bottomFrame_directory);
 
-
             frameVis.Add(new Frame_Vis(mod.frames[0].guid, l, mod.frames[0].position,mod.frames[0].scale));
             frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, mod.frames[1].position,mod.frames[1].scale));
 
+        }
+
+        foreach(Sensory_Module mod in robot.sensorModules)
+        {
+            sensorVis.Add(new Sensor_Vis(mod.guid, mod.position, mod.size));
         }
 
         //Scene:
@@ -181,6 +186,11 @@ public class Main : MonoBehaviour {
 
             //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }
         }
+        foreach(Sensory_Module mod in robot.sensorModules)
+        {
+            try { sensorVis.Find(x => x.guid == mod.guid).Update(mod.position, mod.rotation); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
+        }
+
     }
 
 

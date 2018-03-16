@@ -180,13 +180,14 @@ public class SceneDesigner : MonoBehaviour {
         //This, user should decide him/herself:
         var rot = count % 2 == 0 ? new Vector3(0, -Mathf.PI / 2, 0) : new Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
 
-        Frame f1 = DefineFrame("Box", currentModulePosition, l_scale, l_rot, l_mass, l_mat);
-        Frame f2 = DefineFrame("Box", currentModulePosition, r_scale, r_rot, r_mass, r_mat);
+        Frame f1 = DefineFrame("Box", l_pos, l_scale, l_rot, l_mass, l_mat);
+        Frame f2 = DefineFrame("Box", l_pos, r_scale, r_rot, r_mass, r_mat);
 
         //Position of frames in modules based on meshes and scale (0-point is between the two frames):
         float module_leftEdge = currentModulePosition.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene +
         float module_rightEdge = currentModulePosition.z + (f1.scale * rightBound.min.x);// -
 
+        //if next is a module:
         currentModulePosition.z = currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
 
         Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, jointType, leftRangeLimit, rightRangeLimit, maxVelocity);
@@ -201,7 +202,7 @@ public class SceneDesigner : MonoBehaviour {
             robot_serialize.Add_Module(module, new Simulation_Core.Joint());
         }
         else
-            robot_serialize.Add_Module(module/*,lockJoint*/);
+            robot_serialize.Add_Module(module);
 
     }
     /**--------------------------------------------------Adding module----------------------------------------------------*/
@@ -210,6 +211,7 @@ public class SceneDesigner : MonoBehaviour {
     bool FirstModule = true;
     public void ButtonAddModule()
     {
+        
         GetFrameValues();
         GetJointValues();
 
@@ -220,10 +222,11 @@ public class SceneDesigner : MonoBehaviour {
             FirstModule = false;
         }
 
-        PrepareForNextInput();
+        
 
         AddModules(module_Count);module_Count++;
 
+        PrepareForNextInput();
         Debug.Log("Module created: ");
 
     }
@@ -251,47 +254,87 @@ public class SceneDesigner : MonoBehaviour {
         right_Position_Z.text = currentModulePosition.z.ToString();
     }
 
+    public InputField Ism_leftnr, Ism_rightnr, Ism_pos_x, Ism_pos_y, Ism_pos_z, Ism_size_x, Ism_size_y, Ism_size_z, Ism_mat, Ism_mass;
+    Vector3 sm_pos, sm_size;
+    float sm_mass;
+    string sm_mat;
+
+    public GameObject sensoryModulePanel;
+    bool sm_panelOpen = false;
+
+    public Text addSensoryModuleText;
+
     public void ButtonAddSensoryModule()
     {
-        bool first_ModulePos = false;
-        //Get values just to estimate the frame params. Thus, we can calculate the next position of currentModulePosition.
-        GetFrameValues();GetJointValues();
-        
-        //Ensure the current mesh is calculated:
-        RefreshBounds();
-
-        Vector3 moduleScale = new Vector3(1,1,0.5f);
-        var leftModSize_Z = (l_scale * leftBound.max.z);//width of the left module
-
-        if (FirstModule)
-        {
-            //Position for this module center:
-            currentModulePosition = l_pos;
-            FirstModule = false;
-            first_ModulePos = true;
+        //Opens and closes the sensory module panel when needed:
+        if(sm_panelOpen)
+        {//Closes panel
+            AddSensoryModule();
+            sensoryModulePanel.gameObject.SetActive(false);
+            addSensoryModuleText.text = "Add Sensor Module";
+            sm_panelOpen = false;
+        }else
+        {//Opens panel
+            PrepareSMPosition();
+            sensoryModulePanel.gameObject.SetActive(true);
+            addSensoryModuleText.text = "Create";
+            sm_panelOpen = true;
         }
-        else//From left, position:
-        {
-            //Position for this module center:
-            currentModulePosition.z = currentModulePosition.z + leftModSize_Z - moduleScale.z/2 - 0.01f;//Sensor.z = sensor.z + (l_scale * leftSize.z) - sensorScale.z/2 (+ because we are going backwards)
-        }
-
-        //Create the sensory module:
-        var mod = DefineSensoryModule(module_Count-1,module_Count,currentModulePosition,moduleScale,10,Vector3.zero,"Plastic");//module count-1 and module count will be the place where sensor module is set.
-
-        if (first_ModulePos)
-        {
-            robot_serialize.Add_SensorModule(mod, new Simulation_Core.Joint());
-        }
-        else
-            robot_serialize.Add_SensorModule(new Simulation_Core.Joint(), mod, new Simulation_Core.Joint());
-
-        //Position for the next module center:
-        currentModulePosition.z = currentModulePosition.z - moduleScale.z/2 - leftModSize_Z - 0.01f;// currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
-
-        PrepareNextCurrentPosition();
     }
 
+    public void AddSensoryModule()
+    {
+        if (GetSensoryModuleValues())
+        {
+
+            bool first_ModulePos = false;
+            //Get values just to estimate the frame params. Thus, we can calculate the next position of currentModulePosition.
+            GetFrameValues(); GetJointValues();
+
+            //Ensure the current mesh is calculated:
+            RefreshBounds();
+
+            var leftModSize_Z = (l_scale * ((leftBound.max.x + Math.Abs(rightBound.min.x))/2));//length of the left module
+
+            if (FirstModule)
+            {
+                //Position for this module center:
+                currentModulePosition = l_pos;
+                FirstModule = false;
+                first_ModulePos = true;
+            }
+            else//From left, position:
+            {
+                //Position for this module center, if not first:
+                currentModulePosition.z = currentModulePosition.z + leftModSize_Z - sm_size.z - 0.01f;//Sensor.z = sensor.z + (l_scale * leftSize.z) - sensorScale.z/2 (+ because we are going backwards)
+            }
+
+            //Create the sensory module:
+            var mod = DefineSensoryModule(module_Count - 1, module_Count, currentModulePosition, sm_size, sm_mass, Vector3.zero, sm_mat);//module count-1 and module count will be the place where sensor module is set.
+            Debug.Log("Left: " + (module_Count - 1) + ", Right: " + module_Count);
+            if (first_ModulePos)
+            {
+                robot_serialize.Add_SensorModule(mod, new Simulation_Core.Joint());
+            }
+            else
+                robot_serialize.Add_SensorModule(new Simulation_Core.Joint(), mod, new Simulation_Core.Joint());
+
+            //Position for the next module center:
+            currentModulePosition.z = currentModulePosition.z - sm_size.z  - leftModSize_Z - 0.01f;// currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
+
+            PrepareNextCurrentPosition();
+        }
+    }
+
+    void PrepareSMPosition()
+    {
+        Ism_pos_x.text = currentModulePosition.x.ToString();
+        Ism_pos_y.text = currentModulePosition.y.ToString();
+        Ism_pos_z.text = currentModulePosition.z.ToString();
+        Ism_leftnr.text = (module_Count - 1).ToString();
+        Ism_rightnr.text = module_Count.ToString();
+    }
+    
     public void RemoveModule()
     {
 
@@ -336,9 +379,27 @@ public class SceneDesigner : MonoBehaviour {
         Debug.Log("Joint created");
     }
 
-    void GetSensoryModuleValues()
+    bool GetSensoryModuleValues()
     {
-        
+        try
+        {
+            float.TryParse(Ism_pos_x.text, out sm_pos.x);
+            float.TryParse(Ism_pos_y.text, out sm_pos.y);
+            float.TryParse(Ism_pos_z.text, out sm_pos.z);
+
+            float.TryParse(Ism_size_x.text, out sm_size.x);
+            float.TryParse(Ism_size_y.text, out sm_size.y);
+            float.TryParse(Ism_size_z.text, out sm_size.z);
+
+            sm_mat = Ism_mat.text;
+            float.TryParse(Ism_mass.text, out sm_mass);
+            return true;
+        }catch(NullReferenceException)
+        {
+            Debug.Log("could not get textbox data");
+            return false;
+        }
+
     }
 
     /*------------------------------------------------Hiding the designer-------------------------------------------------*/
