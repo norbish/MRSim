@@ -190,15 +190,15 @@ public class Main : MonoBehaviour {
             foreach (Frame frame in module.frames)
             {
                 //Retrieves Frameobject with GUID, and updates position,size,rotation:
-                try { frameVis.Find(x => x.guid == frame.guid).Update(Sim_CoreHelper(frame.position), Sim_CoreHelper(frame.rotation),module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
-                Debug.Log(frame.rotation);
+                try { frameVis.Find(x => x.guid == frame.guid).Update(Sim_CoreHelper(frame.position), Sim_CoreHelper(frame.GetQuatRot()),module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
+                Debug.Log(frame.position.x + "," + frame.position.y);
             }
 
             //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }
         }
         foreach(Sensory_Module mod in robot.sensorModules)
         {
-            try { sensorVis.Find(x => x.guid == mod.guid).Update(Sim_CoreHelper(mod.position), Sim_CoreHelper(mod.rotation)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
+            try { sensorVis.Find(x => x.guid == mod.guid).Update(Sim_CoreHelper(mod.position), Sim_CoreHelper(mod.qrot)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
         }
 
     }
@@ -303,6 +303,15 @@ public class Main : MonoBehaviour {
         vector.z = (float)vec.z;
 
         return vector;
+    }
+    UnityEngine.Quaternion Sim_CoreHelper(Simulation_Core.Quaternion quat)
+    {
+        UnityEngine.Quaternion Uq = new UnityEngine.Quaternion();
+        Uq.x = (float)quat.x;
+        Uq.y = (float)quat.y;
+        Uq.z = (float)quat.z;
+        Uq.w = (float)quat.w;
+        return Uq;
     }
 
 }
