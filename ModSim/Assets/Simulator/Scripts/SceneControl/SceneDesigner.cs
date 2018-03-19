@@ -6,6 +6,7 @@ using Simulation_Core;
 using System;
 using System.Xml.Serialization;
 using System.IO;
+using UnityEditor;
 
 public class SceneDesigner : MonoBehaviour {
     public GameObject SIMULATOR,CAMERA;
@@ -20,7 +21,7 @@ public class SceneDesigner : MonoBehaviour {
     public InputField joint_leftRangeLimit, joint_rightRangeLimit, joint_maxVelocity, joint_pValue;
 
     float l_scale, l_mass, r_scale, r_mass;
-    Vector3 l_pos, l_rot, r_pos, r_rot;
+    Simulation_Core.Vector3 l_pos, l_rot, r_pos, r_rot;
     string l_mat, r_mat;
 
     string jointType;
@@ -61,7 +62,7 @@ public class SceneDesigner : MonoBehaviour {
         robot_serialize = new Robot();
 
         //Start position for the first module
-        Vector3 start_Position = new Vector3(15, 12, 40);
+        UnityEngine.Vector3 start_Position = new UnityEngine.Vector3(15, 12, 40);
 
         //For finding the size of the modules:
         ObjImporter import = new ObjImporter();
@@ -73,7 +74,7 @@ public class SceneDesigner : MonoBehaviour {
         for (int i = 0; i < 10; i++)
         {
             //This, user should decide him/herself:
-            var rot = i % 2 == 0 ? new Vector3(0, -Mathf.PI / 2, 0) : new Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
+            var rot = i % 2 == 0 ? new UnityEngine.Vector3(0, -Mathf.PI / 2, 0) : new UnityEngine.Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
 
             Frame f1 = DefineFrame("Box", start_Position, 10, rot, 50, "Plastic");
             Frame f2 = DefineFrame("Box", start_Position, 10, rot, 50, "Plastic");
@@ -105,7 +106,7 @@ public class SceneDesigner : MonoBehaviour {
         Texture2D hMap = Resources.Load("Heightmap3") as Texture2D;//Rename to terrain
         byte[] bytes = hMap.EncodeToPNG();
 
-        var scene_serialize = DefineScene(bytes, Vector3.zero, "Rock", 10);
+        var scene_serialize = DefineScene(bytes, UnityEngine.Vector3.zero, "Rock", 10);
 
         //Add robot and scene to scenario:
         Scenario scenario_serialize = new Scenario()
@@ -142,7 +143,7 @@ public class SceneDesigner : MonoBehaviour {
         Texture2D hMap = Resources.Load("Heightmap3") as Texture2D;//Rename to terrain
         byte[] bytes = hMap.EncodeToPNG();
 
-        scene_serialize = DefineScene(bytes, Vector3.zero, "Rock", 10);
+        scene_serialize = DefineScene(bytes, UnityEngine.Vector3.zero, "Rock", 10);
     }
 
     public void FinalizeCreation()
@@ -178,14 +179,14 @@ public class SceneDesigner : MonoBehaviour {
     {
         RefreshBounds();
         //This, user should decide him/herself:
-        var rot = count % 2 == 0 ? new Vector3(0, -Mathf.PI / 2, 0) : new Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
+        var rot = count % 2 == 0 ? new UnityEngine.Vector3(0, -Mathf.PI / 2, 0) : new UnityEngine.Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
 
         Frame f1 = DefineFrame("Box", l_pos, l_scale, l_rot, l_mass, l_mat);
         Frame f2 = DefineFrame("Box", l_pos, r_scale, r_rot, r_mass, r_mat);
 
         //Position of frames in modules based on meshes and scale (0-point is between the two frames):
-        float module_leftEdge = currentModulePosition.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene +
-        float module_rightEdge = currentModulePosition.z + (f1.scale * rightBound.min.x);// -
+        float module_leftEdge = (float)currentModulePosition.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene +
+        float module_rightEdge = (float)currentModulePosition.z + (f1.scale * rightBound.min.x);// -
 
         //if next is a module:
         currentModulePosition.z = currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
@@ -207,7 +208,7 @@ public class SceneDesigner : MonoBehaviour {
     }
     /**--------------------------------------------------Adding module----------------------------------------------------*/
     int module_Count = 0;
-    Vector3 currentModulePosition = new Vector3(15, 12, 40);
+    Simulation_Core.Vector3 currentModulePosition = new Simulation_Core.Vector3(15, 12, 40);
     bool FirstModule = true;
     public void ButtonAddModule()
     {
@@ -255,7 +256,7 @@ public class SceneDesigner : MonoBehaviour {
     }
 
     public InputField Ism_leftnr, Ism_rightnr, Ism_pos_x, Ism_pos_y, Ism_pos_z, Ism_size_x, Ism_size_y, Ism_size_z, Ism_mat, Ism_mass;
-    Vector3 sm_pos, sm_size;
+    Simulation_Core.Vector3 sm_pos, sm_size;
     float sm_mass;
     string sm_mat;
 
@@ -310,7 +311,7 @@ public class SceneDesigner : MonoBehaviour {
             }
 
             //Create the sensory module:
-            var mod = DefineSensoryModule(module_Count - 1, module_Count, currentModulePosition, sm_size, sm_mass, Vector3.zero, sm_mat);//module count-1 and module count will be the place where sensor module is set.
+            var mod = DefineSensoryModule(module_Count - 1, module_Count, currentModulePosition, sm_size, sm_mass, Simulation_Core.Vector3.zero, sm_mat);//module count-1 and module count will be the place where sensor module is set.
             Debug.Log("Left: " + (module_Count - 1) + ", Right: " + module_Count);
             if (first_ModulePos)
             {
@@ -344,24 +345,24 @@ public class SceneDesigner : MonoBehaviour {
     {
         //Left Frame:
         float.TryParse(left_scale.text, out l_scale);
-        float.TryParse(left_Position_X.text, out l_pos.x);
-        float.TryParse(left_Position_Y.text, out l_pos.y);
-        float.TryParse(left_Position_Z.text, out l_pos.z);
+        double.TryParse(left_Position_X.text, out l_pos.x);
+        double.TryParse(left_Position_Y.text, out l_pos.y);
+        double.TryParse(left_Position_Z.text, out l_pos.z);
 
-        float.TryParse(left_Rotation_X.text, out l_rot.x);l_rot.x *= ((float)Math.PI / 180);//deg to rad
-        float.TryParse(left_Rotation_Y.text, out l_rot.y);l_rot.y *= ((float)Math.PI / 180);//deg to rad
-        float.TryParse(left_Rotation_Z.text, out l_rot.z);l_rot.z *= ((float)Math.PI / 180);//deg to rad
+        double.TryParse(left_Rotation_X.text, out l_rot.x);l_rot.x *= ((float)Math.PI / 180);//deg to rad
+        double.TryParse(left_Rotation_Y.text, out l_rot.y);l_rot.y *= ((float)Math.PI / 180);//deg to rad
+        double.TryParse(left_Rotation_Z.text, out l_rot.z);l_rot.z *= ((float)Math.PI / 180);//deg to rad
         l_mat = left_Material.text;
         float.TryParse(left_Mass.text, out l_mass);
 
         //Right Frame:
         float.TryParse(right_scale.text, out r_scale);
-        float.TryParse(right_Position_X.text, out r_pos.x);
-        float.TryParse(right_Position_Y.text, out r_pos.y);
-        float.TryParse(right_Position_Z.text, out r_pos.z);
-        float.TryParse(right_Rotation_X.text, out r_rot.x); r_rot.x *= ((float)Math.PI / 180);//deg to rad
-        float.TryParse(right_Rotation_Y.text, out r_rot.y); r_rot.y *= ((float)Math.PI / 180);//deg to rad
-        float.TryParse(right_Rotation_Z.text, out r_rot.z); r_rot.z *= ((float)Math.PI / 180);//deg to rad
+        double.TryParse(right_Position_X.text, out r_pos.x);
+        double.TryParse(right_Position_Y.text, out r_pos.y);
+        double.TryParse(right_Position_Z.text, out r_pos.z);
+        double.TryParse(right_Rotation_X.text, out r_rot.x); r_rot.x *= ((float)Math.PI / 180);//deg to rad
+        double.TryParse(right_Rotation_Y.text, out r_rot.y); r_rot.y *= ((float)Math.PI / 180);//deg to rad
+        double.TryParse(right_Rotation_Z.text, out r_rot.z); r_rot.z *= ((float)Math.PI / 180);//deg to rad
         r_mat = right_Material.text;
         float.TryParse(right_Mass.text, out l_mass);
 
@@ -383,13 +384,13 @@ public class SceneDesigner : MonoBehaviour {
     {
         try
         {
-            float.TryParse(Ism_pos_x.text, out sm_pos.x);
-            float.TryParse(Ism_pos_y.text, out sm_pos.y);
-            float.TryParse(Ism_pos_z.text, out sm_pos.z);
+            double.TryParse(Ism_pos_x.text, out sm_pos.x);
+            double.TryParse(Ism_pos_y.text, out sm_pos.y);
+            double.TryParse(Ism_pos_z.text, out sm_pos.z);
 
-            float.TryParse(Ism_size_x.text, out sm_size.x);
-            float.TryParse(Ism_size_y.text, out sm_size.y);
-            float.TryParse(Ism_size_z.text, out sm_size.z);
+            double.TryParse(Ism_size_x.text, out sm_size.x);
+            double.TryParse(Ism_size_y.text, out sm_size.y);
+            double.TryParse(Ism_size_z.text, out sm_size.z);
 
             sm_mat = Ism_mat.text;
             float.TryParse(Ism_mass.text, out sm_mass);
@@ -402,6 +403,16 @@ public class SceneDesigner : MonoBehaviour {
 
     }
 
+    /*-----------------------------------------------------Settings-------------------------------------------------------*/
+    /*---------------------------------------------------Save Config:-----------------------------------------------------*/
+    public void SaveConfig()
+    {
+
+    }
+
+    public void LoadConfig()
+    {
+    }
     /*------------------------------------------------Hiding the designer-------------------------------------------------*/
     public GameObject mainPanel;
     public void ToggleDesigner(bool toggled)
@@ -414,7 +425,7 @@ public class SceneDesigner : MonoBehaviour {
 
     /*-------------------------------------------------Helper Functions:--------------------------------------------------*/
     /*--------------------------------------------------Defining frames---------------------------------------------------*/
-    Frame DefineFrame(string shape, UnityEngine.Vector3 pos, float scale, UnityEngine.Vector3 rot, float mass, string materialName)
+    Frame DefineFrame(string shape, Simulation_Core.Vector3 pos, float scale, Simulation_Core.Vector3 rot, float mass, string materialName)
     {
         return new Frame()//test create new object
         {
@@ -456,12 +467,12 @@ public class SceneDesigner : MonoBehaviour {
         {
             guid = Guid.NewGuid(),
             height_Image = Convert.ToBase64String(bytes),
-            position = new Vector3(),
+            position = new Simulation_Core.Vector3(),
             materialName = "Rock",
             height = 10
         };
     }
-    Sensory_Module DefineSensoryModule(int leftModNr, int rightModNr, Vector3 pos, Vector3 size, float mass, Vector3 rot, string materialName )
+    Sensory_Module DefineSensoryModule(int leftModNr, int rightModNr, Simulation_Core.Vector3 pos, Simulation_Core.Vector3 size, float mass, Simulation_Core.Vector3 rot, string materialName )
     {
         return new Sensory_Module()
         {

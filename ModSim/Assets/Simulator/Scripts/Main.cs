@@ -90,11 +90,20 @@ public class Main : MonoBehaviour {
 
         Mesh leftMesh = import.ImportFile(dir + upperFrame_directory);Bounds leftBound = leftMesh.bounds;
         Mesh rightMesh = import.ImportFile(dir + bottomFrame_directory);Bounds rightBound = rightMesh.bounds;
- 
+
+        var l_verts = Sim_CoreHelper(leftMesh.vertices);
+        var r_verts = Sim_CoreHelper(rightMesh.vertices);
+
+        var l_uvs = Sim_CoreHelper(leftMesh.uv);
+        var r_uvs = Sim_CoreHelper(rightMesh.uv);
+
+        var l_tris = leftMesh.triangles;
+        var r_tris = leftMesh.triangles;
+
         //new z pos is start.z - meshLength*i. 
         foreach (Module mod in robot.modules)
         {
-            mod.frames[0].setMesh(leftMesh.vertices, leftMesh.uv, leftMesh.triangles); mod.frames[1].setMesh(rightMesh.vertices, rightMesh.uv, rightMesh.triangles);
+            mod.frames[0].setMesh(l_verts, l_uvs, l_tris); mod.frames[1].setMesh(r_verts, r_uvs, r_tris);
 
             /*foreach (Frame frame in mod.frames)
             {
@@ -129,18 +138,18 @@ public class Main : MonoBehaviour {
             Mesh l = import.ImportFile(dir + upperFrame_directory);//Should make variable: String upperDirectory = ...
             Mesh r = import.ImportFile(dir + bottomFrame_directory);
 
-            frameVis.Add(new Frame_Vis(mod.frames[0].guid, l, mod.frames[0].position,mod.frames[0].scale));
-            frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, mod.frames[1].position,mod.frames[1].scale));
+            frameVis.Add(new Frame_Vis(mod.frames[0].guid, l,Sim_CoreHelper(mod.frames[0].position),mod.frames[0].scale));
+            frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, Sim_CoreHelper(mod.frames[1].position),mod.frames[1].scale));
 
         }
 
         foreach(Sensory_Module mod in robot.sensorModules)
         {
-            sensorVis.Add(new Sensor_Vis(mod.guid, mod.position, mod.size));
+            sensorVis.Add(new Sensor_Vis(mod.guid, Sim_CoreHelper(mod.position), Sim_CoreHelper(mod.size)));
         }
 
         //Scene:
-        Scene_Vis scene_vis = new Scene_Vis(scene.guid, scene.vertices, scene.triangles, scene.uvs, scene.position, Resources.Load("grass") as Texture);
+        Scene_Vis scene_vis = new Scene_Vis(scene.guid, Sim_CoreHelper(scene.vertices), scene.triangles, Sim_CoreHelper(scene.uvs), Sim_CoreHelper(scene.position), Resources.Load("grass") as Texture);
 
     }
 
@@ -181,14 +190,15 @@ public class Main : MonoBehaviour {
             foreach (Frame frame in module.frames)
             {
                 //Retrieves Frameobject with GUID, and updates position,size,rotation:
-                try { frameVis.Find(x => x.guid == frame.guid).Update(frame.position, frame.rotation,module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
+                try { frameVis.Find(x => x.guid == frame.guid).Update(Sim_CoreHelper(frame.position), Sim_CoreHelper(frame.rotation),module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
+                Debug.Log(frame.rotation);
             }
 
             //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }
         }
         foreach(Sensory_Module mod in robot.sensorModules)
         {
-            try { sensorVis.Find(x => x.guid == mod.guid).Update(mod.position, mod.rotation); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
+            try { sensorVis.Find(x => x.guid == mod.guid).Update(Sim_CoreHelper(mod.position), Sim_CoreHelper(mod.rotation)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
         }
 
     }
@@ -231,5 +241,68 @@ public class Main : MonoBehaviour {
         Debug.Log("Application ending after " + Time.time + " seconds");
 
     }
-    
+
+    //.dll Helper Functions
+    Simulation_Core.Vector3 Sim_CoreHelper(UnityEngine.Vector3 vec)
+    {
+        Simulation_Core.Vector3 vector;
+        vector.x = vec.x;
+        vector.y = vec.y;
+        vector.z = vec.z;
+        return vector;
+    }
+    Simulation_Core.Vector3[] Sim_CoreHelper(UnityEngine.Vector3[] vec)
+    {
+        var vectors = new Simulation_Core.Vector3[vec.Length];
+
+        for (int i = 0; i < vec.Length; i++)
+        {
+            vectors[i].x = vec[i].x;
+            vectors[i].y = vec[i].y;
+            vectors[i].z = vec[i].z;
+        }
+        return vectors;
+    }
+    List<UnityEngine.Vector3> Sim_CoreHelper(List<Simulation_Core.Vector3> vec)
+    {
+        var vectors = new List<UnityEngine.Vector3>();
+
+        for (int i = 0; i < vec.Count; i++)
+        {
+            vectors.Add(new UnityEngine.Vector3((float)vec[i].x, (float)vec[i].y, (float)vec[i].z));
+        }
+        return vectors;
+    }
+    Simulation_Core.Vector2[] Sim_CoreHelper(UnityEngine.Vector2[] vec)
+    {
+        var vectors = new Simulation_Core.Vector2[vec.Length];
+
+        for (int i = 0; i < vec.Length; i++)
+        {
+            vectors[i].x = vec[i].x;
+            vectors[i].y = vec[i].y;
+        }
+        return vectors;
+    }
+    UnityEngine.Vector2[] Sim_CoreHelper(Simulation_Core.Vector2[] vec)
+    {
+        var vectors = new UnityEngine.Vector2[vec.Length];
+
+        for (int i = 0; i < vec.Length; i++)
+        {
+            vectors[i].x = (float)vec[i].x;
+            vectors[i].y = (float)vec[i].y;
+        }
+        return vectors;
+    }
+    UnityEngine.Vector3 Sim_CoreHelper(Simulation_Core.Vector3 vec)
+    {
+        var vector = new UnityEngine.Vector3();
+        vector.x = (float)vec.x;
+        vector.y = (float)vec.y;
+        vector.z = (float)vec.z;
+
+        return vector;
+    }
+
 }

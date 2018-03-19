@@ -286,6 +286,9 @@
     <Reference Include="UnityEngine.StandardEvents">
       <HintPath>C:/Users/torsu/AppData/LocalLow/Unity/cache/packages/packages.unity.com/com.unity.standardevents@1.0.10/UnityEngine.StandardEvents.dll</HintPath>
     </Reference>
+    <Reference Include="System.Drawing">
+      <HintPath>Assets/Simulator/Scripts/Framework/System.Drawing.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Simulator\OBJImport\ObjImporter.cs" />
