@@ -1,13 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-//using UnityEngine;
 using System;
 using System.Linq;
 using AgX_Interface;
 using System.Xml.Serialization;
 using System.Drawing;
 using System.IO;
-//using UnityEngine.UI;
 
 
 namespace Simulation_Core
@@ -122,7 +120,7 @@ namespace Simulation_Core
         public Frame[] frames = new Frame[2];
         public Joint joint;
 
-        public float z_leftEdge, z_rightEdge, top, bot;
+        public double z_leftEdge, z_rightEdge, top, bot;
 
         public void Create(Frame left, Joint joint, Frame right)//Creates are for Scecne designer, Initialize is for simulator
         {
@@ -162,7 +160,7 @@ namespace Simulation_Core
         public Vector3 position;
         public Vector3 rotation;
         public Vector3 size;
-        public float mass;
+        public double mass;
         public string materialName;
 
         internal AgX_Primitive agxPrimitive;
@@ -184,11 +182,11 @@ namespace Simulation_Core
         public Guid guid;
         public string shape;
 
-        public float scale;
+        public double scale;
         public Vector3 position;
         public Vector3 rotation;
         private Quaternion quatRotation;
-        public float mass;
+        public double mass;
         public Boolean isStatic;
         public string materialName;
 
@@ -238,11 +236,11 @@ namespace Simulation_Core
         public Guid guid, leftFrameGuid, rightFrameGuid;
         public string type;
         public Vector3 mid_Position;
-        public float leftRangeLimit, rightRangeLimit;
+        public double leftRangeLimit, rightRangeLimit;
 
         /*Alternative:*/
-        public float Kp = 3;
-        public float max_vel;
+        public double Kp = 3;
+        public double max_vel;
 
         internal AgX_Joint joint;
         internal Frame left, right;
@@ -280,9 +278,9 @@ namespace Simulation_Core
             joint.AddToSim();
         }
 
-        public void MOVE(float requested_angle)
+        public void MOVE(double requested_angle)
         {
-            float error = requested_angle - joint.Get_Angle();//Expand to pid if required later?
+            double error = requested_angle - joint.Get_Angle();//Expand to pid if required later?
 
             if (Kp * error > max_vel)
                 joint.Set_Speed(max_vel);
@@ -294,7 +292,7 @@ namespace Simulation_Core
 
         public void Reset_Angle()//Resets the joint movement
         {
-            float error = 0 - joint.Get_Angle();
+            double error = 0 - joint.Get_Angle();
 
             if (Kp * error > 0.5f)
                 joint.Set_Speed(0.5f);
@@ -333,13 +331,14 @@ namespace Simulation_Core
 
         public Vector3 position;
         public string materialName;
-        public float height;
+        public double height;
         //Water
         //Air
 
         Agx_Scene scene;
         public void Create()
         {
+            //position.y += height/2;
             TerrainFromImage();//Loads the heightmap
 
             scene = new Agx_Scene(guid, vertices, triangles, position, materialName, height);
@@ -351,8 +350,8 @@ namespace Simulation_Core
         {
             // Modified from: https://answers.unity.com/questions/1033085/heightmap-to-mesh.html
             //Unity:
-            //Texture2D heightMap = new Texture2D(250, 250);
-            //heightMap.LoadImage(Convert.FromBase64String(height_Image));
+            /*Texture2D heightMap = new Texture2D(250, 250);
+            heightMap.LoadImage(Convert.FromBase64String(height_Image));*/
 
             //C#,Visual Studio
             Bitmap heightMap = new Bitmap(250, 250);//What will this be..?
@@ -366,17 +365,20 @@ namespace Simulation_Core
             {
                 for (int j = 0; j < 250; j++) //OUTER PIXELS MUST BE 0, fix
                 {
-                    //Add each new vertex in the plane
-                    vertices.Add(new Vector3(i, heightMap.GetPixel(i, j).R * height * height, j));
-                    //Skip if a new square on the plane hasn't been formed
-                    if (i == 0 || j == 0) continue;
-                    //Adds the index of the three vertices in order to make up each of the two tris
-                    triangles.Add(250 * i + j); //Top right
-                    triangles.Add(250 * i + j - 1); //Bottom right
-                    triangles.Add(250 * (i - 1) + j - 1); //Bottom left - First triangle
-                    triangles.Add(250 * (i - 1) + j - 1); //Bottom left 
-                    triangles.Add(250 * (i - 1) + j); //Top left
-                    triangles.Add(250 * i + j); //Top right - Second triangle
+                        //Add each new vertex in the plane
+                        vertices.Add(new Vector3(i, heightMap.GetPixel(i, j).R * height / 255.0f, j));// dibide by 255 to get the normalized size, and multiply by height
+
+                        
+                        //Skip if a new square on the plane hasn't been formed
+                        if (i == 0 || j == 0||i==249||j==249) continue;
+                        //Adds the index of the three vertices in order to make up each of the two tris
+                        triangles.Add(250 * i + j); //Top right
+                        triangles.Add(250 * i + j - 1); //Bottom right
+                        triangles.Add(250 * (i - 1) + j - 1); //Bottom left - First triangle
+                        triangles.Add(250 * (i - 1) + j - 1); //Bottom left 
+                        triangles.Add(250 * (i - 1) + j); //Top left
+                        triangles.Add(250 * i + j); //Top right - Second triangle
+
                 }
             }
 
@@ -396,7 +398,7 @@ namespace Simulation_Core
     public class ForceSensor
     {
         public Guid guid;
-        public float value;
+        public double value;
         public Vector3 position;
         public Vector3 scale;
 
@@ -546,7 +548,7 @@ namespace Simulation_Core
             double sqz = this.z * this.z;
             double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
             double test = this.x * this.w - this.y * this.z;
-            Vector3 v;
+            Vector3 v = new Vector3();
 
             if (test > 0.4995f * unit)
             { // singularity at north pole
@@ -563,9 +565,9 @@ namespace Simulation_Core
                 return NormalizeAngles(v * Rad2Deg);
             }
             Quaternion q = new Quaternion(this.w, this.z, this.x, this.y);
-            v.y = (float)System.Math.Atan2(2f * q.x * q.w + 2f * q.y * q.z, 1 - 2f * (q.z * q.z + q.w * q.w));     // Yaw
-            v.x = (float)System.Math.Asin(2f * (q.x * q.z - q.w * q.y));                             // Pitch
-            v.z = (float)System.Math.Atan2(2f * q.x * q.y + 2f * q.z * q.w, 1 - 2f * (q.y * q.y + q.z * q.z));      // Roll
+            v.y = System.Math.Atan2(2f * q.x * q.w + 2f * q.y * q.z, 1 - 2f * (q.z * q.z + q.w * q.w));     // Yaw
+            v.x = System.Math.Asin(2f * (q.x * q.z - q.w * q.y));                             // Pitch
+            v.z = System.Math.Atan2(2f * q.x * q.y + 2f * q.z * q.w, 1 - 2f * (q.y * q.y + q.z * q.z));      // Roll
             return NormalizeAngles(v * (180/Math.PI));
         }
         private static Vector3 NormalizeAngles(Vector3 angles)
@@ -584,7 +586,7 @@ namespace Simulation_Core
             return angle;
         }
 
-        public Vector3 eulerAngles()
+        public Vector3 eulerAnglesD()
         {
             Vector3 vector;
 
@@ -594,7 +596,7 @@ namespace Simulation_Core
             if (test > 0.4999f * unit)                              // 0.4999f OR 0.5f - EPSILON
             {
                 // Singularity at north pole
-                vector.y = 2f * (float)Math.Atan2(x, w);  // Yaw
+                vector.y = 2f * (double)Math.Atan2(x, w);  // Yaw
                 vector.x = Math.PI * 0.5f;                         // Pitch
                 vector.z = 0f;                                // Roll
                 return vector;
@@ -602,7 +604,7 @@ namespace Simulation_Core
             else if (test < -0.4999f * unit)                        // -0.4999f OR -0.5f + EPSILON
             {
                 // Singularity at south pole
-                vector.y = -2f * (float)Math.Atan2(x, w); // Yaw
+                vector.y = -2f * (double)Math.Atan2(x, w); // Yaw
                 vector.x = -Math.PI * 0.5f;                        // Pitch
                 vector.z = 0f;                                // Roll
                 return vector;
@@ -610,9 +612,9 @@ namespace Simulation_Core
             else
             {
 
-                vector.y = (float)Math.Atan2(2f * x * w + 2f * y * z, 1 - 2f * (z * z + w * w));// * Math.PI/180;     // Yaw to degrees
-                vector.x = (float)Math.Asin(2f * (x * z - w * y));// * Math.PI / 180; ;                             // Pitch 
-                vector.z = (float)Math.Atan2(2f * x * y + 2f * z * w, 1 - 2f * (y * y + z * z));// * Math.PI / 180; ;      // Roll 
+                vector.y = (double)Math.Atan2(2f * x * w + 2f * y * z, 1 - 2f * (z * z + w * w));// * Math.PI/180;     // Yaw to degrees
+                vector.x = (double)Math.Asin(2f * (x * z - w * y));// * Math.PI / 180; ;                             // Pitch 
+                vector.z = (double)Math.Atan2(2f * x * y + 2f * z * w, 1 - 2f * (y * y + z * z));// * Math.PI / 180; ;      // Roll 
 
                 return vector;
             }

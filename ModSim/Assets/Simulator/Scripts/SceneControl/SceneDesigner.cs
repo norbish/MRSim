@@ -20,12 +20,12 @@ public class SceneDesigner : MonoBehaviour {
     public Text joint_jointType;
     public InputField joint_leftRangeLimit, joint_rightRangeLimit, joint_maxVelocity, joint_pValue;
 
-    float l_scale, l_mass, r_scale, r_mass;
+    double l_scale, l_mass, r_scale, r_mass;
     Simulation_Core.Vector3 l_pos, l_rot, r_pos, r_rot;
     string l_mat, r_mat;
 
     string jointType;
-    float leftRangeLimit, rightRangeLimit, maxVelocity, pValue;
+    double leftRangeLimit, rightRangeLimit, maxVelocity, pValue;
 
 
     string dir = "";
@@ -80,12 +80,12 @@ public class SceneDesigner : MonoBehaviour {
             Frame f2 = DefineFrame("Box", start_Position, 10, rot, 50, "Plastic");
 
             //Position of frames in modules based on meshes and scale (0-point is between the two frames):
-            float module_leftEdge = start_Position.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene +
-            float module_rightEdge = start_Position.z + (f1.scale * rightBound.min.x);// -
+            double module_leftEdge = start_Position.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene +
+            double module_rightEdge = start_Position.z + (f1.scale * rightBound.min.x);// -
 
             start_Position.z = start_Position.z - (module_leftEdge - module_rightEdge) - 0.01f;
 
-            Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, "Hinge", -(float)Math.PI / 2, (float)Math.PI / 2, 20.0f);
+            Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, "Hinge", -(double)Math.PI / 2, (double)Math.PI / 2, 20.0f);
 
             Module module = DefineModule(f1, j1, f2);
 
@@ -140,10 +140,10 @@ public class SceneDesigner : MonoBehaviour {
     Scene scene_serialize = new Scene();
     public void AddScene()
     {
-        Texture2D hMap = Resources.Load("Heightmap3") as Texture2D;//Rename to terrain
+        Texture2D hMap = Resources.Load("Heightmap2") as Texture2D;//Rename to terrain
         byte[] bytes = hMap.EncodeToPNG();
 
-        scene_serialize = DefineScene(bytes, UnityEngine.Vector3.zero, "Rock", 10);
+        scene_serialize = DefineScene(bytes, new Simulation_Core.Vector3(-125,0,-125), "Rock", 10);
     }
 
     public void FinalizeCreation()
@@ -182,11 +182,11 @@ public class SceneDesigner : MonoBehaviour {
         var rot = count % 2 == 0 ? new UnityEngine.Vector3(0, -Mathf.PI / 2, 0) : new UnityEngine.Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
 
         Frame f1 = DefineFrame("Box", l_pos, l_scale, l_rot, l_mass, l_mat);
-        Frame f2 = DefineFrame("Box", l_pos, r_scale, r_rot, r_mass, r_mat);
+        Frame f2 = DefineFrame("Box", r_pos, r_scale, r_rot, r_mass, r_mat);
 
         //Position of frames in modules based on meshes and scale (0-point is between the two frames):
-        float module_leftEdge = (float)currentModulePosition.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene +
-        float module_rightEdge = (float)currentModulePosition.z + (f1.scale * rightBound.min.x);// -
+        double module_leftEdge = (double)currentModulePosition.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene +
+        double module_rightEdge = (double)currentModulePosition.z + (f1.scale * rightBound.min.x);// -
 
         //if next is a module:
         currentModulePosition.z = currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
@@ -208,8 +208,9 @@ public class SceneDesigner : MonoBehaviour {
     }
     /**--------------------------------------------------Adding module----------------------------------------------------*/
     int module_Count = 0;
-    Simulation_Core.Vector3 currentModulePosition = new Simulation_Core.Vector3(15, 12, 40);
+    Simulation_Core.Vector3 currentModulePosition = Simulation_Core.Vector3.zero;
     bool FirstModule = true;
+    public InputField moduleCount;
     public void ButtonAddModule()
     {
         
@@ -219,13 +220,15 @@ public class SceneDesigner : MonoBehaviour {
         //Only once:
         if (FirstModule)
         {
-            currentModulePosition = l_pos;
+            currentModulePosition = r_pos = l_pos;
             FirstModule = false;
         }
 
         
 
         AddModules(module_Count);module_Count++;
+
+        moduleCount.text = module_Count.ToString();
 
         PrepareForNextInput();
         Debug.Log("Module created: ");
@@ -257,23 +260,28 @@ public class SceneDesigner : MonoBehaviour {
 
     public InputField Ism_leftnr, Ism_rightnr, Ism_pos_x, Ism_pos_y, Ism_pos_z, Ism_size_x, Ism_size_y, Ism_size_z, Ism_mat, Ism_mass;
     Simulation_Core.Vector3 sm_pos, sm_size;
-    float sm_mass;
+    double sm_mass;
     string sm_mat;
 
     public GameObject sensoryModulePanel;
     bool sm_panelOpen = false;
 
     public Text addSensoryModuleText;
+    public InputField sensorModuleCount;
+
+    int SensoryModule_Count = 0;
 
     public void ButtonAddSensoryModule()
     {
         //Opens and closes the sensory module panel when needed:
         if(sm_panelOpen)
         {//Closes panel
-            AddSensoryModule();
+            if (AddSensoryModule())
+                SensoryModule_Count++;
             sensoryModulePanel.gameObject.SetActive(false);
             addSensoryModuleText.text = "Add Sensor Module";
             sm_panelOpen = false;
+            sensorModuleCount.text = SensoryModule_Count.ToString();
         }else
         {//Opens panel
             PrepareSMPosition();
@@ -283,7 +291,7 @@ public class SceneDesigner : MonoBehaviour {
         }
     }
 
-    public void AddSensoryModule()
+    bool AddSensoryModule()
     {
         if (GetSensoryModuleValues())
         {
@@ -300,7 +308,7 @@ public class SceneDesigner : MonoBehaviour {
             if (FirstModule)
             {
                 //Position for this module center:
-                currentModulePosition = l_pos;
+                currentModulePosition = r_pos = l_pos;
                 FirstModule = false;
                 first_ModulePos = true;
             }
@@ -324,7 +332,9 @@ public class SceneDesigner : MonoBehaviour {
             currentModulePosition.z = currentModulePosition.z - sm_size.z  - leftModSize_Z - 0.01f;// currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
 
             PrepareNextCurrentPosition();
+            return true;
         }
+        return false;
     }
 
     void PrepareSMPosition()
@@ -344,27 +354,27 @@ public class SceneDesigner : MonoBehaviour {
     void GetFrameValues()
     {
         //Left Frame:
-        float.TryParse(left_scale.text, out l_scale);
+        double.TryParse(left_scale.text, out l_scale);
         double.TryParse(left_Position_X.text, out l_pos.x);
         double.TryParse(left_Position_Y.text, out l_pos.y);
         double.TryParse(left_Position_Z.text, out l_pos.z);
 
-        double.TryParse(left_Rotation_X.text, out l_rot.x);l_rot.x *= ((float)Math.PI / 180);//deg to rad
-        double.TryParse(left_Rotation_Y.text, out l_rot.y);l_rot.y *= ((float)Math.PI / 180);//deg to rad
-        double.TryParse(left_Rotation_Z.text, out l_rot.z);l_rot.z *= ((float)Math.PI / 180);//deg to rad
+        double.TryParse(left_Rotation_X.text, out l_rot.x);l_rot.x *= (Math.PI / 180);//deg to rad
+        double.TryParse(left_Rotation_Y.text, out l_rot.y);l_rot.y *= (Math.PI / 180);//deg to rad
+        double.TryParse(left_Rotation_Z.text, out l_rot.z);l_rot.z *= (Math.PI / 180);//deg to rad
         l_mat = left_Material.text;
-        float.TryParse(left_Mass.text, out l_mass);
+        double.TryParse(left_Mass.text, out l_mass);
 
         //Right Frame:
-        float.TryParse(right_scale.text, out r_scale);
+        double.TryParse(right_scale.text, out r_scale);
         double.TryParse(right_Position_X.text, out r_pos.x);
         double.TryParse(right_Position_Y.text, out r_pos.y);
         double.TryParse(right_Position_Z.text, out r_pos.z);
-        double.TryParse(right_Rotation_X.text, out r_rot.x); r_rot.x *= ((float)Math.PI / 180);//deg to rad
-        double.TryParse(right_Rotation_Y.text, out r_rot.y); r_rot.y *= ((float)Math.PI / 180);//deg to rad
-        double.TryParse(right_Rotation_Z.text, out r_rot.z); r_rot.z *= ((float)Math.PI / 180);//deg to rad
+        double.TryParse(right_Rotation_X.text, out r_rot.x); r_rot.x *= (Math.PI / 180);//deg to rad
+        double.TryParse(right_Rotation_Y.text, out r_rot.y); r_rot.y *= (Math.PI / 180);//deg to rad
+        double.TryParse(right_Rotation_Z.text, out r_rot.z); r_rot.z *= (Math.PI / 180);//deg to rad
         r_mat = right_Material.text;
-        float.TryParse(right_Mass.text, out l_mass);
+        double.TryParse(right_Mass.text, out r_mass);
 
         Debug.Log("Frames created");
     }
@@ -372,10 +382,10 @@ public class SceneDesigner : MonoBehaviour {
     void GetJointValues()
     {
         jointType = joint_jointType.text;
-        float.TryParse(joint_leftRangeLimit.text, out leftRangeLimit);leftRangeLimit *= ((float)Math.PI/180);//deg to rad
-        float.TryParse(joint_rightRangeLimit.text, out rightRangeLimit); rightRangeLimit *= ((float)Math.PI/180);//deg to rad
-        float.TryParse(joint_maxVelocity.text, out maxVelocity);
-        float.TryParse(joint_pValue.text, out pValue);
+        double.TryParse(joint_leftRangeLimit.text, out leftRangeLimit);leftRangeLimit *= ((double)Math.PI/180);//deg to rad
+        double.TryParse(joint_rightRangeLimit.text, out rightRangeLimit); rightRangeLimit *= ((double)Math.PI/180);//deg to rad
+        double.TryParse(joint_maxVelocity.text, out maxVelocity);
+        double.TryParse(joint_pValue.text, out pValue);
 
         Debug.Log("Joint created");
     }
@@ -393,7 +403,7 @@ public class SceneDesigner : MonoBehaviour {
             double.TryParse(Ism_size_z.text, out sm_size.z);
 
             sm_mat = Ism_mat.text;
-            float.TryParse(Ism_mass.text, out sm_mass);
+            double.TryParse(Ism_mass.text, out sm_mass);
             return true;
         }catch(NullReferenceException)
         {
@@ -425,7 +435,7 @@ public class SceneDesigner : MonoBehaviour {
 
     /*-------------------------------------------------Helper Functions:--------------------------------------------------*/
     /*--------------------------------------------------Defining frames---------------------------------------------------*/
-    Frame DefineFrame(string shape, Simulation_Core.Vector3 pos, float scale, Simulation_Core.Vector3 rot, float mass, string materialName)
+    Frame DefineFrame(string shape, Simulation_Core.Vector3 pos, double scale, Simulation_Core.Vector3 rot, double mass, string materialName)
     {
         return new Frame()//test create new object
         {
@@ -439,7 +449,7 @@ public class SceneDesigner : MonoBehaviour {
             materialName = materialName
         };
     }
-    Simulation_Core.Joint DefineJoint(Guid f1_guid, Guid f2_guid, string type, float l_rangeLimit, float r_rangeLimit, float max_vel)
+    Simulation_Core.Joint DefineJoint(Guid f1_guid, Guid f2_guid, string type, double l_rangeLimit, double r_rangeLimit, double max_vel)
     {
         return new Simulation_Core.Joint()
         {
@@ -461,18 +471,18 @@ public class SceneDesigner : MonoBehaviour {
 
         return module;
     }
-    Scene DefineScene(byte[] bytes, UnityEngine.Vector3 pos, string materialName, float height)
+    Scene DefineScene(byte[] bytes, Simulation_Core.Vector3 pos, string materialName, double height)
     {
         return new Scene()
         {
             guid = Guid.NewGuid(),
             height_Image = Convert.ToBase64String(bytes),
-            position = new Simulation_Core.Vector3(),
-            materialName = "Rock",
-            height = 10
+            position = pos,
+            materialName = materialName,
+            height = height
         };
     }
-    Sensory_Module DefineSensoryModule(int leftModNr, int rightModNr, Simulation_Core.Vector3 pos, Simulation_Core.Vector3 size, float mass, Simulation_Core.Vector3 rot, string materialName )
+    Sensory_Module DefineSensoryModule(int leftModNr, int rightModNr, Simulation_Core.Vector3 pos, Simulation_Core.Vector3 size, double mass, Simulation_Core.Vector3 rot, string materialName )
     {
         return new Sensory_Module()
         {

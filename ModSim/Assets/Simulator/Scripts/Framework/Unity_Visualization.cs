@@ -41,7 +41,7 @@ namespace Unity_Visualization
         //public Mesh mesh;//mesh of the frame
         public GameObject gameobject;//Have to store the mesh in some way
 
-        public Frame_Vis(System.Guid guid, Mesh meshFilter, Vector3 initialpos, float scale)
+        public Frame_Vis(System.Guid guid, Mesh meshFilter, Vector3 initialpos, double scale)
         {
             this.guid = guid;
 
@@ -53,9 +53,9 @@ namespace Unity_Visualization
             Vector3[] tmp_Vertices = meshFilter.vertices;
             for (int i = 0; i < tmp_Vertices.Length; i++)
             {
-                tmp_Vertices[i].x *= scale;
-                tmp_Vertices[i].y *= scale;
-                tmp_Vertices[i].z *= scale;
+                tmp_Vertices[i].x *= (float)scale;
+                tmp_Vertices[i].y *= (float)scale;
+                tmp_Vertices[i].z *= (float)scale;
             }
             meshFilter.vertices = tmp_Vertices;
 

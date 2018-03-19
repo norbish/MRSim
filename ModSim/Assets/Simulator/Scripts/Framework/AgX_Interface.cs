@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using UnityEngine;
 using Simulation_Core;
 
 namespace AgX_Interface
@@ -30,7 +29,7 @@ namespace AgX_Interface
             this.guid = guid;
         }
 
-        public void Create_Hinge(string type, Frame left, Frame right, float leftLimit, float rightLimit)
+        public void Create_Hinge(string type, Frame left, Frame right, double leftLimit, double rightLimit)
         {
             this.type = type;
 
@@ -73,11 +72,11 @@ namespace AgX_Interface
             Joint = new agx.LockJoint(frame.agxFrame.GetAgxObject(), sensor.agxSensor.GetAgxObject(), Operations.ToAgxVec3(sensor.position) );
         }
 
-        public float Get_Angle()
+        public double Get_Angle()
         {
-            return (float)Joint.asHinge().getAngle();
+            return (double)Joint.asHinge().getAngle();
         }
-        public void Set_Speed(float vel)
+        public void Set_Speed(double vel)
         {
             Joint.asHinge().getMotor1D().setSpeed(vel);
         }
@@ -95,7 +94,7 @@ namespace AgX_Interface
         private Vector3 scale;
         private agx.RigidBody agx_Object;
 
-        public AgX_Sensor(Guid guid, string materialName, Vector3 pos, Vector3 scale, float mass)
+        public AgX_Sensor(Guid guid, string materialName, Vector3 pos, Vector3 scale, double mass)
         {
             this.guid = guid;
             this.scale = scale;
@@ -136,7 +135,7 @@ namespace AgX_Interface
 
         private agx.RigidBody agx_Object;
 
-        public AgX_Primitive(Guid guid, string shape, Vector3 pos, Vector3 rot, Vector3 size, float mass, string materialName)
+        public AgX_Primitive(Guid guid, string shape, Vector3 pos, Vector3 rot, Vector3 size, double mass, string materialName)
         {
             this.guid = guid;
             this.shape = shape;
@@ -172,6 +171,10 @@ namespace AgX_Interface
         {
             return Operations.FromAgxQuat(agx_Object.getLocalRotation()).ToEulerRad();
         }
+        public Quaternion Get_QuatRotation()
+        {
+            return Operations.FromAgxQuat(agx_Object.getLocalRotation());
+        }
         public void AddToSim()
         {
             Agx_Simulation.sim_Instance.add(agx_Object);
@@ -187,12 +190,12 @@ namespace AgX_Interface
     {
         private Guid guid;
         public string shape;
-        private float size;
+        private double size;
         private string materialName;
 
         private agx.RigidBody agx_Object;
 
-        public AgX_Frame(Guid guid, string shape, Vector3[] vertices, Vector2[] uvs, int[] triangles, float size, Vector3 pos, Vector3 rot, float mass, bool isStatic, string materialName)
+        public AgX_Frame(Guid guid, string shape, Vector3[] vertices, Vector2[] uvs, int[] triangles, double size, Vector3 pos, Vector3 rot, double mass, bool isStatic, string materialName)
         {
             this.guid = guid;
 
@@ -260,7 +263,7 @@ namespace AgX_Interface
         {
             return Operations.FromAgxVec3(agx_Object.getLocalPosition());
         }
-        public float Get_Size()
+        public double Get_Size()
         {
             return size * 2;//Size in unity is 2 times bigger.
         }
@@ -272,9 +275,9 @@ namespace AgX_Interface
         {
             return Operations.FromAgxQuat(agx_Object.getLocalRotation());
         }
-        public float Get_Mass()
+        public double Get_Mass()
         {
-            return (float)agx_Object.getMassProperties().getMass();
+            return (double)agx_Object.getMassProperties().getMass();
         }
 
         /// Material:
@@ -295,7 +298,7 @@ namespace AgX_Interface
     {
         public static agxSDK.Simulation sim_Instance;
 
-        public static void Start(float dt)
+        public static void Start(double dt)
         {
             agx.agxSWIG.init();
             sim_Instance = new agxSDK.Simulation();//Initialize the simulation
@@ -310,7 +313,7 @@ namespace AgX_Interface
         {
             agx.agxSWIG.shutdown();
         }
-        public static void AddContactMaterial(string a, string b, float restitution, float friction, float youngsModulus)
+        public static void AddContactMaterial(string a, string b, double restitution, double friction, double youngsModulus)
         {
             var material_A = new agx.Material(a);
             var material_B = new agx.Material(b);
@@ -332,8 +335,8 @@ namespace AgX_Interface
 
 
         /*--------------------------------------------------Creating terrain--------------------------------------------------*/
-        //public void Create_Terrain(Guid guid, string heightmap, Vector3 position, string materialName, float restitution, float friction, float height)
-        public Agx_Scene(Guid guid, List<Vector3> vertices, List<int> triangles,Vector3 position, string materialName, float height)
+        //public void Create_Terrain(Guid guid, string heightmap, Vector3 position, string materialName, double restitution, double friction, double height)
+        public Agx_Scene(Guid guid, List<Vector3> vertices, List<int> triangles,Vector3 position, string materialName, double height)
         {
             this.guid = guid;
 
@@ -359,6 +362,8 @@ namespace AgX_Interface
             
             terrain.add(geometry);
             terrain.setMotionControl(agx.RigidBody.MotionControl.STATIC);
+
+            //position.y -= height;
             terrain.setLocalPosition(Operations.ToAgxVec3(position));//move right and -height for global 0
             
             ///Adds terrain to simulation
@@ -376,7 +381,7 @@ namespace AgX_Interface
         /**----------------------------------------From agx.Vec3 to UnityEngine.Vector3---------------------------------------*/
         public static Vector3 FromAgxVec3(agx.Vec3 vec3)
         {
-            return new Vector3((float)vec3.x, (float)vec3.y, (float)vec3.z);
+            return new Vector3((double)vec3.x, (double)vec3.y, (double)vec3.z);
         }
         /**----------------------------------------From UnityEngine.Vector3 to agx.Vec3---------------------------------------*/
         public static agx.Vec3 ToAgxVec3(Vector3 vector3)
@@ -386,7 +391,7 @@ namespace AgX_Interface
         /**---------------------------------------From agx.Quat to UnityEngine.Quaternion-------------------------------------*/
         public static Quaternion FromAgxQuat(agx.Quat quat)//wrong
         {
-            return new Quaternion((float)quat.x, (float)quat.y, (float)quat.z, (float)quat.w);
+            return new Quaternion((double)quat.x, (double)quat.y, (double)quat.z, (double)quat.w);
         }
         public static agx.Vec3Vector ToAgxVec3Vector(Vector3[] vector3)
         {

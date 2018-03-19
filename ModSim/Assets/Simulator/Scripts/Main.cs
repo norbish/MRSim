@@ -91,19 +91,10 @@ public class Main : MonoBehaviour {
         Mesh leftMesh = import.ImportFile(dir + upperFrame_directory);Bounds leftBound = leftMesh.bounds;
         Mesh rightMesh = import.ImportFile(dir + bottomFrame_directory);Bounds rightBound = rightMesh.bounds;
 
-        var l_verts = Sim_CoreHelper(leftMesh.vertices);
-        var r_verts = Sim_CoreHelper(rightMesh.vertices);
-
-        var l_uvs = Sim_CoreHelper(leftMesh.uv);
-        var r_uvs = Sim_CoreHelper(rightMesh.uv);
-
-        var l_tris = leftMesh.triangles;
-        var r_tris = leftMesh.triangles;
-
         //new z pos is start.z - meshLength*i. 
         foreach (Module mod in robot.modules)
         {
-            mod.frames[0].setMesh(l_verts, l_uvs, l_tris); mod.frames[1].setMesh(r_verts, r_uvs, r_tris);
+            mod.frames[0].setMesh(Sim_CoreHelper(leftMesh.vertices),Sim_CoreHelper(leftMesh.uv),leftMesh.triangles); mod.frames[1].setMesh(Sim_CoreHelper(rightMesh.vertices),Sim_CoreHelper(rightMesh.uv),rightMesh.triangles);
 
             /*foreach (Frame frame in mod.frames)
             {
@@ -191,7 +182,7 @@ public class Main : MonoBehaviour {
             {
                 //Retrieves Frameobject with GUID, and updates position,size,rotation:
                 try { frameVis.Find(x => x.guid == frame.guid).Update(Sim_CoreHelper(frame.position), Sim_CoreHelper(frame.rotation),module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
-                Debug.Log(frame.rotation);
+                Debug.Log(frame.position.x + "," + frame.position.y);
             }
 
             //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }
@@ -251,7 +242,7 @@ public class Main : MonoBehaviour {
         vector.z = vec.z;
         return vector;
     }
-    Simulation_Core.Vector3[] Sim_CoreHelper(UnityEngine.Vector3[] vec)
+    Simulation_Core.Vector3[] Sim_CoreHelper(UnityEngine.Vector3[] vec)//THESE?? wrong?
     {
         var vectors = new Simulation_Core.Vector3[vec.Length];
 
@@ -303,6 +294,15 @@ public class Main : MonoBehaviour {
         vector.z = (float)vec.z;
 
         return vector;
+    }
+    UnityEngine.Quaternion Sim_CoreHelper(Simulation_Core.Quaternion quat)
+    {
+        UnityEngine.Quaternion Uq = new UnityEngine.Quaternion();
+        Uq.x = (float)quat.x;
+        Uq.y = (float)quat.y;
+        Uq.z = (float)quat.z;
+        Uq.w = (float)quat.w;
+        return Uq;
     }
 
 }
