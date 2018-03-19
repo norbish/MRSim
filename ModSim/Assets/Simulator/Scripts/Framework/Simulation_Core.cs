@@ -1,14 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-//using UnityEngine;
 using System;
 using System.Linq;
 using AgX_Interface;
 using System.Xml.Serialization;
 using System.Drawing;
 using System.IO;
-using UnityEngine;
-//using UnityEngine.UI;
 
 
 namespace Simulation_Core
@@ -162,7 +159,6 @@ namespace Simulation_Core
 
         public Vector3 position;
         public Vector3 rotation;
-        public Quaternion qrot;
         public Vector3 size;
         public double mass;
         public string materialName;
@@ -176,8 +172,7 @@ namespace Simulation_Core
         public void Update()
         {
             position = agxPrimitive.Get_Position();
-            //rotation = agxPrimitive.Get_Rotation();
-            qrot = agxPrimitive.Get_QuatRotation();
+            rotation = agxPrimitive.Get_Rotation();
         }
     }
     
@@ -220,7 +215,7 @@ namespace Simulation_Core
         {
             //scale = frame.Get_Size();
             position = agxFrame.Get_Position();
-            //rotation = agxFrame.Get_Rotation();
+            rotation = agxFrame.Get_Rotation();
             quatRotation = agxFrame.Get_QuatRotation();
         }
         public Quaternion GetQuatRot()
@@ -343,10 +338,10 @@ namespace Simulation_Core
         Agx_Scene scene;
         public void Create()
         {
+            //position.y += height/2;
             TerrainFromImage();//Loads the heightmap
 
             scene = new Agx_Scene(guid, vertices, triangles, position, materialName, height);
-            //position.y -= height;
 
         }
 
@@ -355,32 +350,35 @@ namespace Simulation_Core
         {
             // Modified from: https://answers.unity.com/questions/1033085/heightmap-to-mesh.html
             //Unity:
-            Texture2D heightMap = new Texture2D(250, 250);
-            heightMap.LoadImage(Convert.FromBase64String(height_Image));
+            /*Texture2D heightMap = new Texture2D(250, 250);
+            heightMap.LoadImage(Convert.FromBase64String(height_Image));*/
 
             //C#,Visual Studio
-            /*Bitmap heightMap = new Bitmap(250, 250);//What will this be..?
+            Bitmap heightMap = new Bitmap(250, 250);//What will this be..?
             using (var ms = new MemoryStream(Convert.FromBase64String(height_Image)))//C#/Visual Studio
             {
                 heightMap = new Bitmap(ms);
-            }*/
+            }
 
             //Bottom left section of the map, other sections are similar
             for (int i = 0; i < 250; i++)
             {
                 for (int j = 0; j < 250; j++) //OUTER PIXELS MUST BE 0, fix
                 {
-                    //Add each new vertex in the plane
-                    vertices.Add(new Vector3(i, heightMap.GetPixel(i, j).grayscale/*/255.0f * height*/, j));// dibide by 255 to get the normalized size, and multiply by height
-                    //Skip if a new square on the plane hasn't been formed
-                    if (i == 0 || j == 0) continue;
-                    //Adds the index of the three vertices in order to make up each of the two tris
-                    triangles.Add(250 * i + j); //Top right
-                    triangles.Add(250 * i + j - 1); //Bottom right
-                    triangles.Add(250 * (i - 1) + j - 1); //Bottom left - First triangle
-                    triangles.Add(250 * (i - 1) + j - 1); //Bottom left 
-                    triangles.Add(250 * (i - 1) + j); //Top left
-                    triangles.Add(250 * i + j); //Top right - Second triangle
+                        //Add each new vertex in the plane
+                        vertices.Add(new Vector3(i, heightMap.GetPixel(i, j).R * height / 255.0f, j));// dibide by 255 to get the normalized size, and multiply by height
+
+                        
+                        //Skip if a new square on the plane hasn't been formed
+                        if (i == 0 || j == 0||i==249||j==249) continue;
+                        //Adds the index of the three vertices in order to make up each of the two tris
+                        triangles.Add(250 * i + j); //Top right
+                        triangles.Add(250 * i + j - 1); //Bottom right
+                        triangles.Add(250 * (i - 1) + j - 1); //Bottom left - First triangle
+                        triangles.Add(250 * (i - 1) + j - 1); //Bottom left 
+                        triangles.Add(250 * (i - 1) + j); //Top left
+                        triangles.Add(250 * i + j); //Top right - Second triangle
+
                 }
             }
 

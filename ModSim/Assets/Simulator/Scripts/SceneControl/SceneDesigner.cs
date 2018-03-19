@@ -140,10 +140,10 @@ public class SceneDesigner : MonoBehaviour {
     Scene scene_serialize = new Scene();
     public void AddScene()
     {
-        Texture2D hMap = Resources.Load("Heightmap3") as Texture2D;//Rename to terrain
+        Texture2D hMap = Resources.Load("Heightmap2") as Texture2D;//Rename to terrain
         byte[] bytes = hMap.EncodeToPNG();
 
-        scene_serialize = DefineScene(bytes, Simulation_Core.Vector3.zero, "Rock", 20);
+        scene_serialize = DefineScene(bytes, new Simulation_Core.Vector3(-125,0,-125), "Rock", 10);
     }
 
     public void FinalizeCreation()
@@ -208,8 +208,9 @@ public class SceneDesigner : MonoBehaviour {
     }
     /**--------------------------------------------------Adding module----------------------------------------------------*/
     int module_Count = 0;
-    Simulation_Core.Vector3 currentModulePosition = new Simulation_Core.Vector3(15, 12, 40);
+    Simulation_Core.Vector3 currentModulePosition = Simulation_Core.Vector3.zero;
     bool FirstModule = true;
+    public InputField moduleCount;
     public void ButtonAddModule()
     {
         
@@ -226,6 +227,8 @@ public class SceneDesigner : MonoBehaviour {
         
 
         AddModules(module_Count);module_Count++;
+
+        moduleCount.text = module_Count.ToString();
 
         PrepareForNextInput();
         Debug.Log("Module created: ");
@@ -264,16 +267,21 @@ public class SceneDesigner : MonoBehaviour {
     bool sm_panelOpen = false;
 
     public Text addSensoryModuleText;
+    public InputField sensorModuleCount;
+
+    int SensoryModule_Count = 0;
 
     public void ButtonAddSensoryModule()
     {
         //Opens and closes the sensory module panel when needed:
         if(sm_panelOpen)
         {//Closes panel
-            AddSensoryModule();
+            if (AddSensoryModule())
+                SensoryModule_Count++;
             sensoryModulePanel.gameObject.SetActive(false);
             addSensoryModuleText.text = "Add Sensor Module";
             sm_panelOpen = false;
+            sensorModuleCount.text = SensoryModule_Count.ToString();
         }else
         {//Opens panel
             PrepareSMPosition();
@@ -283,7 +291,7 @@ public class SceneDesigner : MonoBehaviour {
         }
     }
 
-    public void AddSensoryModule()
+    bool AddSensoryModule()
     {
         if (GetSensoryModuleValues())
         {
@@ -324,7 +332,9 @@ public class SceneDesigner : MonoBehaviour {
             currentModulePosition.z = currentModulePosition.z - sm_size.z  - leftModSize_Z - 0.01f;// currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
 
             PrepareNextCurrentPosition();
+            return true;
         }
+        return false;
     }
 
     void PrepareSMPosition()

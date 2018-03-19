@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using UnityEngine;
 using Simulation_Core;
 
 namespace AgX_Interface
@@ -168,10 +167,10 @@ namespace AgX_Interface
         {
             return Operations.FromAgxVec3(agx_Object.getLocalPosition());
         }
-        /*public Vector3 Get_Rotation()
+        public Vector3 Get_Rotation()
         {
             return Operations.FromAgxQuat(agx_Object.getLocalRotation()).ToEulerRad();
-        }*/
+        }
         public Quaternion Get_QuatRotation()
         {
             return Operations.FromAgxQuat(agx_Object.getLocalRotation());
@@ -268,10 +267,10 @@ namespace AgX_Interface
         {
             return size * 2;//Size in unity is 2 times bigger.
         }
-        /*public Vector3 Get_Rotation()
+        public Vector3 Get_Rotation()
         {
             return Operations.FromAgxQuat(agx_Object.getLocalRotation()).ToEulerRad();
-        }*/
+        }
         public Quaternion Get_QuatRotation()
         {
             return Operations.FromAgxQuat(agx_Object.getLocalRotation());

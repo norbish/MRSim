@@ -28,10 +28,10 @@ namespace Unity_Visualization
             gameobject.transform.localScale = scale*2;
             gameobject.transform.position = position;
         }
-        public void Update(Vector3 position, Quaternion rotation)
+        public void Update(Vector3 position, Vector3 rotation)
         {
             gameobject.transform.position = position;
-            gameobject.transform.rotation = rotation;
+            gameobject.transform.eulerAngles = rotation;
         }
     }
 
@@ -67,11 +67,11 @@ namespace Unity_Visualization
 
         }
 
-        public void Update(Vector3 position/*, Vector3 scale,*/ ,Quaternion rotation, string axis)
+        public void Update(Vector3 position/*, Vector3 scale,*/ ,Vector3 rotation, string axis)
         {
             gameobject.transform.position = position;
             //gameobject.transform.localScale = scale;
-            gameobject.transform.rotation = rotation;
+            gameobject.transform.eulerAngles = rotation;
             gameobject.GetComponent<MeshRenderer>().material.color = axis == "Pitch" ? Color.gray : Color.blue;
         }
     }
@@ -121,7 +121,7 @@ namespace Unity_Visualization
             terrain.name = "Terrain";
             MeshRenderer renderer = terrain.GetComponent<MeshRenderer>();
 
-            renderer.material = new Material(Shader.Find("Diffuse"));
+            renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
             renderer.material.SetTexture("_MainTex", texture);
 
             terrain.GetComponent<MeshFilter>().sharedMesh = mesh;
