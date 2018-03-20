@@ -35,8 +35,11 @@ namespace AgX_Interface
 
             //Hinge is locked between the two objects.
             hinge_Frame.setCenter((left.agxFrame.GetAgxObject().getPosition() + right.agxFrame.GetAgxObject().getPosition()).Divide(2));
-            if (left.rotation.z == 0)
+            if (left.rotation.x == 0)
+            {
                 hinge_Frame.setAxis(new agx.Vec3(1, 0, 0)); //axis along the x direction
+                UnityEngine.Debug.Log("z in agxint: " + left.rotation.x);
+            }
             else
                 hinge_Frame.setAxis(new agx.Vec3(0, 1, 0)); //axis along the x direction
             Joint = new agx.Hinge(hinge_Frame, left.agxFrame.GetAgxObject(), right.agxFrame.GetAgxObject());
@@ -167,10 +170,10 @@ namespace AgX_Interface
         {
             return Operations.FromAgxVec3(agx_Object.getLocalPosition());
         }
-        public Vector3 Get_Rotation()
+        /*public Vector3 Get_Rotation()
         {
             return Operations.FromAgxQuat(agx_Object.getLocalRotation()).ToEulerRad();
-        }
+        }*/
         public Quaternion Get_QuatRotation()
         {
             return Operations.FromAgxQuat(agx_Object.getLocalRotation());
@@ -195,7 +198,7 @@ namespace AgX_Interface
 
         private agx.RigidBody agx_Object;
 
-        public AgX_Frame(Guid guid, string shape, Vector3[] vertices, Vector2[] uvs, int[] triangles, double size, Vector3 pos, Vector3 rot, double mass, bool isStatic, string materialName)
+        public AgX_Frame(Guid guid, string shape, Vector3[] vertices, Vector2[] uvs, int[] triangles, double size, Vector3 pos, Quaternion rot, double mass, bool isStatic, string materialName)
         {
             this.guid = guid;
 
@@ -232,7 +235,15 @@ namespace AgX_Interface
 
             agx_Object.setLocalPosition(Operations.ToAgxVec3(pos));///AgX
 
-            agx_Object.setLocalRotation(new agx.EulerAngles(Operations.ToAgxVec3(rot)));///AgX
+            //var y = new agx.EulerAngles(Operations.ToAgxVec3(rot));
+
+            //UnityEngine.Debug.Log("x: " + y.x + ", y: " + y.y + ", z: " + y.z);
+
+            agx_Object.setLocalRotation(new agx.Quat(rot.x,rot.y,rot.z,rot.w));///AgX
+
+            //agx_Object.setLocalRotation(new agx.EulerAngles(Operations.ToAgxVec3(rot)));///AgX
+
+            //UnityEngine.Debug.Log("x: " +agx_Object.getLocalPosition().x + ", y: " + agx_Object.getLocalPosition().y + ", z: " + agx_Object.getLocalPosition().z);
 
             agx_Object.getMassProperties().setMass(mass);
 
@@ -267,10 +278,10 @@ namespace AgX_Interface
         {
             return size * 2;//Size in unity is 2 times bigger.
         }
-        public Vector3 Get_Rotation()
+        /*public Vector3 Get_Rotation()
         {
             return Operations.FromAgxQuat(agx_Object.getLocalRotation()).ToEulerRad();
-        }
+        }*/
         public Quaternion Get_QuatRotation()
         {
             return Operations.FromAgxQuat(agx_Object.getLocalRotation());

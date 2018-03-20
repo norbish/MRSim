@@ -91,7 +91,7 @@ namespace Simulation_Core
             }
             //Set Pitch or Yaw
             foreach (Module module in modules)
-                module.Axis = module.frames[0].rotation.z == 0 ? "Pitch" : "Yaw";
+                module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
             
         }
 
@@ -160,6 +160,7 @@ namespace Simulation_Core
         public Vector3 position;
         public Vector3 rotation;
         public Vector3 size;
+        public Quaternion quatRotation;
         public double mass;
         public string materialName;
 
@@ -172,7 +173,8 @@ namespace Simulation_Core
         public void Update()
         {
             position = agxPrimitive.Get_Position();
-            rotation = agxPrimitive.Get_Rotation();
+            //rotation = agxPrimitive.Get_Rotation();
+            quatRotation = agxPrimitive.Get_QuatRotation();
         }
     }
     
@@ -185,7 +187,7 @@ namespace Simulation_Core
         public double scale;
         public Vector3 position;
         public Vector3 rotation;
-        private Quaternion quatRotation;
+        public Quaternion quatRotation;
         public double mass;
         public Boolean isStatic;
         public string materialName;
@@ -196,7 +198,8 @@ namespace Simulation_Core
         public void Initialize() //Create frame object
         {
             ScaleMesh();
-            agxFrame = new AgX_Frame(this.guid, shape,meshVertices, meshUvs, meshTriangles, scale,position,rotation,mass,isStatic,materialName);
+            QuatToRot();
+            agxFrame = new AgX_Frame(this.guid, shape,meshVertices, meshUvs, meshTriangles, scale,position,quatRotation,mass,isStatic,materialName);
         }
 
         private void ScaleMesh()
@@ -215,7 +218,7 @@ namespace Simulation_Core
         {
             //scale = frame.Get_Size();
             position = agxFrame.Get_Position();
-            rotation = agxFrame.Get_Rotation();
+            //rotation = agxFrame.Get_Rotation();
             quatRotation = agxFrame.Get_QuatRotation();
         }
         public Quaternion GetQuatRot()
@@ -227,6 +230,11 @@ namespace Simulation_Core
             meshVertices = vertices;
             meshUvs = uvs;
             meshTriangles = triangles;
+        }
+        public Vector3 QuatToRot()
+        {
+            rotation = quatRotation.ToEulerRad();
+            return quatRotation.ToEulerRad();
         }
     }
 

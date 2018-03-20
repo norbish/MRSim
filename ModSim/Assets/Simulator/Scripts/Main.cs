@@ -23,7 +23,7 @@ public class Main : MonoBehaviour {
     void Start()// Use this for initialization
     {
         Physics.autoSimulation = false; //Turn off Unity Physics
-        
+        Debug.Log(new UnityEngine.Quaternion(0, -0.013707354664802551f, 0, 0.999906063079834f).eulerAngles);
         
         //Main_Initialization();
     }
@@ -87,7 +87,7 @@ public class Main : MonoBehaviour {
     {
         //Initialize modules with joints and frames (+agx objects) : SHOULD BE IN SCENE DESIGNER, send triangles, verts and uvs!
         ObjImporter import = new ObjImporter();
-
+        
         Mesh leftMesh = import.ImportFile(dir + upperFrame_directory);Bounds leftBound = leftMesh.bounds;
         Mesh rightMesh = import.ImportFile(dir + bottomFrame_directory);Bounds rightBound = rightMesh.bounds;
 
@@ -102,11 +102,13 @@ public class Main : MonoBehaviour {
             }
             */
             //mod.Initialize(mod.frames[0], mod.frames[1]);//calls Create_Hinge
-
+            
         }
+
         robot.Initialize();//Initialize frames (creates AgX obj), initializes modules (connecting frames with joint), Locks modules together
 
         this.robot = robot;
+        
     }
 
     Scene scene;
@@ -168,6 +170,8 @@ public class Main : MonoBehaviour {
 
             simulationTime += Time.deltaTime;
         }
+        /*foreach (Module mod in robot.modules)
+            Debug.Log("x: " + mod.frames[0].rotation.x + ", y: " + mod.frames[0].rotation.y + ", z: " + mod.frames[0].rotation.z);*/
         //Else: 
         //Start the canvas overlay to modify and create new modules
     }
@@ -181,15 +185,14 @@ public class Main : MonoBehaviour {
             foreach (Frame frame in module.frames)
             {
                 //Retrieves Frameobject with GUID, and updates position,size,rotation:
-                try { frameVis.Find(x => x.guid == frame.guid).Update(Sim_CoreHelper(frame.position), Sim_CoreHelper(frame.rotation),module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
-                Debug.Log(frame.position.x + "," + frame.position.y);
+                try { frameVis.Find(x => x.guid == frame.guid).Update(Sim_CoreHelper(frame.position), Sim_CoreHelper(frame.quatRotation),module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
             }
 
             //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }
         }
         foreach(Sensory_Module mod in robot.sensorModules)
         {
-            try { sensorVis.Find(x => x.guid == mod.guid).Update(Sim_CoreHelper(mod.position), Sim_CoreHelper(mod.rotation)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
+            try { sensorVis.Find(x => x.guid == mod.guid).Update(Sim_CoreHelper(mod.position), Sim_CoreHelper(mod.quatRotation)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
         }
 
     }
