@@ -70,17 +70,23 @@ namespace Simulation_Core
             //if sensormodule on 0, attach to first module. 
 
             int lockNrCount = 0;//USE THIS
-            //Sets locks between modules:
+            //Sets locks between modules:(ITERATES CURRENT MODULE)-> 
             for(int i = 0; i<modules.Count; i++)
             {
 
-                if(sensorModules.Any(x => x.rightMod_Nr == i))//if this module is to the right of a sensor moduleif(sensorModules.Any(x => x.rightMod_Nr == modules[i].number)
+                if(sensorModules.Any(x => x.rightMod_Nr == i))//[]>X | if this module is to the right of a sensor moduleif(sensorModules.Any(x => x.rightMod_Nr == modules[i].number)
                 {
                     locks[lockNrCount].Create_SensorModuleLock(sensorModules.Find(x => x.rightMod_Nr == i), modules[i].frames[0]);
                     lockNrCount++;
+
+                    if(!sensorModules.Any(x=>x.leftMod_Nr == i) && i+1 < modules.Count)//X->X | if there is no sensorModule to the right, and there IS a module to the right
+                    {
+                        locks[lockNrCount].Create_Lock(modules[i].frames[1], modules[i + 1].frames[0]);
+                        lockNrCount++;
+                    }
                 }
 
-                if (sensorModules.Any(x => x.leftMod_Nr == i))//if this module is to the left of a sensor module:
+                if (sensorModules.Any(x => x.leftMod_Nr == i))//X<-[] | if this module is to the left of a sensor module:
                 {
                     locks[lockNrCount].Create_SensorModuleLock(modules[i].frames[1], sensorModules.Find(x => x.leftMod_Nr == i));
                     lockNrCount++;

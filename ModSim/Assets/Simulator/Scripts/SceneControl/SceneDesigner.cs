@@ -69,6 +69,18 @@ public class SceneDesigner : MonoBehaviour {
         current_SMVis.Clear();
 
 
+        if (SM != null)
+            if (SM.gameobject.gameObject != null)
+                SM.Remove();
+
+        if (left != null)
+            if (left.gameobject.gameObject != null)
+                left.Remove();
+        if (right != null)
+            if (right.gameobject.gameObject != null)
+                right.Remove();
+
+
         //Serializing Robot:
         FinalizeCreation();
         SIMULATOR.SendMessage("Main_Initialization");
@@ -226,12 +238,13 @@ public class SceneDesigner : MonoBehaviour {
         module.mod_Nr = count;
 
         //CREATES A LOCK BETWEEN MODULES when adding new module to robot:
-        if (count > 0)
+        if (module_Count == 0 && SensoryModule_Count == 0)
         {
-            robot_initSerialization.Add_Module(module, new Simulation_Core.Joint());
+            robot_initSerialization.Add_Module(module);
+            
         }
         else
-            robot_initSerialization.Add_Module(module);
+            robot_initSerialization.Add_Module(module, new Simulation_Core.Joint());
 
     }
     /**--------------------------------------------------Adding module----------------------------------------------------*/
@@ -268,12 +281,20 @@ public class SceneDesigner : MonoBehaviour {
         PrepareNextCurrentPosition();
 
         //Y should always be rotated, atleast propose it:
-        left_Rotation_Y.text = right_Rotation_Y.text = "-90";
+        left_Rotation_Y.text = right_Rotation_Y.text = "-90";l_rot.y = r_rot.y = -90;
 
         if (module_Count % 2 != 0)
-            left_Rotation_X.text = right_Rotation_X.text ="90";
+        {
+            left_Rotation_X.text = right_Rotation_X.text = "90";l_rot.x = r_rot.x = 90;
+        }
         else
-            left_Rotation_X.text = right_Rotation_X.text = "0";
+        {
+            left_Rotation_X.text = right_Rotation_X.text = "0";l_rot.x = r_rot.x = 0;
+        }
+
+        ShowCurrentRobotConfig();
+        //Show the robot that will be created if current values are selected:(RUN ONCE)
+        ShowPlannedModuleConfig();
     }
     void PrepareNextCurrentPosition()
     {
@@ -287,8 +308,8 @@ public class SceneDesigner : MonoBehaviour {
 
         //Show the robot thus far:
         ShowCurrentRobotConfig();
-        //Show the robot that will be created if current values are selected:
-        ShowPlannedRobotConfig();
+        //Show the robot that will be created if current values are selected:(RUN ONCE)
+        ShowPlannedModuleConfig();
     }
 
     public InputField Ism_leftnr, Ism_rightnr, Ism_pos_x, Ism_pos_y, Ism_pos_z, Ism_size_x, Ism_size_y, Ism_size_z, Ism_mat, Ism_mass;
@@ -329,7 +350,6 @@ public class SceneDesigner : MonoBehaviour {
         if (GetSensoryModuleValues())
         {
 
-            bool first_ModulePos = false;
             //Get values just to estimate the frame params. Thus, we can calculate the next position of currentModulePosition.
             GetFrameValues(); GetJointValues();
 
@@ -338,12 +358,11 @@ public class SceneDesigner : MonoBehaviour {
 
             var leftModSize_Z = (l_scale * ((leftBound.max.x + Math.Abs(rightBound.min.x))/2));//length of the left module
 
-            if (FirstModule)
+            if (module_Count == 0 && SensoryModule_Count == 0)
             {
                 //Position for this module center:
                 currentModulePosition = r_pos = l_pos;
                 FirstModule = false;
-                first_ModulePos = true;
             }
             else//From left, position:
             {
@@ -360,7 +379,7 @@ public class SceneDesigner : MonoBehaviour {
             //Create the sensory module:
             var mod = DefineSensoryModule(module_Count - 1, module_Count, currentModulePosition, sm_size, sm_mass, new Simulation_Core.Quaternion(0,0,0,1), sm_mat);//module count-1 and module count will be the place where sensor module is set.
             Debug.Log("Left: " + (module_Count - 1) + ", Right: " + module_Count);
-            if (first_ModulePos)
+            if (module_Count == 0 && SensoryModule_Count == 0)
             {
                 robot_initSerialization.Add_SensorModule(mod, new Simulation_Core.Joint());
             }
@@ -504,9 +523,52 @@ public class SceneDesigner : MonoBehaviour {
         //Update:
     }
     /*----------------------------------------------Visualizing next module-----------------------------------------------*/
-    List<Unity_Visualization.Frame_Vis> next_frameVis = new List<Unity_Visualization.Frame_Vis>();
-    public void ShowPlannedRobotConfig()//Called each time an input field is changed
+    //List<Unity_Visualization.Frame_Vis> next_frameVis = new List<Unity_Visualization.Frame_Vis>();
+    Unity_Visualization.Frame_Vis left, right;
+    public void ShowPlannedModuleConfig()//Called each time an input field is changed
     {
+        if(SM != null)
+            if(SM.gameobject.gameObject != null)
+                SM.Remove();
+
+        GetFrameValues();
+        ObjImporter import = new ObjImporter();
+        //if one of the InputFields of frames or joint is changed
+        //create gameobject with mesh n stuff
+        Mesh leftMesh = import.ImportFile(dir + robot_initSerialization.leftFrameDir);
+        Mesh rightMesh = import.ImportFile(dir + robot_initSerialization.rightFrameDir);
+        if (left == null && right == null)
+        {
+            left = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), leftMesh, new UnityEngine.Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), l_scale);
+            right = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), rightMesh, new UnityEngine.Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), r_scale);
+
+            left.Update(new UnityEngine.Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), new UnityEngine.Vector3((float)l_rot.x, (float)l_rot.y, (float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
+            right.Update(new UnityEngine.Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new UnityEngine.Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
+        }
+        else
+        {
+            left.Update(new UnityEngine.Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z),new UnityEngine.Vector3((float)l_rot.x,(float)l_rot.y,(float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
+            right.Update(new UnityEngine.Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new UnityEngine.Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
+        }
+    }
+
+    Unity_Visualization.Sensor_Vis SM;
+    public void ShowPlannedSensoryModuleConfig()
+    {
+        if(left != null)
+            if(left.gameobject.gameObject != null)
+                left.Remove();
+        if(right != null)
+            if(right.gameobject.gameObject != null)
+                right.Remove();
+
+        GetSensoryModuleValues();
+        ObjImporter import = new ObjImporter();
+
+        Mesh leftMesh = import.ImportFile(dir + robot_initSerialization.leftFrameDir);
+        Mesh rightMesh = import.ImportFile(dir + robot_initSerialization.rightFrameDir);
+
+        Unity_Visualization.Sensor_Vis SM = new Unity_Visualization.Sensor_Vis(Guid.NewGuid(),new UnityEngine.Vector3((float)sm_pos.x,(float)sm_pos.y,(float)sm_pos.z),new UnityEngine.Vector3((float)sm_size.x,(float)sm_size.y,(float)sm_size.z));
 
     }
 
