@@ -33,11 +33,15 @@ namespace Simulation_Core
         public void Add_Module(Module module)
         {
             modules.Add(module);
+
+            module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
         }
         public void Add_Module(Module module, Joint lockjoint)
         {
             modules.Add(module);
             locks.Add(lockjoint);
+
+            module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
         }
 
         public void Add_SensorModule(Sensory_Module module, Joint r_lockjoint)
@@ -90,8 +94,8 @@ namespace Simulation_Core
 
             }
             //Set Pitch or Yaw
-            foreach (Module module in modules)
-                module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
+            /*foreach (Module module in modules)
+                module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";*/
             
         }
 
@@ -168,13 +172,19 @@ namespace Simulation_Core
 
         public void Initialize()
         {
-            agxPrimitive = new AgX_Primitive(guid,"Box",position,rotation,size,mass,materialName);
+            agxPrimitive = new AgX_Primitive(guid,"Box",position,quatRotation,size,mass,materialName);
         }
         public void Update()
         {
             position = agxPrimitive.Get_Position();
             //rotation = agxPrimitive.Get_Rotation();
             quatRotation = agxPrimitive.Get_QuatRotation();
+        }
+
+        public Vector3 QuatToRot()
+        {
+            rotation = quatRotation.ToEulerRad();
+            return quatRotation.ToEulerRad();
         }
     }
     

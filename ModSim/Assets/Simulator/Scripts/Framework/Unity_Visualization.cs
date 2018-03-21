@@ -19,6 +19,7 @@ namespace Unity_Visualization
         {
             this.guid = guid;
             gameobject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            gameobject.name = "SensorModule";
             MeshRenderer renderer = gameobject.GetComponent<MeshRenderer>();
 
 
@@ -37,6 +38,12 @@ namespace Unity_Visualization
         {
             gameobject.transform.position = position;
             gameobject.transform.eulerAngles = rotation;
+        }
+
+        public void Remove()
+        {
+            GameObject.Destroy(gameobject.gameObject);
+            //this.Dispose();
         }
     }
 
@@ -90,7 +97,7 @@ namespace Unity_Visualization
             gameobject.GetComponent<MeshRenderer>().material.color = axis == "Pitch" ? Color.gray : Color.blue;
         }
 
-        public void remove()
+        public void Remove()
         {
             GameObject.Destroy(gameobject.gameObject);
             //this.Dispose();

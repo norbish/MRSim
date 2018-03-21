@@ -138,7 +138,7 @@ namespace AgX_Interface
 
         private agx.RigidBody agx_Object;
 
-        public AgX_Primitive(Guid guid, string shape, Vector3 pos, Vector3 rot, Vector3 size, double mass, string materialName)
+        public AgX_Primitive(Guid guid, string shape, Vector3 pos, Quaternion rot, Vector3 size, double mass, string materialName)
         {
             this.guid = guid;
             this.shape = shape;
@@ -159,7 +159,7 @@ namespace AgX_Interface
             agx_Object.add(dynamicRBGeometry);
             agx_Object.setLocalPosition(Operations.ToAgxVec3(pos));///AgX
 
-            agx_Object.setLocalRotation(new agx.EulerAngles(Operations.ToAgxVec3(rot)));///AgX
+            agx_Object.setLocalRotation(new agx.Quat(rot.x, rot.y, rot.z, rot.w));///AgX
 
             agx_Object.getMassProperties().setMass(mass);
 
@@ -246,8 +246,6 @@ namespace AgX_Interface
             //UnityEngine.Debug.Log("x: " +agx_Object.getLocalPosition().x + ", y: " + agx_Object.getLocalPosition().y + ", z: " + agx_Object.getLocalPosition().z);
 
             agx_Object.getMassProperties().setMass(mass);
-
-            
 
             if (isStatic)
                 agx_Object.setMotionControl(agx.RigidBody.MotionControl.STATIC);

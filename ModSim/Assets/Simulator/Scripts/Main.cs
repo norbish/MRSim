@@ -23,7 +23,7 @@ public class Main : MonoBehaviour {
     void Start()// Use this for initialization
     {
         Physics.autoSimulation = false; //Turn off Unity Physics
-        Debug.Log(new UnityEngine.Quaternion(0, -0.013707354664802551f, 0, 0.999906063079834f).eulerAngles);
+        //Debug.Log(new UnityEngine.Quaternion(0, -0.013707354664802551f, 0, 0.999906063079834f).eulerAngles);
         
         //Main_Initialization();
     }

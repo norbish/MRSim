@@ -35,6 +35,11 @@ public class Camera_Movement : MonoBehaviour {
     void getrobot()
     {
         robot = GameObject.Find("Frame");
+        if (robot == null)
+            robot = GameObject.Find("SensorModule");
+        if (robot == null)
+        { robot = new GameObject(); robot.transform.position = new Vector3(0, 18, -10); }
+
         this.transform.position = new Vector3(robot.transform.position.x, robot.transform.position.y + 6, robot.transform.position.z - 10);
         /*this.transform.position = robot.transform.position;
         this.transform.position += new Vector3(0,6,-10);
