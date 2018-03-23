@@ -423,5 +423,193 @@ namespace AgX_Interface
             return intVec;
         }
     }
+
+    /*-------------------------------------------------Utility Functions:-------------------------------------------------*/
+    /*------------------------------------------------------Vector3-------------------------------------------------------*/
+
+    public struct Vector3
+    {
+        public double x, y, z;
+
+        public static Vector3 forward = new Vector3(0, 0, 1);
+        public static Vector3 zero = new Vector3(0f, 0f, 0f);
+
+        public Vector3(double x, double y, double z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        public static double Length(Vector3 a)
+        {
+            return Math.Sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+        }
+
+        public static Vector3 Normalize(Vector3 a)
+        {
+            double length = Length(a);
+            if (length != 0)
+            {
+                a.x = a.x / length;
+                a.y = a.y / length;
+                a.z = a.z / length;
+            }
+            return a;
+        }
+
+        public static Vector3 Lerp(Vector3 a, Vector3 b, double amount)
+        {
+            return amount * Vector3.Normalize(b - a) + a;
+        }
+
+        //Operators:
+        public static Vector3 operator +(Vector3 a, Vector3 b)
+        {
+            a.x += b.x;
+            a.y += b.y;
+            a.z += b.z;
+            return a;
+        }
+        public static Vector3 operator -(Vector3 a, Vector3 b)
+        {
+            a.x -= b.x;
+            a.y -= b.y;
+            a.z -= b.z;
+            return a;
+        }
+        public static Vector3 operator *(Vector3 a, double scale)
+        {
+            a.x *= scale;
+            a.y *= scale;
+            a.z *= scale;
+            return a;
+        }
+        public static Vector3 operator *(double scale, Vector3 a)
+        {
+            a.x *= scale;
+            a.y *= scale;
+            a.z *= scale;
+            return a;
+        }
+        public static Vector3 operator /(Vector3 a, double scale)
+        {
+            a.x /= scale;
+            a.y /= scale;
+            a.z /= scale;
+            return a;
+        }
+
+
+    }
+
+    public struct Vector2
+    {
+        public double x, y;
+
+        public Vector2(double x, double y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    public struct Quaternion
+    {
+        const double Rad2Deg = (180 / Math.PI);
+        const double Deg2Rad = (Math.PI / 180);
+        public double x, y, z, w;
+
+        static Quaternion identity = new Quaternion(0, 0, 0, 1);
+
+        public Quaternion(double x, double y, double z, double w)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.w = w;
+        }
+
+
+        public Vector3 ToEulerRad()
+        {
+            double sqw = this.w * this.w;
+            double sqx = this.x * this.x;
+            double sqy = this.y * this.y;
+            double sqz = this.z * this.z;
+            double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+            double test = this.x * this.w - this.y * this.z;
+            Vector3 v = new Vector3();
+
+            if (test > 0.4995f * unit)
+            { // singularity at north pole
+                v.y = 2f * Math.Atan2(this.y, this.x);
+                v.x = Math.PI / 2;
+                v.z = 0;
+                return NormalizeAngles(v * Rad2Deg);
+            }
+            if (test < -0.4995f * unit)
+            { // singularity at south pole
+                v.y = -2f * Math.Atan2(this.y, this.x);
+                v.x = -Math.PI / 2;
+                v.z = 0;
+                return NormalizeAngles(v * Rad2Deg);
+            }
+            Quaternion q = new Quaternion(this.w, this.z, this.x, this.y);
+            v.y = System.Math.Atan2(2f * q.x * q.w + 2f * q.y * q.z, 1 - 2f * (q.z * q.z + q.w * q.w));     // Yaw
+            v.x = System.Math.Asin(2f * (q.x * q.z - q.w * q.y));                             // Pitch
+            v.z = System.Math.Atan2(2f * q.x * q.y + 2f * q.z * q.w, 1 - 2f * (q.y * q.y + q.z * q.z));      // Roll
+            return NormalizeAngles(v * (180 / Math.PI));
+        }
+        private static Vector3 NormalizeAngles(Vector3 angles)
+        {
+            angles.x = NormalizeAngle(angles.x);
+            angles.y = NormalizeAngle(angles.y);
+            angles.z = NormalizeAngle(angles.z);
+            return angles;
+        }
+        private static double NormalizeAngle(double angle)
+        {
+            while (angle > 360)
+                angle -= 360;
+            while (angle < 0)
+                angle += 360;
+            return angle;
+        }
+
+        public Vector3 eulerAnglesD()
+        {
+            Vector3 vector;
+
+            double unit = x * x + y * y + z * z + w * w;
+            double test = x * y + z * w;
+
+            if (test > 0.4999f * unit)                              // 0.4999f OR 0.5f - EPSILON
+            {
+                // Singularity at north pole
+                vector.y = 2f * (double)Math.Atan2(x, w);  // Yaw
+                vector.x = Math.PI * 0.5f;                         // Pitch
+                vector.z = 0f;                                // Roll
+                return vector;
+            }
+            else if (test < -0.4999f * unit)                        // -0.4999f OR -0.5f + EPSILON
+            {
+                // Singularity at south pole
+                vector.y = -2f * (double)Math.Atan2(x, w); // Yaw
+                vector.x = -Math.PI * 0.5f;                        // Pitch
+                vector.z = 0f;                                // Roll
+                return vector;
+            }
+            else
+            {
+
+                vector.y = (double)Math.Atan2(2f * x * w + 2f * y * z, 1 - 2f * (z * z + w * w));// * Math.PI/180;     // Yaw to degrees
+                vector.x = (double)Math.Asin(2f * (x * z - w * y));// * Math.PI / 180; ;                             // Pitch 
+                vector.z = (double)Math.Atan2(2f * x * y + 2f * z * w, 1 - 2f * (y * y + z * z));// * Math.PI / 180; ;      // Roll 
+
+                return vector;
+            }
+        }
+    }
 }
 

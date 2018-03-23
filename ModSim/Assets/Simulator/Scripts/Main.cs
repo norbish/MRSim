@@ -237,17 +237,17 @@ public class Main : MonoBehaviour {
     }
 
     //.dll Helper Functions
-    Simulation_Core.Vector3 Sim_CoreHelper(UnityEngine.Vector3 vec)
+    AgX_Interface.Vector3 Sim_CoreHelper(UnityEngine.Vector3 vec)
     {
-        Simulation_Core.Vector3 vector;
+        AgX_Interface.Vector3 vector;
         vector.x = vec.x;
         vector.y = vec.y;
         vector.z = vec.z;
         return vector;
     }
-    Simulation_Core.Vector3[] Sim_CoreHelper(UnityEngine.Vector3[] vec)//THESE?? wrong?
+    AgX_Interface.Vector3[] Sim_CoreHelper(UnityEngine.Vector3[] vec)//THESE?? wrong?
     {
-        var vectors = new Simulation_Core.Vector3[vec.Length];
+        var vectors = new AgX_Interface.Vector3[vec.Length];
 
         for (int i = 0; i < vec.Length; i++)
         {
@@ -257,7 +257,7 @@ public class Main : MonoBehaviour {
         }
         return vectors;
     }
-    List<UnityEngine.Vector3> Sim_CoreHelper(List<Simulation_Core.Vector3> vec)
+    List<UnityEngine.Vector3> Sim_CoreHelper(List<AgX_Interface.Vector3> vec)
     {
         var vectors = new List<UnityEngine.Vector3>();
 
@@ -267,9 +267,9 @@ public class Main : MonoBehaviour {
         }
         return vectors;
     }
-    Simulation_Core.Vector2[] Sim_CoreHelper(UnityEngine.Vector2[] vec)
+    AgX_Interface.Vector2[] Sim_CoreHelper(UnityEngine.Vector2[] vec)
     {
-        var vectors = new Simulation_Core.Vector2[vec.Length];
+        var vectors = new AgX_Interface.Vector2[vec.Length];
 
         for (int i = 0; i < vec.Length; i++)
         {
@@ -278,7 +278,7 @@ public class Main : MonoBehaviour {
         }
         return vectors;
     }
-    UnityEngine.Vector2[] Sim_CoreHelper(Simulation_Core.Vector2[] vec)
+    UnityEngine.Vector2[] Sim_CoreHelper(AgX_Interface.Vector2[] vec)
     {
         var vectors = new UnityEngine.Vector2[vec.Length];
 
@@ -289,7 +289,7 @@ public class Main : MonoBehaviour {
         }
         return vectors;
     }
-    UnityEngine.Vector3 Sim_CoreHelper(Simulation_Core.Vector3 vec)
+    UnityEngine.Vector3 Sim_CoreHelper(AgX_Interface.Vector3 vec)
     {
         var vector = new UnityEngine.Vector3();
         vector.x = (float)vec.x;
@@ -298,7 +298,7 @@ public class Main : MonoBehaviour {
 
         return vector;
     }
-    UnityEngine.Quaternion Sim_CoreHelper(Simulation_Core.Quaternion quat)
+    UnityEngine.Quaternion Sim_CoreHelper(AgX_Interface.Quaternion quat)
     {
         UnityEngine.Quaternion Uq = new UnityEngine.Quaternion();
         Uq.x = (float)quat.x;

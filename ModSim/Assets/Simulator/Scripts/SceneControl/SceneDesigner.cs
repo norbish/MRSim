@@ -21,7 +21,7 @@ public class SceneDesigner : MonoBehaviour {
     public InputField joint_leftRangeLimit, joint_rightRangeLimit, joint_maxVelocity, joint_pValue;
 
     double l_scale, l_mass, r_scale, r_mass;
-    Simulation_Core.Vector3 l_pos, l_rot, r_pos, r_rot;
+    AgX_Interface.Vector3 l_pos, l_rot, r_pos, r_rot;
     string l_mat, r_mat;
 
     string jointType;
@@ -177,7 +177,7 @@ public class SceneDesigner : MonoBehaviour {
         Texture2D hMap = Resources.Load(HeightMapSelection.text) as Texture2D;//Rename to terrain
         byte[] bytes = hMap.EncodeToPNG();
 
-        scene_serialize = DefineScene(bytes, new Simulation_Core.Vector3(-125,0,-125), "Rock", 10);
+        scene_serialize = DefineScene(bytes, new AgX_Interface.Vector3(-125,0,-125), "Rock", 10);
     }
 
     public void FinalizeCreation()
@@ -217,8 +217,8 @@ public class SceneDesigner : MonoBehaviour {
         var l_q = UnityEngine.Quaternion.Euler((float)l_rot.x, (float)l_rot.y, (float)l_rot.z);
         var r_q = UnityEngine.Quaternion.Euler((float)r_rot.x, (float)r_rot.y, (float)r_rot.z);
 
-        Simulation_Core.Quaternion l_quat = new Simulation_Core.Quaternion(l_q.x, l_q.y, l_q.z, l_q.w);
-        Simulation_Core.Quaternion r_quat = new Simulation_Core.Quaternion(r_q.x, r_q.y, r_q.z, r_q.w);
+        AgX_Interface.Quaternion l_quat = new AgX_Interface.Quaternion(l_q.x, l_q.y, l_q.z, l_q.w);
+        AgX_Interface.Quaternion r_quat = new AgX_Interface.Quaternion(r_q.x, r_q.y, r_q.z, r_q.w);
 
 
         Frame f1 = DefineFrame("Box", l_pos, l_scale, l_quat, l_mass, l_mat);
@@ -249,7 +249,7 @@ public class SceneDesigner : MonoBehaviour {
     }
     /**--------------------------------------------------Adding module----------------------------------------------------*/
     int module_Count = 0;
-    Simulation_Core.Vector3 currentModulePosition = Simulation_Core.Vector3.zero;
+    AgX_Interface.Vector3 currentModulePosition = AgX_Interface.Vector3.zero;
     bool FirstModule = true;
     public InputField moduleCount;
     public void ButtonAddModule()
@@ -313,7 +313,7 @@ public class SceneDesigner : MonoBehaviour {
     }
 
     public InputField Ism_leftnr, Ism_rightnr, Ism_pos_x, Ism_pos_y, Ism_pos_z, Ism_size_x, Ism_size_y, Ism_size_z, Ism_mat, Ism_mass;
-    Simulation_Core.Vector3 sm_pos, sm_size;
+    AgX_Interface.Vector3 sm_pos, sm_size;
     double sm_mass;
     string sm_mat;
 
@@ -373,11 +373,11 @@ public class SceneDesigner : MonoBehaviour {
             var l_q = UnityEngine.Quaternion.Euler((float)l_rot.x, (float)l_rot.y, (float)l_rot.z);
             var r_q = UnityEngine.Quaternion.Euler((float)r_rot.x, (float)r_rot.y, (float)r_rot.z);
             //UnityQuat to Sim_CoreQuat
-            Simulation_Core.Quaternion l_quat = new Simulation_Core.Quaternion(l_q.x, l_q.y, l_q.z, l_q.w);
-            Simulation_Core.Quaternion r_quat = new Simulation_Core.Quaternion(r_q.x, r_q.y, r_q.z, r_q.w);*/
+            AgX_Interface.Quaternion l_quat = new AgX_Interface.Quaternion(l_q.x, l_q.y, l_q.z, l_q.w);
+            AgX_Interface.Quaternion r_quat = new AgX_Interface.Quaternion(r_q.x, r_q.y, r_q.z, r_q.w);*/
 
             //Create the sensory module:
-            var mod = DefineSensoryModule(module_Count - 1, module_Count, currentModulePosition, sm_size, sm_mass, new Simulation_Core.Quaternion(0,0,0,1), sm_mat);//module count-1 and module count will be the place where sensor module is set.
+            var mod = DefineSensoryModule(module_Count - 1, module_Count, currentModulePosition, sm_size, sm_mass, new AgX_Interface.Quaternion(0,0,0,1), sm_mat);//module count-1 and module count will be the place where sensor module is set.
             Debug.Log("Left: " + (module_Count - 1) + ", Right: " + module_Count);
             if (module_Count == 0 && SensoryModule_Count == 0)
             {
@@ -595,7 +595,7 @@ public class SceneDesigner : MonoBehaviour {
 
     /*-------------------------------------------------Helper Functions:--------------------------------------------------*/
     /*--------------------------------------------------Defining frames---------------------------------------------------*/
-    Frame DefineFrame(string shape, Simulation_Core.Vector3 pos, double scale, Simulation_Core.Quaternion rot, double mass, string materialName)
+    Frame DefineFrame(string shape, AgX_Interface.Vector3 pos, double scale, AgX_Interface.Quaternion rot, double mass, string materialName)
     {
         return new Frame()//test create new object
         {
@@ -632,7 +632,7 @@ public class SceneDesigner : MonoBehaviour {
 
         return module;
     }
-    Scene DefineScene(byte[] bytes, Simulation_Core.Vector3 pos, string materialName, double height)
+    Scene DefineScene(byte[] bytes, AgX_Interface.Vector3 pos, string materialName, double height)
     {
         return new Scene()
         {
@@ -643,7 +643,7 @@ public class SceneDesigner : MonoBehaviour {
             height = height
         };
     }
-    Sensory_Module DefineSensoryModule(int leftModNr, int rightModNr, Simulation_Core.Vector3 pos, Simulation_Core.Vector3 size, double mass, Simulation_Core.Quaternion rot, string materialName )
+    Sensory_Module DefineSensoryModule(int leftModNr, int rightModNr, AgX_Interface.Vector3 pos, AgX_Interface.Vector3 size, double mass, AgX_Interface.Quaternion rot, string materialName )
     {
         return new Sensory_Module()
         {
