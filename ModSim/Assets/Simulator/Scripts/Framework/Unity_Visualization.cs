@@ -19,6 +19,7 @@ namespace Unity_Visualization
         {
             this.guid = guid;
             gameobject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            gameobject.name = "SensorModule";
             MeshRenderer renderer = gameobject.GetComponent<MeshRenderer>();
 
 
@@ -28,10 +29,21 @@ namespace Unity_Visualization
             gameobject.transform.localScale = scale*2;
             gameobject.transform.position = position;
         }
+        public void Update(Vector3 position, Quaternion rotation)
+        {
+            gameobject.transform.position = position;
+            gameobject.transform.rotation = rotation;
+        }
         public void Update(Vector3 position, Vector3 rotation)
         {
             gameobject.transform.position = position;
             gameobject.transform.eulerAngles = rotation;
+        }
+
+        public void Remove()
+        {
+            GameObject.Destroy(gameobject.gameObject);
+            //this.Dispose();
         }
     }
 
@@ -50,16 +62,19 @@ namespace Unity_Visualization
             MeshRenderer renderer = gameobject.AddComponent<MeshRenderer>();
             MeshFilter filter = gameobject.AddComponent<MeshFilter>();
 
-            Vector3[] tmp_Vertices = meshFilter.vertices;
+            Mesh tmpMesh = new Mesh();
+            tmpMesh = meshFilter;
+
+            Vector3[] tmp_Vertices = tmpMesh.vertices;
             for (int i = 0; i < tmp_Vertices.Length; i++)
             {
                 tmp_Vertices[i].x *= (float)scale;
                 tmp_Vertices[i].y *= (float)scale;
                 tmp_Vertices[i].z *= (float)scale;
             }
-            meshFilter.vertices = tmp_Vertices;
+            tmpMesh.vertices = tmp_Vertices;
 
-            filter.mesh = meshFilter;
+            filter.mesh = tmpMesh;
             renderer.material = new Material(Shader.Find("Diffuse"));
             renderer.material.color =  Color.blue;
 
@@ -67,12 +82,25 @@ namespace Unity_Visualization
 
         }
 
-        public void Update(Vector3 position/*, Vector3 scale,*/ ,Vector3 rotation, string axis)
+        public void Update(Vector3 position/*, Vector3 scale,*/ ,Quaternion rotation, string axis)
+        {
+            gameobject.transform.position = position;
+            //gameobject.transform.localScale = scale;
+            gameobject.transform.rotation = rotation;
+            gameobject.GetComponent<MeshRenderer>().material.color = axis == "Pitch" ? Color.gray : Color.blue;
+        }
+        public void Update(Vector3 position, Vector3 rotation, string axis)
         {
             gameobject.transform.position = position;
             //gameobject.transform.localScale = scale;
             gameobject.transform.eulerAngles = rotation;
             gameobject.GetComponent<MeshRenderer>().material.color = axis == "Pitch" ? Color.gray : Color.blue;
+        }
+
+        public void Remove()
+        {
+            GameObject.Destroy(gameobject.gameObject);
+            //this.Dispose();
         }
     }
 

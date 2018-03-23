@@ -33,11 +33,15 @@ namespace Simulation_Core
         public void Add_Module(Module module)
         {
             modules.Add(module);
+
+            module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
         }
         public void Add_Module(Module module, Joint lockjoint)
         {
             modules.Add(module);
             locks.Add(lockjoint);
+
+            module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
         }
 
         public void Add_SensorModule(Sensory_Module module, Joint r_lockjoint)
@@ -66,17 +70,23 @@ namespace Simulation_Core
             //if sensormodule on 0, attach to first module. 
 
             int lockNrCount = 0;//USE THIS
-            //Sets locks between modules:
+            //Sets locks between modules:(ITERATES CURRENT MODULE)-> 
             for(int i = 0; i<modules.Count; i++)
             {
 
-                if(sensorModules.Any(x => x.rightMod_Nr == i))//if this module is to the right of a sensor moduleif(sensorModules.Any(x => x.rightMod_Nr == modules[i].number)
+                if(sensorModules.Any(x => x.rightMod_Nr == i))//[]>X | if this module is to the right of a sensor moduleif(sensorModules.Any(x => x.rightMod_Nr == modules[i].number)
                 {
                     locks[lockNrCount].Create_SensorModuleLock(sensorModules.Find(x => x.rightMod_Nr == i), modules[i].frames[0]);
                     lockNrCount++;
+
+                    if(!sensorModules.Any(x=>x.leftMod_Nr == i) && i+1 < modules.Count)//X->X | if there is no sensorModule to the right, and there IS a module to the right
+                    {
+                        locks[lockNrCount].Create_Lock(modules[i].frames[1], modules[i + 1].frames[0]);
+                        lockNrCount++;
+                    }
                 }
 
-                if (sensorModules.Any(x => x.leftMod_Nr == i))//if this module is to the left of a sensor module:
+                if (sensorModules.Any(x => x.leftMod_Nr == i))//X<-[] | if this module is to the left of a sensor module:
                 {
                     locks[lockNrCount].Create_SensorModuleLock(modules[i].frames[1], sensorModules.Find(x => x.leftMod_Nr == i));
                     lockNrCount++;
@@ -90,8 +100,8 @@ namespace Simulation_Core
 
             }
             //Set Pitch or Yaw
-            foreach (Module module in modules)
-                module.Axis = module.frames[0].rotation.z == 0 ? "Pitch" : "Yaw";
+            /*foreach (Module module in modules)
+                module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";*/
             
         }
 
@@ -160,6 +170,7 @@ namespace Simulation_Core
         public Vector3 position;
         public Vector3 rotation;
         public Vector3 size;
+        public Quaternion quatRotation;
         public double mass;
         public string materialName;
 
@@ -167,12 +178,19 @@ namespace Simulation_Core
 
         public void Initialize()
         {
-            agxPrimitive = new AgX_Primitive(guid,"Box",position,rotation,size,mass,materialName);
+            agxPrimitive = new AgX_Primitive(guid,"Box",position,quatRotation,size,mass,materialName);
         }
         public void Update()
         {
             position = agxPrimitive.Get_Position();
-            rotation = agxPrimitive.Get_Rotation();
+            //rotation = agxPrimitive.Get_Rotation();
+            quatRotation = agxPrimitive.Get_QuatRotation();
+        }
+
+        public Vector3 QuatToRot()
+        {
+            rotation = quatRotation.ToEulerRad();
+            return quatRotation.ToEulerRad();
         }
     }
     
@@ -185,7 +203,7 @@ namespace Simulation_Core
         public double scale;
         public Vector3 position;
         public Vector3 rotation;
-        private Quaternion quatRotation;
+        public Quaternion quatRotation;
         public double mass;
         public Boolean isStatic;
         public string materialName;
@@ -196,7 +214,8 @@ namespace Simulation_Core
         public void Initialize() //Create frame object
         {
             ScaleMesh();
-            agxFrame = new AgX_Frame(this.guid, shape,meshVertices, meshUvs, meshTriangles, scale,position,rotation,mass,isStatic,materialName);
+            QuatToRot();
+            agxFrame = new AgX_Frame(this.guid, shape,meshVertices, meshUvs, meshTriangles, scale,position,quatRotation,mass,isStatic,materialName);
         }
 
         private void ScaleMesh()
@@ -215,7 +234,7 @@ namespace Simulation_Core
         {
             //scale = frame.Get_Size();
             position = agxFrame.Get_Position();
-            rotation = agxFrame.Get_Rotation();
+            //rotation = agxFrame.Get_Rotation();
             quatRotation = agxFrame.Get_QuatRotation();
         }
         public Quaternion GetQuatRot()
@@ -227,6 +246,11 @@ namespace Simulation_Core
             meshVertices = vertices;
             meshUvs = uvs;
             meshTriangles = triangles;
+        }
+        public Vector3 QuatToRot()
+        {
+            rotation = quatRotation.ToEulerRad();
+            return quatRotation.ToEulerRad();
         }
     }
 
