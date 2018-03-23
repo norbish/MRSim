@@ -71,14 +71,20 @@ public class SceneDesigner : MonoBehaviour {
 
         if (SM != null)
             if (SM.gameobject.gameObject != null)
-                SM.Remove();
+            {
+                SM.Remove();SM = null;
+            }
 
         if (left != null)
             if (left.gameobject.gameObject != null)
-                left.Remove();
+            {
+                left.Remove(); left = null;
+            }
         if (right != null)
             if (right.gameobject.gameObject != null)
-                right.Remove();
+            {
+                right.Remove(); right = null;
+            }
 
 
         //Serializing Robot:
@@ -95,7 +101,7 @@ public class SceneDesigner : MonoBehaviour {
         robot_serialize = new Robot();
 
         //Start position for the first module
-        UnityEngine.Vector3 start_Position = new UnityEngine.Vector3(15, 12, 40);
+        .Vector3 start_Position = new .Vector3(15, 12, 40);
 
         //For finding the size of the modules:
         ObjImporter import = new ObjImporter();
@@ -107,7 +113,7 @@ public class SceneDesigner : MonoBehaviour {
         for (int i = 0; i < 10; i++)
         {
             //This, user should decide him/herself:
-            var rot = i % 2 == 0 ? new UnityEngine.Vector3(0, -Mathf.PI / 2, 0) : new UnityEngine.Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
+            var rot = i % 2 == 0 ? new .Vector3(0, -Mathf.PI / 2, 0) : new .Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
 
             Frame f1 = DefineFrame("Box", start_Position, 10, rot, 50, "Plastic");
             Frame f2 = DefineFrame("Box", start_Position, 10, rot, 50, "Plastic");
@@ -139,7 +145,7 @@ public class SceneDesigner : MonoBehaviour {
         Texture2D hMap = Resources.Load("Heightmap3") as Texture2D;//Rename to terrain
         byte[] bytes = hMap.EncodeToPNG();
 
-        var scene_serialize = DefineScene(bytes, UnityEngine.Vector3.zero, "Rock", 10);
+        var scene_serialize = DefineScene(bytes, .Vector3.zero, "Rock", 10);
 
         //Add robot and scene to scenario:
         Scenario scenario_serialize = new Scenario()
@@ -213,9 +219,9 @@ public class SceneDesigner : MonoBehaviour {
     {
         RefreshBounds();
         //This, user should decide him/herself:
-        //  var rot = count % 2 == 0 ? new UnityEngine.Vector3(0, -Mathf.PI / 2, 0) : new UnityEngine.Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
-        var l_q = UnityEngine.Quaternion.Euler((float)l_rot.x, (float)l_rot.y, (float)l_rot.z);
-        var r_q = UnityEngine.Quaternion.Euler((float)r_rot.x, (float)r_rot.y, (float)r_rot.z);
+        //  var rot = count % 2 == 0 ? new .Vector3(0, -Mathf.PI / 2, 0) : new .Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
+        var l_q = Quaternion.Euler((float)l_rot.x, (float)l_rot.y, (float)l_rot.z);
+        var r_q = Quaternion.Euler((float)r_rot.x, (float)r_rot.y, (float)r_rot.z);
 
         AgX_Interface.Quaternion l_quat = new AgX_Interface.Quaternion(l_q.x, l_q.y, l_q.z, l_q.w);
         AgX_Interface.Quaternion r_quat = new AgX_Interface.Quaternion(r_q.x, r_q.y, r_q.z, r_q.w);
@@ -369,12 +375,6 @@ public class SceneDesigner : MonoBehaviour {
                 //Position for this module center, if not first:
                 currentModulePosition.z = currentModulePosition.z + leftModSize_Z - sm_size.z - 0.01f;//Sensor.z = sensor.z + (l_scale * leftSize.z) - sensorScale.z/2 (+ because we are going backwards)
             }
-            /*//Euler to UnityQuat:
-            var l_q = UnityEngine.Quaternion.Euler((float)l_rot.x, (float)l_rot.y, (float)l_rot.z);
-            var r_q = UnityEngine.Quaternion.Euler((float)r_rot.x, (float)r_rot.y, (float)r_rot.z);
-            //UnityQuat to Sim_CoreQuat
-            AgX_Interface.Quaternion l_quat = new AgX_Interface.Quaternion(l_q.x, l_q.y, l_q.z, l_q.w);
-            AgX_Interface.Quaternion r_quat = new AgX_Interface.Quaternion(r_q.x, r_q.y, r_q.z, r_q.w);*/
 
             //Create the sensory module:
             var mod = DefineSensoryModule(module_Count - 1, module_Count, currentModulePosition, sm_size, sm_mass, new AgX_Interface.Quaternion(0,0,0,1), sm_mat);//module count-1 and module count will be the place where sensor module is set.
@@ -397,9 +397,18 @@ public class SceneDesigner : MonoBehaviour {
 
     void PrepareSMPosition()
     {
-        Ism_pos_x.text = currentModulePosition.x.ToString();
-        Ism_pos_y.text = currentModulePosition.y.ToString();
-        Ism_pos_z.text = currentModulePosition.z.ToString();
+        if (module_Count == 0 && SensoryModule_Count == 0)
+        {
+            Ism_pos_x.text = left_Position_X.text.ToString();
+            Ism_pos_y.text = left_Position_Y.text.ToString();
+            Ism_pos_z.text = left_Position_Z.text.ToString();
+        }
+        else
+        {
+            Ism_pos_x.text = currentModulePosition.x.ToString();
+            Ism_pos_y.text = currentModulePosition.y.ToString();
+            Ism_pos_z.text = currentModulePosition.z.ToString();
+        }
         Ism_leftnr.text = (module_Count - 1).ToString();
         Ism_rightnr.text = module_Count.ToString();
     }
@@ -498,14 +507,14 @@ public class SceneDesigner : MonoBehaviour {
         {   Mesh leftMesh = import.ImportFile(dir + robot_initSerialization.leftFrameDir);
             Mesh rightMesh = import.ImportFile(dir + robot_initSerialization.rightFrameDir);
 
-            current_frameVis.Add(new Unity_Visualization.Frame_Vis(mod.frames[0].guid, leftMesh ,new UnityEngine.Vector3((float)mod.frames[0].position.x,(float)mod.frames[0].position.y,(float)mod.frames[0].position.z),mod.frames[0].scale));
-            current_frameVis.Add(new Unity_Visualization.Frame_Vis(mod.frames[1].guid, rightMesh, new UnityEngine.Vector3((float)mod.frames[1].position.x, (float)mod.frames[1].position.y, (float)mod.frames[1].position.z), mod.frames[1].scale));
+            current_frameVis.Add(new Unity_Visualization.Frame_Vis(mod.frames[0].guid, leftMesh ,new Vector3((float)mod.frames[0].position.x,(float)mod.frames[0].position.y,(float)mod.frames[0].position.z),mod.frames[0].scale));
+            current_frameVis.Add(new Unity_Visualization.Frame_Vis(mod.frames[1].guid, rightMesh, new Vector3((float)mod.frames[1].position.x, (float)mod.frames[1].position.y, (float)mod.frames[1].position.z), mod.frames[1].scale));
             Debug.Log("Vert: " + leftMesh.vertices[5] + " |Scale: " + mod.frames[0].scale);
             //Update:
             foreach(Frame frame in mod.frames)
             try { current_frameVis.Find(x => x.guid == frame.guid).Update(
-                new UnityEngine.Vector3((float)frame.position.x,(float)frame.position.y,(float)frame.position.z), 
-                new UnityEngine.Quaternion((float)frame.quatRotation.x,(float)frame.quatRotation.y,(float)frame.quatRotation.z,(float)frame.quatRotation.w), //needs to be in degrees for vis
+                new Vector3((float)frame.position.x,(float)frame.position.y,(float)frame.position.z), 
+                new Quaternion((float)frame.quatRotation.x,(float)frame.quatRotation.y,(float)frame.quatRotation.z,(float)frame.quatRotation.w), //needs to be in degrees for vis
                 mod.Axis);
                 }
             catch (NullReferenceException e) { Debug.Log("Could not create frame gameobject."); }
@@ -514,7 +523,7 @@ public class SceneDesigner : MonoBehaviour {
         //SensoryModules:
         foreach(Sensory_Module mod in robot_initSerialization.sensorModules)
         {
-            current_SMVis.Add(new Unity_Visualization.Sensor_Vis(mod.guid,new UnityEngine.Vector3((float)mod.position.x,(float)mod.position.y,(float)mod.position.z),new UnityEngine.Vector3((float)mod.size.x,(float)mod.size.y,(float)mod.size.z)));
+            current_SMVis.Add(new Unity_Visualization.Sensor_Vis(mod.guid,new Vector3((float)mod.position.x,(float)mod.position.y,(float)mod.position.z),new Vector3((float)mod.size.x,(float)mod.size.y,(float)mod.size.z)));
 
         }
 
@@ -527,9 +536,11 @@ public class SceneDesigner : MonoBehaviour {
     Unity_Visualization.Frame_Vis left, right;
     public void ShowPlannedModuleConfig()//Called each time an input field is changed
     {
-        if(SM != null)
-            if(SM.gameobject.gameObject != null)
-                SM.Remove();
+        if (SM != null)
+            if (SM.gameobject.gameObject != null)
+            {
+                SM.Remove();SM = null;
+            }
 
         GetFrameValues();
         ObjImporter import = new ObjImporter();
@@ -539,37 +550,44 @@ public class SceneDesigner : MonoBehaviour {
         Mesh rightMesh = import.ImportFile(dir + robot_initSerialization.rightFrameDir);
         if (left == null && right == null)
         {
-            left = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), leftMesh, new UnityEngine.Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), l_scale);
-            right = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), rightMesh, new UnityEngine.Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), r_scale);
+            left = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), leftMesh, new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), l_scale);
+            right = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), rightMesh, new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), r_scale);
 
-            left.Update(new UnityEngine.Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), new UnityEngine.Vector3((float)l_rot.x, (float)l_rot.y, (float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
-            right.Update(new UnityEngine.Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new UnityEngine.Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
+            left.Update(new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), new Vector3((float)l_rot.x, (float)l_rot.y, (float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
+            right.Update(new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
         }
         else
         {
-            left.Update(new UnityEngine.Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z),new UnityEngine.Vector3((float)l_rot.x,(float)l_rot.y,(float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
-            right.Update(new UnityEngine.Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new UnityEngine.Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
+            left.Update(new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z),new Vector3((float)l_rot.x,(float)l_rot.y,(float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
+            right.Update(new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
         }
     }
 
     Unity_Visualization.Sensor_Vis SM;
     public void ShowPlannedSensoryModuleConfig()
     {
-        if(left != null)
-            if(left.gameobject.gameObject != null)
-                left.Remove();
-        if(right != null)
-            if(right.gameobject.gameObject != null)
-                right.Remove();
+        //sm_pos = new AgX_Interface.Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z);
+        if (left != null)
+            if (left.gameobject.gameObject != null)
+            {
+                left.Remove();left = null;
+            }
+        if (right != null)
+            if (right.gameobject.gameObject != null)
+            {
+                right.Remove();right = null;
+            }
 
         GetSensoryModuleValues();
-        ObjImporter import = new ObjImporter();
 
-        Mesh leftMesh = import.ImportFile(dir + robot_initSerialization.leftFrameDir);
-        Mesh rightMesh = import.ImportFile(dir + robot_initSerialization.rightFrameDir);
-
-        Unity_Visualization.Sensor_Vis SM = new Unity_Visualization.Sensor_Vis(Guid.NewGuid(),new UnityEngine.Vector3((float)sm_pos.x,(float)sm_pos.y,(float)sm_pos.z),new UnityEngine.Vector3((float)sm_size.x,(float)sm_size.y,(float)sm_size.z));
-
+        if (SM == null)
+        {
+            SM = new Unity_Visualization.Sensor_Vis(Guid.NewGuid(), new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
+            SM.Update(new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), Vector3.zero, new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
+        } else
+        {
+            SM.Update(new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), Vector3.zero, new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));Debug.Log("working");
+        }
     }
 
 

@@ -34,10 +34,11 @@ namespace Unity_Visualization
             gameobject.transform.position = position;
             gameobject.transform.rotation = rotation;
         }
-        public void Update(Vector3 position, Vector3 rotation)
+        public void Update(Vector3 position, Vector3 rotation, Vector3 size)
         {
             gameobject.transform.position = position;
             gameobject.transform.eulerAngles = rotation;
+            gameobject.transform.localScale = size*2;//*2 for scaling up to AgX size
         }
 
         public void Remove()
@@ -92,7 +93,7 @@ namespace Unity_Visualization
         public void Update(Vector3 position, Vector3 rotation, string axis)
         {
             gameobject.transform.position = position;
-            //gameobject.transform.localScale = scale;
+            //gameobject.transform.localScale = size;
             gameobject.transform.eulerAngles = rotation;
             gameobject.GetComponent<MeshRenderer>().material.color = axis == "Pitch" ? Color.gray : Color.blue;
         }
