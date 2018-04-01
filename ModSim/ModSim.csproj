@@ -265,9 +265,6 @@
     <Reference Include="agxDotNet">
       <HintPath>Assets/Plugins/agxDotNet.dll</HintPath>
     </Reference>
-    <Reference Include="System.Drawing">
-      <HintPath>Assets/Simulator/Scripts/Framework/System.Drawing.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEngine.Advertisements">
       <HintPath>C:/Users/torsu/AppData/LocalLow/Unity/cache/packages/packages.unity.com/com.unity.ads@2.0.3/UnityEngine.Advertisements.dll</HintPath>
     </Reference>
@@ -289,12 +286,16 @@
     <Reference Include="UnityEngine.StandardEvents">
       <HintPath>C:/Users/torsu/AppData/LocalLow/Unity/cache/packages/packages.unity.com/com.unity.standardevents@1.0.10/UnityEngine.StandardEvents.dll</HintPath>
     </Reference>
+    <Reference Include="Simulation_Core">
+      <HintPath>Assets/Simulator/Scripts/Framework/Simulation_Core.dll</HintPath>
+    </Reference>
+    <Reference Include="AgX_Interface">
+      <HintPath>Assets/Simulator/Scripts/Framework/AgX_Interface.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Simulator\OBJImport\ObjImporter.cs" />
     <Compile Include="Assets\Simulator\Scripts\Dynamics\Dynamics.cs" />
-    <Compile Include="Assets\Simulator\Scripts\Framework\AgX_Interface.cs" />
-    <Compile Include="Assets\Simulator\Scripts\Framework\Simulation_Core.cs" />
     <Compile Include="Assets\Simulator\Scripts\Main.cs" />
     <Compile Include="Assets\Simulator\Scripts\SceneControl\Camera_Movement.cs" />
     <Compile Include="Assets\Simulator\Scripts\SceneControl\Scene_Designer.cs" />
