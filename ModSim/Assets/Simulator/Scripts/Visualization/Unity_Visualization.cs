@@ -1,4 +1,9 @@
-﻿using System.Collections;
+﻿/* Unity Visulization of objects class (Unity_Visualization)
+ * Torstein Sundnes Lenerand
+ * NTNU Ålesund
+ */
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -28,13 +33,15 @@ namespace Unity_Visualization
 
             gameobject.transform.localScale = scale*2;
             gameobject.transform.position = position;
+
+            
         }
         public void Update(Vector3 position, Quaternion rotation)
         {
             gameobject.transform.position = position;
             gameobject.transform.rotation = rotation;
         }
-        public void Update(Vector3 position, Vector3 rotation, Vector3 size)
+        public void Update(Vector3 position, Vector3 rotation, Vector3 size)//designer
         {
             gameobject.transform.position = position;
             gameobject.transform.eulerAngles = rotation;
@@ -75,8 +82,10 @@ namespace Unity_Visualization
             }
             tmpMesh.vertices = tmp_Vertices;
 
+            tmpMesh.RecalculateBounds();
+
             filter.mesh = tmpMesh;
-            renderer.material = new Material(Shader.Find("Diffuse"));
+            renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
             renderer.material.color =  Color.blue;
 
             gameobject.transform.position = initialpos;//gameobject.AddComponent<Renderer>();
@@ -90,12 +99,14 @@ namespace Unity_Visualization
             gameobject.transform.rotation = rotation;
             gameobject.GetComponent<MeshRenderer>().material.color = axis == "Pitch" ? Color.gray : Color.blue;
         }
-        public void Update(Vector3 position, Vector3 rotation, string axis)
+        public void Update(Vector3 position, Vector3 rotation, string axis)//designer
         {
             gameobject.transform.position = position;
             //gameobject.transform.localScale = size;
             gameobject.transform.eulerAngles = rotation;
-            gameobject.GetComponent<MeshRenderer>().material.color = axis == "Pitch" ? Color.gray : Color.blue;
+            Color color =  axis == "Pitch" ? Color.gray : Color.blue;
+            color.a = 0.3f;
+            gameobject.GetComponent<MeshRenderer>().material.color = color;
         }
 
         public void Remove()
@@ -145,19 +156,25 @@ namespace Unity_Visualization
                 uv = uvs,
                 triangles = triangles.ToArray()
             };
-
+            mesh.RecalculateBounds();
+            mesh.RecalculateNormals();
             terrain = GameObject.CreatePrimitive(PrimitiveType.Cube);//Create the primitive plane 
             terrain.name = "Terrain";
             MeshRenderer renderer = terrain.GetComponent<MeshRenderer>();
 
-            renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
+            renderer.material = new Material(Shader.Find("Diffuse"));
             renderer.material.SetTexture("_MainTex", texture);
 
             terrain.GetComponent<MeshFilter>().sharedMesh = mesh;
-            mesh = terrain.GetComponent<MeshFilter>().mesh;
+            //mesh = terrain.GetComponent<MeshFilter>().mesh;
 
             terrain.transform.position = position;
             //heightmapCube.transform.rotation = );// new Vector3(0, 0, 90);//rotate to match AgX
+        }
+
+        public void Remove()
+        {
+            GameObject.Destroy(terrain.gameObject);
         }
     }
 }

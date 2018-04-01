@@ -1,4 +1,9 @@
-﻿using System.Collections;
+﻿/* Main class for Simulation control (Main)
+ * Torstein Sundnes Lenerand
+ * NTNU Ålesund
+ */
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
@@ -11,7 +16,7 @@ using System.Xml.Serialization;
 
 public class Main : MonoBehaviour {
 
-    public static bool simulation_Running = false;
+    public static bool simulation_Running = false;bool simulation_Started = false;
     public agx.AutoInit agxInit;
     public agxSDK.Simulation mysim;
     public float dt = 1.0f / 100.0f;
@@ -30,11 +35,24 @@ public class Main : MonoBehaviour {
 
     void Main_Initialization()
     {
-        Agx_Simulation.Start(dt);//Starts the sim.
         dir = Application.streamingAssetsPath;//Get the path of the streaming assets
+        if (!simulation_Started)
+        {
+            Agx_Simulation.Start(dt);//Starts the sim.
+            
+            simulation_Started = true;
 
-        
+            SetContactPoints();//if custom contact points: move to MainInitialization().
+        }
+        else
+        {
+            Clear_Vis();
+            Agx_Simulation.Stop();
+            Agx_Simulation.Start(dt);
+            simulation_Started = true;
+            SetContactPoints();
 
+        }
         //If I start with 3 modules. Then, each time user clicks "Add Module", it adds a new module to the simulation (sim will be started, but not timestep).
 
         //LOAD:
@@ -42,8 +60,9 @@ public class Main : MonoBehaviour {
 
         /* Loading the directories for the object files */
         load_FrameDirectories(scenario.robot);
-        Load_Robot(scenario.robot);
-        Load_Scene(scenario.scene);
+        robot = new Robot(); Load_Robot(scenario.robot);
+        scene = new Scene(); Load_Scene(scenario.scene);
+
 
         simulation_Running = true;
         Visualization.enabled = true;
@@ -51,10 +70,28 @@ public class Main : MonoBehaviour {
         if (Visualization.enabled)
             Load_Vis();
 
-        SetContactPoints();//if custom contact points: move to MainInitialization().
+        
 
         InvokeRepeating("Update_Sim", 0, dt);
         
+    }
+
+    void Stop()
+    {
+        Visualization.enabled = false;
+        simulation_Running = false;
+        
+        Agx_Simulation.Stop();
+        simulation_Started = false;
+
+        Clear_Vis();
+    }
+    void Pause()
+    {
+        if (simulation_Running)
+            simulation_Running = false;
+        else
+            simulation_Running = true;
     }
 
     void SetContactPoints()
@@ -94,7 +131,7 @@ public class Main : MonoBehaviour {
         //new z pos is start.z - meshLength*i. 
         foreach (Module mod in robot.modules)
         {
-            mod.frames[0].setMesh(Sim_CoreHelper(leftMesh.vertices),Sim_CoreHelper(leftMesh.uv),leftMesh.triangles); mod.frames[1].setMesh(Sim_CoreHelper(rightMesh.vertices),Sim_CoreHelper(rightMesh.uv),rightMesh.triangles);
+            mod.frames[0].setMesh(AgxHelper(leftMesh.vertices),AgxHelper(leftMesh.uv),leftMesh.triangles); mod.frames[1].setMesh(AgxHelper(rightMesh.vertices),AgxHelper(rightMesh.uv),rightMesh.triangles);
 
             /*foreach (Frame frame in mod.frames)
             {
@@ -131,26 +168,44 @@ public class Main : MonoBehaviour {
             Mesh l = import.ImportFile(dir + upperFrame_directory);//Should make variable: String upperDirectory = ...
             Mesh r = import.ImportFile(dir + bottomFrame_directory);
 
-            frameVis.Add(new Frame_Vis(mod.frames[0].guid, l,Sim_CoreHelper(mod.frames[0].position),mod.frames[0].scale));
-            frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, Sim_CoreHelper(mod.frames[1].position),mod.frames[1].scale));
+            frameVis.Add(new Frame_Vis(mod.frames[0].guid, l,AgxHelper(mod.frames[0].position),mod.frames[0].scale));
+            frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, AgxHelper(mod.frames[1].position),mod.frames[1].scale));
 
         }
 
-        foreach(Sensory_Module mod in robot.sensorModules)
+        foreach(Sensor_Module mod in robot.sensorModules)
         {
-            sensorVis.Add(new Sensor_Vis(mod.guid, Sim_CoreHelper(mod.position), Sim_CoreHelper(mod.size)));
+            sensorVis.Add(new Sensor_Vis(mod.guid, AgxHelper(mod.position), AgxHelper(mod.size)));
         }
 
         //Scene:
-        Scene_Vis scene_vis = new Scene_Vis(scene.guid, Sim_CoreHelper(scene.vertices), scene.triangles, Sim_CoreHelper(scene.uvs), Sim_CoreHelper(scene.position), Resources.Load("grass") as Texture);
+        scene_vis = new Scene_Vis(scene.guid, AgxHelper(scene.vertices), scene.triangles, AgxHelper(scene.uvs), AgxHelper(scene.position), Resources.Load("grass") as Texture);
+    }
 
+    void Clear_Vis()
+    {
+        foreach (Frame_Vis vis in frameVis)
+        {
+            vis.Remove();
+        }
+        frameVis.Clear();
+
+        foreach (Sensor_Vis vis in sensorVis)
+        {
+            vis.Remove();
+        }
+        sensorVis.Clear();
+
+        scene_vis.Remove();
     }
 
 
     List<Sensor_Vis> sensorVis = new List<Sensor_Vis>();
     List<Frame_Vis> frameVis = new List<Frame_Vis>();
     List<Joint_Vis> jointVis = new List<Joint_Vis>();
+    Scene_Vis scene_vis;
     float simulationTime = 0;
+    int TESTCOUNT = 0;
     void Update_Sim()
     {
         if (simulation_Running)//Check if simulation is paused
@@ -170,6 +225,23 @@ public class Main : MonoBehaviour {
 
             simulationTime += Time.deltaTime;
         }
+
+        //IF Analytics checked, saveData.(if count = 10, count = 0 and saveData?)
+        int result = Analytics_Visualization.SaveData(robot, Time.time);
+        switch(result)
+        {
+            case 0: break;
+            case 1: break;
+            case 2: break;
+            case 3: break;
+            case 4: break;
+            case 5: break;
+            case 6: Debug.Log("Read/Write error"); break;
+            case 7: Debug.Log("No Filename"); break;
+            default:Debug.Log("Unspecified Error");break;
+        }
+        //7: no filename
+
         /*foreach (Module mod in robot.modules)
             Debug.Log("x: " + mod.frames[0].rotation.x + ", y: " + mod.frames[0].rotation.y + ", z: " + mod.frames[0].rotation.z);*/
         //Else: 
@@ -185,14 +257,14 @@ public class Main : MonoBehaviour {
             foreach (Frame frame in module.frames)
             {
                 //Retrieves Frameobject with GUID, and updates position,size,rotation:
-                try { frameVis.Find(x => x.guid == frame.guid).Update(Sim_CoreHelper(frame.position), Sim_CoreHelper(frame.quatRotation),module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
+                try { frameVis.Find(x => x.guid == frame.guid).Update(AgxHelper(frame.position), AgxHelper(frame.quatRotation),module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
             }
 
             //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }
         }
-        foreach(Sensory_Module mod in robot.sensorModules)
+        foreach(Sensor_Module mod in robot.sensorModules)
         {
-            try { sensorVis.Find(x => x.guid == mod.guid).Update(Sim_CoreHelper(mod.position), Sim_CoreHelper(mod.quatRotation)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
+            try { sensorVis.Find(x => x.guid == mod.guid).Update(AgxHelper(mod.position), AgxHelper(mod.quatRotation)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
         }
 
     }
@@ -237,7 +309,7 @@ public class Main : MonoBehaviour {
     }
 
     //.dll Helper Functions
-    AgX_Interface.Vector3 Sim_CoreHelper(UnityEngine.Vector3 vec)
+    AgX_Interface.Vector3 AgxHelper(UnityEngine.Vector3 vec)
     {
         AgX_Interface.Vector3 vector;
         vector.x = vec.x;
@@ -245,7 +317,7 @@ public class Main : MonoBehaviour {
         vector.z = vec.z;
         return vector;
     }
-    AgX_Interface.Vector3[] Sim_CoreHelper(UnityEngine.Vector3[] vec)//THESE?? wrong?
+    AgX_Interface.Vector3[] AgxHelper(UnityEngine.Vector3[] vec)//THESE?? wrong?
     {
         var vectors = new AgX_Interface.Vector3[vec.Length];
 
@@ -257,7 +329,7 @@ public class Main : MonoBehaviour {
         }
         return vectors;
     }
-    List<UnityEngine.Vector3> Sim_CoreHelper(List<AgX_Interface.Vector3> vec)
+    List<UnityEngine.Vector3> AgxHelper(List<AgX_Interface.Vector3> vec)
     {
         var vectors = new List<UnityEngine.Vector3>();
 
@@ -267,7 +339,7 @@ public class Main : MonoBehaviour {
         }
         return vectors;
     }
-    AgX_Interface.Vector2[] Sim_CoreHelper(UnityEngine.Vector2[] vec)
+    AgX_Interface.Vector2[] AgxHelper(UnityEngine.Vector2[] vec)
     {
         var vectors = new AgX_Interface.Vector2[vec.Length];
 
@@ -278,7 +350,7 @@ public class Main : MonoBehaviour {
         }
         return vectors;
     }
-    UnityEngine.Vector2[] Sim_CoreHelper(AgX_Interface.Vector2[] vec)
+    UnityEngine.Vector2[] AgxHelper(AgX_Interface.Vector2[] vec)
     {
         var vectors = new UnityEngine.Vector2[vec.Length];
 
@@ -289,7 +361,7 @@ public class Main : MonoBehaviour {
         }
         return vectors;
     }
-    UnityEngine.Vector3 Sim_CoreHelper(AgX_Interface.Vector3 vec)
+    UnityEngine.Vector3 AgxHelper(AgX_Interface.Vector3 vec)
     {
         var vector = new UnityEngine.Vector3();
         vector.x = (float)vec.x;
@@ -298,7 +370,7 @@ public class Main : MonoBehaviour {
 
         return vector;
     }
-    UnityEngine.Quaternion Sim_CoreHelper(AgX_Interface.Quaternion quat)
+    UnityEngine.Quaternion AgxHelper(AgX_Interface.Quaternion quat)
     {
         UnityEngine.Quaternion Uq = new UnityEngine.Quaternion();
         Uq.x = (float)quat.x;

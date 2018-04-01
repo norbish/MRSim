@@ -1,4 +1,9 @@
-﻿using System.Collections;
+﻿/* Scene Designer, simulation preparation class (Scene_Designer)
+ * Torstein Sundnes Lenerand
+ * NTNU Ålesund
+ */
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,7 +13,7 @@ using System.Xml.Serialization;
 using System.IO;
 using UnityEditor;
 
-public class SceneDesigner : MonoBehaviour {
+public class Scene_Designer : MonoBehaviour {
     public GameObject SIMULATOR,CAMERA;
 
     public InputField left_scale, left_Position_X, left_Position_Y, left_Position_Z, left_Rotation_X, left_Rotation_Y, left_Rotation_Z, left_Material, left_Mass;
@@ -40,6 +45,7 @@ public class SceneDesigner : MonoBehaviour {
         bottomFrame_ObjName = rightFrame_name.text;
 
         AddRobot();
+        VisualizeScene();
     }
 	
 	// Update is called once per frame
@@ -69,31 +75,55 @@ public class SceneDesigner : MonoBehaviour {
         current_SMVis.Clear();
 
 
-        if (SM != null)
-            if (SM.gameobject.gameObject != null)
+        if (SM_planned != null)
+            if (SM_planned.gameobject.gameObject != null)
             {
-                SM.Remove();SM = null;
+                SM_planned.Remove();SM_planned = null;
             }
 
-        if (left != null)
-            if (left.gameobject.gameObject != null)
+        if (left_planned != null)
+            if (left_planned.gameobject.gameObject != null)
             {
-                left.Remove(); left = null;
+                left_planned.Remove(); left_planned = null;
             }
-        if (right != null)
-            if (right.gameobject.gameObject != null)
+        if (right_planned != null)
+            if (right_planned.gameobject.gameObject != null)
             {
-                right.Remove(); right = null;
+                right_planned.Remove(); right_planned = null;
             }
 
+        RemoveSceneVis();
 
         //Serializing Robot:
         FinalizeCreation();
+        SetAnalyticsPath();
         SIMULATOR.SendMessage("Main_Initialization");
         CAMERA.SendMessage("Initialize");
 
-        
+    }
 
+    public void StopSimulation()
+    {
+        SIMULATOR.SendMessage("Stop");
+    }
+
+    public void PauseSimulation()
+    {
+        SIMULATOR.SendMessage("Pause");
+    }
+
+    public InputField analyticsPathName,analyticsFileName,Interval;
+    void SetAnalyticsPath()
+    {
+        Analytics_Visualization.Input_Filename = analyticsPathName.text + @"\" + analyticsFileName.text;
+        double.TryParse(Interval.text, out Analytics_Visualization.Interval);
+    }
+
+    public void ClearFileButton()
+    {
+        string path = analyticsPathName.text + @"\" + analyticsFileName.text;
+        if (File.Exists(path))
+            File.Delete(path);
     }
     /**------------------------------------------------Serializing robot-------------------------------------------------*/
     /*void Serialization()//Make into static class?
@@ -163,17 +193,17 @@ public class SceneDesigner : MonoBehaviour {
 
     /*---------------------------------------------------Defining robot---------------------------------------------------*/
 
-    Robot robot_initSerialization = new Robot();
+    Robot robot_ForSerialization = new Robot();
     public void AddRobot()
     {
-        robot_initSerialization = new Robot();
+        robot_ForSerialization = new Robot();
 
         List<Frame> frames = new List<Frame>();
         List<Simulation_Core.Joint> joints = new List<Simulation_Core.Joint>();
 
         //Assign object model names:
-        robot_initSerialization.leftFrameDir = upperFrame_ObjName;
-        robot_initSerialization.rightFrameDir = bottomFrame_ObjName;
+        robot_ForSerialization.leftFrameDir = upperFrame_ObjName;
+        robot_ForSerialization.rightFrameDir = bottomFrame_ObjName;
 
     }
     public InputField HeightMapSelection;
@@ -191,7 +221,7 @@ public class SceneDesigner : MonoBehaviour {
         //Add robot and scene to scenario:
         Scenario scenario_serialize = new Scenario()
         {
-            robot = robot_initSerialization,
+            robot = robot_ForSerialization,
             scene = scene_serialize
         };
 
@@ -246,11 +276,11 @@ public class SceneDesigner : MonoBehaviour {
         //CREATES A LOCK BETWEEN MODULES when adding new module to robot:
         if (module_Count == 0 && SensoryModule_Count == 0)
         {
-            robot_initSerialization.Add_Module(module);
+            robot_ForSerialization.Add_Module(module);
             
         }
         else
-            robot_initSerialization.Add_Module(module, new Simulation_Core.Joint());
+            robot_ForSerialization.Add_Module(module, new Simulation_Core.Joint());
 
     }
     /**--------------------------------------------------Adding module----------------------------------------------------*/
@@ -381,10 +411,10 @@ public class SceneDesigner : MonoBehaviour {
             Debug.Log("Left: " + (module_Count - 1) + ", Right: " + module_Count);
             if (module_Count == 0 && SensoryModule_Count == 0)
             {
-                robot_initSerialization.Add_SensorModule(mod, new Simulation_Core.Joint());
+                robot_ForSerialization.Add_SensorModule(mod, new Simulation_Core.Joint());
             }
             else
-                robot_initSerialization.Add_SensorModule(new Simulation_Core.Joint(), mod, new Simulation_Core.Joint());
+                robot_ForSerialization.Add_SensorModule(new Simulation_Core.Joint(), mod, new Simulation_Core.Joint());
 
             //Position for the next module center:
             currentModulePosition.z = currentModulePosition.z - sm_size.z  - leftModSize_Z - 0.01f;// currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
@@ -503,13 +533,13 @@ public class SceneDesigner : MonoBehaviour {
         }
         current_SMVis.Clear();
 
-        foreach (Module mod in robot_initSerialization.modules)
-        {   Mesh leftMesh = import.ImportFile(dir + robot_initSerialization.leftFrameDir);
-            Mesh rightMesh = import.ImportFile(dir + robot_initSerialization.rightFrameDir);
+        foreach (Module mod in robot_ForSerialization.modules)
+        {   Mesh leftMesh = import.ImportFile(dir + robot_ForSerialization.leftFrameDir);
+            Mesh rightMesh = import.ImportFile(dir + robot_ForSerialization.rightFrameDir);
 
             current_frameVis.Add(new Unity_Visualization.Frame_Vis(mod.frames[0].guid, leftMesh ,new Vector3((float)mod.frames[0].position.x,(float)mod.frames[0].position.y,(float)mod.frames[0].position.z),mod.frames[0].scale));
             current_frameVis.Add(new Unity_Visualization.Frame_Vis(mod.frames[1].guid, rightMesh, new Vector3((float)mod.frames[1].position.x, (float)mod.frames[1].position.y, (float)mod.frames[1].position.z), mod.frames[1].scale));
-            Debug.Log("Vert: " + leftMesh.vertices[5] + " |Scale: " + mod.frames[0].scale);
+            //Debug.Log("Vert: " + leftMesh.vertices[5] + " |Scale: " + mod.frames[0].scale);
             //Update:
             foreach(Frame frame in mod.frames)
             try { current_frameVis.Find(x => x.guid == frame.guid).Update(
@@ -521,73 +551,174 @@ public class SceneDesigner : MonoBehaviour {
         }
 
         //SensoryModules:
-        foreach(Sensory_Module mod in robot_initSerialization.sensorModules)
+        foreach(Sensor_Module mod in robot_ForSerialization.sensorModules)
         {
             current_SMVis.Add(new Unity_Visualization.Sensor_Vis(mod.guid,new Vector3((float)mod.position.x,(float)mod.position.y,(float)mod.position.z),new Vector3((float)mod.size.x,(float)mod.size.y,(float)mod.size.z)));
 
         }
 
-        Debug.Log(current_frameVis.Count);
+        //Debug.Log(current_frameVis.Count);
 
         //Update:
     }
     /*----------------------------------------------Visualizing next module-----------------------------------------------*/
     //List<Unity_Visualization.Frame_Vis> next_frameVis = new List<Unity_Visualization.Frame_Vis>();
-    Unity_Visualization.Frame_Vis left, right;
+    Unity_Visualization.Frame_Vis left_planned, right_planned;
     public void ShowPlannedModuleConfig()//Called each time an input field is changed
     {
-        if (SM != null)
-            if (SM.gameobject.gameObject != null)
+        if (SM_planned != null)
+            if (SM_planned.gameobject.gameObject != null)
             {
-                SM.Remove();SM = null;
+                SM_planned.Remove();SM_planned = null;
             }
 
         GetFrameValues();
         ObjImporter import = new ObjImporter();
         //if one of the InputFields of frames or joint is changed
         //create gameobject with mesh n stuff
-        Mesh leftMesh = import.ImportFile(dir + robot_initSerialization.leftFrameDir);
-        Mesh rightMesh = import.ImportFile(dir + robot_initSerialization.rightFrameDir);
-        if (left == null && right == null)
+        Mesh leftMesh = import.ImportFile(dir + robot_ForSerialization.leftFrameDir);
+        Mesh rightMesh = import.ImportFile(dir + robot_ForSerialization.rightFrameDir);
+        if (left_planned == null && right_planned == null)
         {
-            left = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), leftMesh, new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), l_scale);
-            right = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), rightMesh, new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), r_scale);
+            left_planned = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), leftMesh, new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), l_scale);
+            right_planned = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), rightMesh, new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), r_scale);
 
-            left.Update(new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), new Vector3((float)l_rot.x, (float)l_rot.y, (float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
-            right.Update(new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
+            left_planned.Update(new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), new Vector3((float)l_rot.x, (float)l_rot.y, (float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
+            right_planned.Update(new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
         }
         else
         {
-            left.Update(new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z),new Vector3((float)l_rot.x,(float)l_rot.y,(float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
-            right.Update(new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
+            left_planned.Update(new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z),new Vector3((float)l_rot.x,(float)l_rot.y,(float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
+            right_planned.Update(new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
         }
     }
 
-    Unity_Visualization.Sensor_Vis SM;
+    Unity_Visualization.Sensor_Vis SM_planned;
     public void ShowPlannedSensoryModuleConfig()
     {
         //sm_pos = new AgX_Interface.Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z);
-        if (left != null)
-            if (left.gameobject.gameObject != null)
+        if (left_planned != null)
+            if (left_planned.gameobject.gameObject != null)
             {
-                left.Remove();left = null;
+                left_planned.Remove();left_planned = null;
             }
-        if (right != null)
-            if (right.gameobject.gameObject != null)
+        if (right_planned != null)
+            if (right_planned.gameobject.gameObject != null)
             {
-                right.Remove();right = null;
+                right_planned.Remove();right_planned = null;
             }
 
         GetSensoryModuleValues();
 
-        if (SM == null)
+        if (SM_planned == null)
         {
-            SM = new Unity_Visualization.Sensor_Vis(Guid.NewGuid(), new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
-            SM.Update(new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), Vector3.zero, new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
+            SM_planned = new Unity_Visualization.Sensor_Vis(Guid.NewGuid(), new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
+            SM_planned.Update(new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), Vector3.zero, new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
         } else
         {
-            SM.Update(new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), Vector3.zero, new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));Debug.Log("working");
+            SM_planned.Update(new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), Vector3.zero, new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));Debug.Log("working");
         }
+    }
+
+    /*--------------------------------------------------Visualize Scene---------------------------------------------------*/
+    Unity_Visualization.Scene_Vis sceneVis;
+    Scene sceneVals;
+    public GameObject previewImage;
+    public void VisualizeScene()
+    {
+        try
+        {
+            Texture2D hMap = Resources.Load(HeightMapSelection.text) as Texture2D;//Rename to terrain
+            RawImage img = previewImage.GetComponent<RawImage>();
+            img.texture = hMap;
+
+            byte[] bytes = hMap.EncodeToPNG();
+
+            sceneVals = DefineScene(bytes, new AgX_Interface.Vector3(-125, 0, -125), "Rock", 10);
+            sceneVals.CreateMesh();
+            if (sceneVis == null)
+            {
+                sceneVis = new Unity_Visualization.Scene_Vis(sceneVals.guid, AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load("grass") as Texture);
+            }
+            else
+            {
+                sceneVis.Remove();
+                sceneVis = new Unity_Visualization.Scene_Vis(sceneVals.guid, AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load("grass") as Texture);
+            }
+        }
+        catch (NullReferenceException e)
+        {
+            //PopupWindow.Show(new Rect(0,0,500,500),);
+        }
+    }
+    void RemoveSceneVis()
+    {
+        if(sceneVis != null)
+        {
+            sceneVis.Remove();
+            sceneVis = null;
+        }
+    }
+    public InputField start_Position_X, start_Position_Y, start_Position_Z;
+    AgX_Interface.Vector3 old_robot_pos, new_robot_pos;
+    public void RobotPositionChanged()
+    {
+        double.TryParse(start_Position_X.text, out new_robot_pos.x);
+        double.TryParse(start_Position_Y.text, out new_robot_pos.y);
+        double.TryParse(start_Position_Z.text, out new_robot_pos.z);
+
+        var distance = ModifyRobotPosition(robot_ForSerialization, new_robot_pos);
+
+        l_pos += distance;
+        r_pos += distance;
+        sm_pos += distance;
+        currentModulePosition += distance;
+
+        if(left_planned != null && right_planned != null)
+        left_planned.gameobject.transform.position = right_planned.gameobject.transform.position = new Vector3((float)currentModulePosition.x,(float)currentModulePosition.y,(float)currentModulePosition.x);
+
+        if (SM_planned != null)
+            SM_planned.gameobject.transform.position = new Vector3((float)currentModulePosition.x, (float)currentModulePosition.y, (float)currentModulePosition.z);
+
+        UpdateUIText();
+
+        ShowCurrentRobotConfig();
+
+    }
+    AgX_Interface.Vector3 prevPos = new AgX_Interface.Vector3(0,12,0), origin = AgX_Interface.Vector3.zero;
+    bool first = true;
+    AgX_Interface.Vector3 ModifyRobotPosition(Robot robot, AgX_Interface.Vector3 new_pos)
+    {
+
+        var midDistance = origin - prevPos;
+        midDistance += new_pos;  
+
+
+        foreach(Module mod in robot_ForSerialization.modules)
+        {
+            mod.frames[0].position += midDistance;
+            mod.frames[1].position += midDistance;
+        }
+
+        foreach(Sensor_Module mod in robot_ForSerialization.sensorModules)
+        {
+            mod.position += midDistance;
+        }
+
+        prevPos = new_pos;
+
+        return midDistance;
+    }
+
+    void UpdateUIText()
+    {
+        left_Position_X.text = right_Position_X.text = l_pos.x.ToString();
+        left_Position_Y.text = right_Position_Y.text = l_pos.y.ToString();
+        left_Position_Z.text = right_Position_Z.text = l_pos.z.ToString();
+
+        Ism_pos_x.text =sm_pos.x.ToString();
+        Ism_pos_y.text =sm_pos.y.ToString();
+        Ism_pos_z.text =sm_pos.z.ToString();
     }
 
 
@@ -661,9 +792,9 @@ public class SceneDesigner : MonoBehaviour {
             height = height
         };
     }
-    Sensory_Module DefineSensoryModule(int leftModNr, int rightModNr, AgX_Interface.Vector3 pos, AgX_Interface.Vector3 size, double mass, AgX_Interface.Quaternion rot, string materialName )
+    Sensor_Module DefineSensoryModule(int leftModNr, int rightModNr, AgX_Interface.Vector3 pos, AgX_Interface.Vector3 size, double mass, AgX_Interface.Quaternion rot, string materialName )
     {
-        return new Sensory_Module()
+        return new Sensor_Module()
         {
             guid = Guid.NewGuid(),
             leftMod_Nr = leftModNr,
@@ -674,5 +805,51 @@ public class SceneDesigner : MonoBehaviour {
             mass = mass,
             quatRotation = rot
         };
+    }
+
+    /*-------------------------------------------------Vector type conversion:--------------------------------------------------*/
+    AgX_Interface.Vector3[] AgxHelper(UnityEngine.Vector3[] vec)//THESE?? wrong?
+    {
+        var vectors = new AgX_Interface.Vector3[vec.Length];
+
+        for (int i = 0; i < vec.Length; i++)
+        {
+            vectors[i].x = vec[i].x;
+            vectors[i].y = vec[i].y;
+            vectors[i].z = vec[i].z;
+        }
+        return vectors;
+    }
+    List<UnityEngine.Vector3> AgxHelper(List<AgX_Interface.Vector3> vec)
+    {
+        var vectors = new List<UnityEngine.Vector3>();
+
+        for (int i = 0; i < vec.Count; i++)
+        {
+            vectors.Add(new UnityEngine.Vector3((float)vec[i].x, (float)vec[i].y, (float)vec[i].z));
+        }
+        return vectors;
+    }
+    AgX_Interface.Vector2[] AgxHelper(UnityEngine.Vector2[] vec)
+    {
+        var vectors = new AgX_Interface.Vector2[vec.Length];
+
+        for (int i = 0; i < vec.Length; i++)
+        {
+            vectors[i].x = vec[i].x;
+            vectors[i].y = vec[i].y;
+        }
+        return vectors;
+    }
+    UnityEngine.Vector2[] AgxHelper(AgX_Interface.Vector2[] vec)
+    {
+        var vectors = new UnityEngine.Vector2[vec.Length];
+
+        for (int i = 0; i < vec.Length; i++)
+        {
+            vectors[i].x = (float)vec[i].x;
+            vectors[i].y = (float)vec[i].y;
+        }
+        return vectors;
     }
 }

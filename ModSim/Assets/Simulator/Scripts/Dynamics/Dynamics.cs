@@ -1,4 +1,9 @@
-﻿using System.Collections;
+﻿/* Dynamics, robot movement class (Dynamics)
+ * Torstein Sundnes Lenerand
+ * NTNU Ålesund
+ */
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 

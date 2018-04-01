@@ -1,4 +1,9 @@
-﻿using System.Collections;
+﻿/* Simulation variables Core class (Simulation_Core)
+ * Torstein Sundnes Lenerand
+ * NTNU Ålesund
+ */
+
+using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.Linq;
@@ -23,7 +28,7 @@ namespace Simulation_Core
     public class Robot
     {
         public List<Module> modules = new List<Module>();
-        public List<Sensory_Module> sensorModules = new List<Sensory_Module>();
+        public List<Sensor_Module> sensorModules = new List<Sensor_Module>();
         public List<Joint> locks = new List<Joint>();
 
         public string leftFrameDir, rightFrameDir;
@@ -44,12 +49,12 @@ namespace Simulation_Core
             module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
         }
 
-        public void Add_SensorModule(Sensory_Module module, Joint r_lockjoint)
+        public void Add_SensorModule(Sensor_Module module, Joint r_lockjoint)
         {//This just creates the locks, doesnt need more info.
             sensorModules.Add(module);
             locks.Add(r_lockjoint);
         }
-        public void Add_SensorModule(Joint l_lockjoint, Sensory_Module module, Joint r_lockjoint)
+        public void Add_SensorModule(Joint l_lockjoint, Sensor_Module module, Joint r_lockjoint)
         {
             sensorModules.Add(module);
             locks.Add(l_lockjoint);
@@ -63,7 +68,7 @@ namespace Simulation_Core
             {
                 mod.Initialize();
             }
-            foreach(Sensory_Module mod in sensorModules)
+            foreach(Sensor_Module mod in sensorModules)
             {
                 mod.Initialize();
             }
@@ -114,7 +119,7 @@ namespace Simulation_Core
                 position += mod.position;
             }
             position /= modules.Count;
-            foreach(Sensory_Module mod in sensorModules)
+            foreach(Sensor_Module mod in sensorModules)
             {
                 mod.Update();
             }
@@ -136,6 +141,7 @@ namespace Simulation_Core
         {
             frames[0] = left; frames[1] = right;
             this.joint = joint;
+            position = frames[0].position;
         }
 
         public void Initialize()
@@ -162,7 +168,7 @@ namespace Simulation_Core
         }
     }
 
-    public class Sensory_Module //Square
+    public class Sensor_Module //Square
     {
         public Guid guid;
         public int leftMod_Nr, rightMod_Nr;
@@ -276,7 +282,7 @@ namespace Simulation_Core
             joint = new AgX_Joint(guid);
 
             //Add joint between top and bottom frame
-            joint.Create_Hinge("Hinge", left, right, leftRangeLimit, rightRangeLimit);
+            joint.Create_Hinge("Hinge", left.agxFrame, right.agxFrame, leftRangeLimit, rightRangeLimit);
             joint.AddToSim();
         }
         public void Create_Lock(Frame left, Frame right)
@@ -284,21 +290,21 @@ namespace Simulation_Core
             this.left = left; this.right = right;
             type = "Lock";
             joint = new AgX_Joint(guid);
-            joint.Create_Lock("Lock", left, right);
+            joint.Create_Lock("Lock", left.agxFrame, right.agxFrame);
             joint.AddToSim();
         }
 
         //Creates an AgX joint that locks a frame and a sensor module together (agxObjects can not be referenced because references are not saved to this joint object). 
-        public void Create_SensorModuleLock(Frame right, Sensory_Module s_mod)//sensor placed last, right frame of left module 
+        public void Create_SensorModuleLock(Frame right, Sensor_Module s_mod)//sensor placed last, right frame of left module 
         {
             joint = new AgX_Joint(guid);
-            joint.Create_Lock("Lock",right,s_mod);//FIX IN AGX INTERFACE
+            joint.Create_Lock("Lock",right.agxFrame,s_mod.agxPrimitive);//FIX IN AGX INTERFACE
             joint.AddToSim();
         }
-        public void Create_SensorModuleLock(Sensory_Module s_mod, Frame left)//sensor placed first, left frame of right module
+        public void Create_SensorModuleLock(Sensor_Module s_mod, Frame left)//sensor placed first, left frame of right module
         {
             joint = new AgX_Joint(guid);
-            joint.Create_Lock("Lock", s_mod, left);//FIX IN AGX INTERFACE
+            joint.Create_Lock("Lock", s_mod.agxPrimitive, left.agxFrame);//FIX IN AGX INTERFACE
             joint.AddToSim();
         }
 
@@ -324,6 +330,11 @@ namespace Simulation_Core
                 joint.Set_Speed(-0.5f);
             else
                 joint.Set_Speed(Kp * error);
+        }
+
+        public double GetAngle()
+        {
+            return joint.Get_Angle();
         }
 
         public void Update()
@@ -412,6 +423,11 @@ namespace Simulation_Core
 
         }
 
+        public void CreateMesh()
+        {
+            TerrainFromImage();
+        }
+
         void Add()
         {
             //scenario.Add_Rb();
@@ -436,11 +452,11 @@ namespace Simulation_Core
 
         }
 
-        public void Lock(Frame frame)
+       /* public void Lock(Frame frame)
         {
-            lockJoint.SensorLock(frame, this);
+            lockJoint.SensorLock(frame.agxFrame, this.agxSensor);
             lockJoint.AddToSim();
-        }
+        }*/
 
         public void Update()
         {

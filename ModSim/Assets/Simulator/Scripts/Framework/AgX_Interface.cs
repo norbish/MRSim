@@ -1,4 +1,4 @@
-﻿/*Algoryx Interface class (AgX_Interface)
+﻿/*Algoryx physics Interface class (AgX_Interface)
  * Torstein Sundnes Lenerand
  * NTNU Ålesund
  */
@@ -8,8 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Simulation_Core;
+//using Simulation_Core;
 
 namespace AgX_Interface
 {
@@ -29,20 +28,20 @@ namespace AgX_Interface
             this.guid = guid;
         }
 
-        public void Create_Hinge(string type, Frame left, Frame right, double leftLimit, double rightLimit)
+        public void Create_Hinge(string type, AgX_Frame left, AgX_Frame right, double leftLimit, double rightLimit)
         {
             this.type = type;
 
             //Hinge is locked between the two objects.
-            hinge_Frame.setCenter((left.agxFrame.GetAgxObject().getPosition() + right.agxFrame.GetAgxObject().getPosition()).Divide(2));
-            if (left.rotation.x == 0)
+            hinge_Frame.setCenter((left.GetAgxObject().getPosition() + right.GetAgxObject().getPosition()).Divide(2));
+            if (left.Get_Rotation().x == 0)
             {
                 hinge_Frame.setAxis(new agx.Vec3(1, 0, 0)); //axis along the x direction
-                UnityEngine.Debug.Log("z in agxint: " + left.rotation.x);
+                //UnityEngine.Debug.Log("z in agxint: " + left.Get_Rotation().x);
             }
             else
                 hinge_Frame.setAxis(new agx.Vec3(0, 1, 0)); //axis along the x direction
-            Joint = new agx.Hinge(hinge_Frame, left.agxFrame.GetAgxObject(), right.agxFrame.GetAgxObject());
+            Joint = new agx.Hinge(hinge_Frame, left.GetAgxObject(), right.GetAgxObject());
             //Joint.asHinge().getLock1D().setEnable(true);
             Joint.asHinge().getMotor1D().setEnable(true);
             Joint.asHinge().getRange1D().setEnable(true);
@@ -51,33 +50,33 @@ namespace AgX_Interface
 
             //Joint.asHinge().getMotor1D().setSpeed(0.2f);
         }
-        public void Create_Lock(string type, Frame left, Frame right)
+        public void Create_Lock(string type, AgX_Frame left, AgX_Frame right)
         {
             //connects right frame of left robot (LEFT) to left frame of right robot (RIGHT)
-            Joint = new agx.LockJoint(left.agxFrame.GetAgxObject(), right.agxFrame.GetAgxObject(), (left.agxFrame.GetAgxObject().getPosition() + right.agxFrame.GetAgxObject().getPosition()).Divide(2));
+            Joint = new agx.LockJoint(left.GetAgxObject(), right.GetAgxObject(), (left.GetAgxObject().getPosition() + right.GetAgxObject().getPosition()).Divide(2));
         }
 
         //Sensory module lock:
-        public void Create_Lock(string type, Frame right, Sensory_Module s_mod)
+        public void Create_Lock(string type, AgX_Frame right, AgX_Primitive s_mod)
         {
             //Creates a joint with a specified middle position for the lockframe.
             //THIS IS NOT THE MIDDLE OF THE LOCK FRAME (frames are longer than sensors)
-            Joint = new agx.LockJoint(right.agxFrame.GetAgxObject(),s_mod.agxPrimitive.GetAgxObject(),(right.agxFrame.GetAgxObject().getPosition() + s_mod.agxPrimitive.GetAgxObject().getPosition()).Divide(2));
+            Joint = new agx.LockJoint(right.GetAgxObject(),s_mod.GetAgxObject(),(right.GetAgxObject().getPosition() + s_mod.GetAgxObject().getPosition()).Divide(2));
         }
-        public void Create_Lock(string type, Sensory_Module s_mod, Frame left)
+        public void Create_Lock(string type, AgX_Primitive s_mod, AgX_Frame left)
         {
             //THIS IS NOT THE MIDDLE OF THE LOCK FRAME (frames are longer than sensors)
-            Joint = new agx.LockJoint(s_mod.agxPrimitive.GetAgxObject(), left.agxFrame.GetAgxObject(), (left.agxFrame.GetAgxObject().getPosition() + s_mod.agxPrimitive.GetAgxObject().getPosition()).Divide(2));
+            Joint = new agx.LockJoint(s_mod.GetAgxObject(), left.GetAgxObject(), (left.GetAgxObject().getPosition() + s_mod.GetAgxObject().getPosition()).Divide(2));
         }
 
-        public void SensorLock(Frame frame, ForceSensor sensor)
+        /*public void SensorLock(AgX_Frame frame, ForceSensor sensor)
         {
             Joint = new agx.LockJoint(frame.agxFrame.GetAgxObject(), sensor.agxSensor.GetAgxObject(), Operations.ToAgxVec3(sensor.position) );
-        }
+        }*/
 
         public double Get_Angle()
         {
-            return (double)Joint.asHinge().getAngle();
+            return Joint.asHinge().getAngle();
         }
         public void Set_Speed(double vel)
         {
@@ -276,10 +275,11 @@ namespace AgX_Interface
         {
             return size * 2;//Size in unity is 2 times bigger.
         }
-        /*public Vector3 Get_Rotation()
+        public agx.Vec3 Get_Rotation()
         {
-            return Operations.FromAgxQuat(agx_Object.getLocalRotation()).ToEulerRad();
-        }*/
+            //UnityEngine.Debug.Log(agx_Object.getLocalRotation().asVec3().x+","+agx_Object.getLocalRotation().asVec3().y+","+agx_Object.getLocalRotation().asVec3().z);
+            return agx_Object.getLocalRotation().asVec3();
+        }
         public Quaternion Get_QuatRotation()
         {
             return Operations.FromAgxQuat(agx_Object.getLocalRotation());

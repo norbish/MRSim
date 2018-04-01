@@ -1,4 +1,9 @@
-﻿using System.Collections;
+﻿/* Unity, movement of camera (Camera_Movement)
+ * Torstein Sundnes Lenerand
+ * NTNU Ålesund
+ */
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,8 +29,16 @@ public class Camera_Movement : MonoBehaviour {
 	void getPos () {
 
         //this.transform.position = new Vector3(robot.transform.position.x, robot.transform.position.y + 6,robot.transform.position.z-10);
-        this.transform.RotateAround(robot.transform.position, Vector3.up, 0);
-        this.transform.LookAt(robot.transform.position);
+        if (robot != null)
+        {
+            this.transform.position = new Vector3(robot.transform.position.x, robot.transform.position.y+6, robot.transform.position.z);
+            this.transform.RotateAround(robot.transform.position, Vector3.up, 0);
+            this.transform.LookAt(robot.transform.position);
+        }
+        else
+        {
+            getrobot();
+        }
     }
     /*private void Update()
     {
