@@ -54,57 +54,68 @@ public class Scene_Designer : MonoBehaviour {
 	}
     /*----------------------------------------------Initializing Simulation-----------------------------------------------*/
     /**-----------------------------------------------Starting simulation-------------------------------------------------*/
+    bool StartDesigner = false;
     public void StartSimulation()
     {
-        //Serialization();
-        //Scene:
-        AddScene();
-
-        //MAKE INTO SEPARATE FUNCTION(also the other place it is used):
-        for (int i = 0; i < current_frameVis.Count; i++)
+        if (StartDesigner == false)
         {
-            current_frameVis[i].Remove();
-            //frameVis.Remove(frameVis[i]);
-        }
-        current_frameVis.Clear();
+            //Serialization();
+            //Scene:
+            AddScene();
 
-        for (int i = 0; i < current_SMVis.Count; ++i)
+            //MAKE INTO SEPARATE FUNCTION(also the other place it is used):
+            for (int i = 0; i < current_frameVis.Count; i++)
+            {
+                current_frameVis[i].Remove();
+                //frameVis.Remove(frameVis[i]);
+            }
+            current_frameVis.Clear();
+
+            for (int i = 0; i < current_SMVis.Count; ++i)
+            {
+                current_SMVis[i].Remove();
+            }
+            current_SMVis.Clear();
+
+
+            if (SM_planned != null)
+                if (SM_planned.gameobject.gameObject != null)
+                {
+                    SM_planned.Remove(); SM_planned = null;
+                }
+
+            if (left_planned != null)
+                if (left_planned.gameobject.gameObject != null)
+                {
+                    left_planned.Remove(); left_planned = null;
+                }
+            if (right_planned != null)
+                if (right_planned.gameobject.gameObject != null)
+                {
+                    right_planned.Remove(); right_planned = null;
+                }
+
+            RemoveSceneVis();
+
+            //Serializing Robot:
+            FinalizeCreation();
+            SetAnalyticsPath();
+            SIMULATOR.SendMessage("Main_Initialization");
+            CAMERA.SendMessage("Initialize");
+            StartDesigner = true;
+        }
+        else
         {
-            current_SMVis[i].Remove();
+            SIMULATOR.SendMessage("Stop");
+            StartDesigner = false;
         }
-        current_SMVis.Clear();
-
-
-        if (SM_planned != null)
-            if (SM_planned.gameobject.gameObject != null)
-            {
-                SM_planned.Remove();SM_planned = null;
-            }
-
-        if (left_planned != null)
-            if (left_planned.gameobject.gameObject != null)
-            {
-                left_planned.Remove(); left_planned = null;
-            }
-        if (right_planned != null)
-            if (right_planned.gameobject.gameObject != null)
-            {
-                right_planned.Remove(); right_planned = null;
-            }
-
-        RemoveSceneVis();
-
-        //Serializing Robot:
-        FinalizeCreation();
-        SetAnalyticsPath();
-        SIMULATOR.SendMessage("Main_Initialization");
-        CAMERA.SendMessage("Initialize");
 
     }
 
     public void StopSimulation()
     {
         SIMULATOR.SendMessage("Stop");
+        StartDesigner = false;
     }
 
     public void PauseSimulation()
@@ -210,7 +221,8 @@ public class Scene_Designer : MonoBehaviour {
     Scene scene_serialize = new Scene();
     public void AddScene()
     {
-        Texture2D hMap = Resources.Load(HeightMapSelection.text) as Texture2D;//Rename to terrain
+        Texture2D hMap = previewImage.GetComponent<RawImage>().texture as Texture2D;
+        //Texture2D hMap = Resources.Load(HeightMapSelection.text) as Texture2D;//Rename to terrain
         byte[] bytes = hMap.EncodeToPNG();
 
         scene_serialize = DefineScene(bytes, new AgX_Interface.Vector3(-125,0,-125), "Rock", 10);
@@ -621,6 +633,23 @@ public class Scene_Designer : MonoBehaviour {
     }
 
     /*--------------------------------------------------Visualize Scene---------------------------------------------------*/
+    /*------------------------------------------------Opening file dialog-------------------------------------------------*/
+    public class OpenTerrain : EditorWindow
+    {
+        public static string terrainPath = "";
+        [MenuItem("Example/Overwrite Texture")]
+        public static void LOADTerrain()
+        {
+            terrainPath = EditorUtility.OpenFilePanel("Upload a PNG file", Application.streamingAssetsPath, "png");
+            Debug.Log(terrainPath);
+
+        }
+    }
+    public void LoadTerrainButton()
+    {
+        OpenTerrain.LOADTerrain();
+        VisualizeScene();
+    }
     Unity_Visualization.Scene_Vis sceneVis;
     Scene sceneVals;
     public GameObject previewImage;
@@ -628,15 +657,25 @@ public class Scene_Designer : MonoBehaviour {
     {
         try
         {
-            Texture2D hMap = Resources.Load(HeightMapSelection.text) as Texture2D;//Rename to terrain
+            Texture2D hMap = Resources.Load("terrain") as Texture2D;//Rename to terrain
+
+            if (OpenTerrain.terrainPath != "")//if path i set by file browser: upload png.
+            {
+                var fileContent = File.ReadAllBytes(OpenTerrain.terrainPath);
+                hMap.LoadImage(fileContent);
+                HeightMapSelection.text = OpenTerrain.terrainPath;
+            }
+
             RawImage img = previewImage.GetComponent<RawImage>();
             img.texture = hMap;
 
             byte[] bytes = hMap.EncodeToPNG();
 
+            //scene visualization
             sceneVals = DefineScene(bytes, new AgX_Interface.Vector3(-125, 0, -125), "Rock", 10);
             sceneVals.CreateMesh();
-            if (sceneVis == null)
+
+            if (sceneVis == null)//first time scene is loaded
             {
                 sceneVis = new Unity_Visualization.Scene_Vis(sceneVals.guid, AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load("grass") as Texture);
             }
@@ -741,6 +780,7 @@ public class Scene_Designer : MonoBehaviour {
         else
             mainPanel.gameObject.SetActive(false);
     }
+       
 
     /*-------------------------------------------------Helper Functions:--------------------------------------------------*/
     /*--------------------------------------------------Defining frames---------------------------------------------------*/

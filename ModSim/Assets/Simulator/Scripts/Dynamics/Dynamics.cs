@@ -76,6 +76,21 @@ public static class Dynamics
                         }
                     }
                 }break;
+
+            case "Custom":
+                {
+                    for (int i = 0; i < mod_n; i++)
+                    {
+                        if (i > 1)//Not taking into account the first pitch and first yaw which should be 0
+                        {
+                            if (robot.modules[i].Axis == "Pitch")
+                                Dynamics.phaseDiff[i] = Dynamics.phaseDiff[i - 2] + _phaseOffsetPitch;
+                            else
+                                Dynamics.phaseDiff[i] = Dynamics.phaseDiff[i - 2] + _phaseOffsetYaw;
+                        }
+                    }
+                }
+                break;
         }
 
         Dynamics.currentAction = newAction;
@@ -107,13 +122,6 @@ public static class Dynamics
     static bool NewAction = false;
     public static bool Control(Simulation_Core.Robot robot, float t)
     {
-        /*if (Time.fixedTime >= 30)
-            newAction = "Forward";
-        else if (Time.fixedTime <= 25)
-            newAction = "Turn";
-        else
-            newAction = "Reset";//Must have a smooth reset. */
-        //newAction = "Forward";
         switch(action)
         {
             
@@ -139,8 +147,8 @@ public static class Dynamics
 
             default: return false;
         }
-
     }
+
     public static void Idle()
     {
 
@@ -192,5 +200,7 @@ public static class Dynamics
             }
         }
     }
+
+
 
 }

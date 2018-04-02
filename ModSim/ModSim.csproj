@@ -296,6 +296,7 @@
     <Compile Include="Assets\Simulator\Scripts\Framework\AgX_Interface.cs" />
     <Compile Include="Assets\Simulator\Scripts\Framework\Simulation_Core.cs" />
     <Compile Include="Assets\Simulator\Scripts\Main.cs" />
+    <Compile Include="Assets\Simulator\Scripts\Optimization\Robot_Optimization.cs" />
     <Compile Include="Assets\Simulator\Scripts\SceneControl\Camera_Movement.cs" />
     <Compile Include="Assets\Simulator\Scripts\SceneControl\Scene_Designer.cs" />
     <Compile Include="Assets\Simulator\Scripts\Visualization\Analytics_Visualization.cs" />

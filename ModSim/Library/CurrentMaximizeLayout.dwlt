@@ -23,7 +23,7 @@ MonoBehaviour:
   m_MinSize: {x: 683, y: 492}
   m_MaxSize: {x: 14004, y: 14042}
   vertical: 0
-  controlID: 7091
+  controlID: 1727
 --- !u!114 &2
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -124,7 +124,7 @@ MonoBehaviour:
   m_MinSize: {x: 406, y: 492}
   m_MaxSize: {x: 10002, y: 14042}
   vertical: 1
-  controlID: 7092
+  controlID: 1728
 --- !u!114 &4
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -148,7 +148,7 @@ MonoBehaviour:
   m_MinSize: {x: 406, y: 221}
   m_MaxSize: {x: 8006, y: 4021}
   vertical: 0
-  controlID: 6960
+  controlID: 1729
 --- !u!114 &5
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -203,9 +203,9 @@ MonoBehaviour:
   m_PersistentViewDataDictionary: {fileID: 0}
   m_TreeViewState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: 2a080000
-    m_LastClickedID: 0
-    m_ExpandedIDs: 8ccffcffcaa4feffa691ffff60b0ffff9efbffff00000000f22900007e2a0000d02f0000c03000001c310000
+    m_SelectedIDs: 62310000
+    m_LastClickedID: 12642
+    m_ExpandedIDs: 8efbffff00000000202d0000322d00007c30000062310000c8310000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -277,19 +277,19 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 212
-    y: 100
+    y: 102
     width: 1148
-    height: 635
+    height: 634
   m_PersistentViewDataDictionary: {fileID: 0}
   m_SceneLighting: 1
-  lastFramingTime: 100876.35132234194
+  lastFramingTime: 897.8693022053177
   m_2DMode: 0
   m_isRotationLocked: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 154.83453, y: 7.2253075, z: 33.865112}
+    m_Target: {x: 0, y: -2, z: 0}
     speed: 2
-    m_Value: {x: 154.83453, y: 7.2253075, z: 33.865112}
+    m_Value: {x: 0, y: -2, z: 0}
   m_RenderMode: 0
   m_ValidateTrueMetals: 0
   m_SceneViewState:
@@ -313,13 +313,13 @@ MonoBehaviour:
       speed: 2
       m_Value: 0
   m_Rotation:
-    m_Target: {x: -0.009174921, y: -0.17105435, z: 0.0015923814, w: -0.9852176}
+    m_Target: {x: -0.05798583, y: -0.16338466, z: 0.00961955, w: -0.98480994}
     speed: 2
-    m_Value: {x: -0.009174921, y: -0.17105435, z: 0.0015923815, w: -0.9852176}
+    m_Value: {x: -0.05798583, y: -0.16338466, z: 0.00961955, w: -0.98480994}
   m_Size:
-    m_Target: 1328.0881
+    m_Target: 1.4384366
     speed: 2
-    m_Value: 1328.0881
+    m_Value: 1.4384366
   m_Ortho:
     m_Target: 0
     speed: 2
@@ -396,19 +396,19 @@ MonoBehaviour:
     m_ShowAllHits: 0
     m_SearchArea: 0
     m_Folders:
-    - Assets/Simulator/Scripts/SceneControl
+    - Assets/Simulator/Scripts
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/Simulator/Scripts/SceneControl
+  - Assets/Simulator/Scripts
   m_LastFoldersGridSize: -1
   m_LastProjectPath: C:\Users\torsu\Desktop\MODSIM\MRSim\ModSim
   m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 79}
-    m_SelectedIDs: ce270000
-    m_LastClickedID: 10190
-    m_ExpandedIDs: 0000000090270000c8270000d0270000042800001a2800002e280000342800007233000000ca9a3bffffff7f
+    m_SelectedIDs: 68280000
+    m_LastClickedID: 10344
+    m_ExpandedIDs: 00000000c4270000fc27000004280000382800004e28000062280000682800003034000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -436,7 +436,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 0000000090270000c8270000d0270000042800001a2800002e280000342800007233000000ca9a3bffffff7f
+    m_ExpandedIDs: 00000000c4270000fc27000004280000382800004e28000062280000682800003034000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -461,9 +461,9 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_ListAreaState:
-    m_SelectedInstanceIDs: 2a080000
-    m_LastClickedInstanceID: 2090
-    m_HadKeyboardFocusLastEvent: 1
+    m_SelectedInstanceIDs: 62310000
+    m_LastClickedInstanceID: 12642
+    m_HadKeyboardFocusLastEvent: 0
     m_ExpandedInstanceIDs: c623000000000000
     m_RenameOverlay:
       m_UserAcceptedRename: 0

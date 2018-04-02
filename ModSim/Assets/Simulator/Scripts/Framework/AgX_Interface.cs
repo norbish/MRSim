@@ -321,6 +321,7 @@ namespace AgX_Interface
         public static void Stop()
         {
             agx.agxSWIG.shutdown();
+            sim_Instance.removeAllObjects();
         }
         public static void AddContactMaterial(string a, string b, double restitution, double friction, double youngsModulus)
         {

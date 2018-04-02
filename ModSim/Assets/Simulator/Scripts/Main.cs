@@ -32,7 +32,7 @@ public class Main : MonoBehaviour {
         
         //Main_Initialization();
     }
-
+    Scenario scenario = new Scenario();
     void Main_Initialization()
     {
         dir = Application.streamingAssetsPath;//Get the path of the streaming assets
@@ -43,6 +43,8 @@ public class Main : MonoBehaviour {
             simulation_Started = true;
 
             SetContactPoints();//if custom contact points: move to MainInitialization().
+            CancelInvoke();
+            Dynamics.action = "Idle";
         }
         else
         {
@@ -51,16 +53,18 @@ public class Main : MonoBehaviour {
             Agx_Simulation.Start(dt);
             simulation_Started = true;
             SetContactPoints();
-
+            CancelInvoke();
+            Dynamics.action = "Idle";
         }
         //If I start with 3 modules. Then, each time user clicks "Add Module", it adds a new module to the simulation (sim will be started, but not timestep).
 
         //LOAD:
-        Scenario scenario = Deserialize<Scenario>();
+        scenario = Deserialize<Scenario>();
 
         /* Loading the directories for the object files */
         load_FrameDirectories(scenario.robot);
-        robot = new Robot(); Load_Robot(scenario.robot);
+        robot =  Load_Robot(scenario.robot);
+        robot.Initialize();
         scene = new Scene(); Load_Scene(scenario.scene);
 
 
@@ -70,9 +74,9 @@ public class Main : MonoBehaviour {
         if (Visualization.enabled)
             Load_Vis();
 
-        
 
-        InvokeRepeating("Update_Sim", 0, dt);
+        //InvokeRepeating("Update_Sim", 0, dt);
+        CreateOptimizations();
         
     }
 
@@ -120,7 +124,7 @@ public class Main : MonoBehaviour {
         bottomFrame_directory = "/Robot/" + robot.rightFrameDir;
     }
 
-    void Load_Robot(Robot robot)
+    Robot Load_Robot(Robot robot)
     {
         //Initialize modules with joints and frames (+agx objects) : SHOULD BE IN SCENE DESIGNER, send triangles, verts and uvs!
         ObjImporter import = new ObjImporter();
@@ -132,19 +136,12 @@ public class Main : MonoBehaviour {
         foreach (Module mod in robot.modules)
         {
             mod.frames[0].setMesh(AgxHelper(leftMesh.vertices),AgxHelper(leftMesh.uv),leftMesh.triangles); mod.frames[1].setMesh(AgxHelper(rightMesh.vertices),AgxHelper(rightMesh.uv),rightMesh.triangles);
-
-            /*foreach (Frame frame in mod.frames)
-            {
-                //frame.Initialize();
-            }
-            */
-            //mod.Initialize(mod.frames[0], mod.frames[1]);//calls Create_Hinge
             
         }
 
-        robot.Initialize();//Initialize frames (creates AgX obj), initializes modules (connecting frames with joint), Locks modules together
+        //robot.Initialize();//Initialize frames (creates AgX obj), initializes modules (connecting frames with joint), Locks modules together
 
-        this.robot = robot;
+        return robot;
         
     }
 
@@ -160,6 +157,16 @@ public class Main : MonoBehaviour {
     void Load_Vis()
     {
         //Frames:
+        Load_RobotVis(robot);
+        Load_SensorVis(robot);
+        
+
+        //Scene:
+        scene_vis = new Scene_Vis(scene.guid, AgxHelper(scene.vertices), scene.triangles, AgxHelper(scene.uvs), AgxHelper(scene.position), Resources.Load("grass") as Texture);
+    }
+
+    void Load_RobotVis(Robot robot)
+    {
         foreach (Module mod in robot.modules)
         {
            /* Mesh l = new Mesh() { vertices = mod.frames[0].meshVertices, uv = mod.frames[0].meshUvs, triangles = mod.frames[0].meshTriangles };
@@ -170,16 +177,15 @@ public class Main : MonoBehaviour {
 
             frameVis.Add(new Frame_Vis(mod.frames[0].guid, l,AgxHelper(mod.frames[0].position),mod.frames[0].scale));
             frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, AgxHelper(mod.frames[1].position),mod.frames[1].scale));
-
         }
-
-        foreach(Sensor_Module mod in robot.sensorModules)
+    }
+    void Load_SensorVis(Robot robot)
+    {
+        foreach (Sensor_Module mod in robot.sensorModules)
         {
             sensorVis.Add(new Sensor_Vis(mod.guid, AgxHelper(mod.position), AgxHelper(mod.size)));
         }
 
-        //Scene:
-        scene_vis = new Scene_Vis(scene.guid, AgxHelper(scene.vertices), scene.triangles, AgxHelper(scene.uvs), AgxHelper(scene.position), Resources.Load("grass") as Texture);
     }
 
     void Clear_Vis()
@@ -240,12 +246,43 @@ public class Main : MonoBehaviour {
             case 7: Debug.Log("No Filename"); break;
             default:Debug.Log("Unspecified Error");break;
         }
-        //7: no filename
+    }
 
-        /*foreach (Module mod in robot.modules)
-            Debug.Log("x: " + mod.frames[0].rotation.x + ", y: " + mod.frames[0].rotation.y + ", z: " + mod.frames[0].rotation.z);*/
-        //Else: 
-        //Start the canvas overlay to modify and create new modules
+    void OptimizationUpdate_Sim()
+    {
+        if (simulation_Running)//Check if simulation is paused
+        {
+            /*if (!Robot_Optimization.started)
+            {
+                Robot_Optimization.Load(robot,dt);
+                Robot_Optimization.started = true;
+            }*/
+
+            //foreach robot:
+            {
+                Robot_Optimization.Update(simulationTime);
+            }
+            //this will auto be for all:
+            if (Visualization.enabled)
+                Update_Vis();
+
+            simulationTime += Time.deltaTime;
+        }
+    }
+
+    void CreateOptimizations()
+    {
+        //Loadrobot for each robot
+        //Loadvis for each robot
+        var robots = Robot_Optimization.Load(Load_Robot(scenario.robot),dt);
+        foreach(Robot robot in robots)
+        {
+            Load_RobotVis(robot);
+            Load_SensorVis(robot);
+        }
+
+        InvokeRepeating("OptimizationUpdate_Sim", 0, Robot_Optimization.runspeed);
+
     }
 
     GameObject go;
