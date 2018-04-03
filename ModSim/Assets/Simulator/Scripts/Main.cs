@@ -255,13 +255,7 @@ public class Main : MonoBehaviour {
     {
         if (simulation_Running)//Check if simulation is paused
         {
-            /*if (!Robot_Optimization.started)
-            {
-                Robot_Optimization.Load(robot,dt);
-                Robot_Optimization.started = true;
-            }*/
-
-            //if current robot end is reached:
+            //update dynamics/angle of robot, until 
             if (Robot_Optimization.Update(robot, simulationTime, Opti_Iterator, Opti_IterationTime))
             {
                 simulationTime = 0;
@@ -269,18 +263,19 @@ public class Main : MonoBehaviour {
                 Debug.Log("Change");
                 robot.RemovePhysicsObjects();
                 robot = new Robot();
-                robot = Load_Robot(scenario.robot);
+                robot = Load_Robot(Deserialize<Scenario>().robot);//new robot
                 //RESET VIS TOO
 
                 Opti_Iterator++;
 
                 if (Opti_Iterator >= Robot_Optimization.population)//If all iterations have ran
                 {
+                    //start new iterations with new population
                     Robot_Optimization.UpdatePopulation();//Update the populations
                     Debug.Log("Change");
                     robot.RemovePhysicsObjects();
                     robot = new Robot();
-                    robot = Load_Robot(scenario.robot);
+                    robot = Load_Robot(Deserialize<Scenario>().robot);//new robot
                     Opti_Iterator = 0;
                 }
             }

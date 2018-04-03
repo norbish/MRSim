@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Simulation_Core;
 using System;
+using System.Linq;
 
 public static class Robot_Optimization//IF we call the general class for Optimization, 
                                //then we can have inherited classes which specify this or parameters opti.
@@ -11,14 +12,21 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
     public static int population = 3;
 
     static List<Opti_Dynamics> dynamics_List = new List<Opti_Dynamics>();
-
-    static double[] originalGenome = new double[7] { 2 * (Math.PI / 9.0f), 0, Math.PI * 2.0f / 3.0f, 0, 4.0f,0,0};
+                                                    //amplitudeP         AmpY    PhaseOffsetP        POY   Period OffsetP  OffsetY
+    static double[] originalGenome = new double[7] { 2 * (Math.PI / 9.0f), 0, Math.PI * 2.0f / 3.0f, 0,    4.0f,    0,       0};
+    static double[] UpperLimit = new double[7] { 2, 2, 8, 8, 12, 2, 2 };
+    static double[] LowerLimit = new double[7] { -2, -2, -8, -8, -12, -2, -2 };
 
     static string[] movementPattern = new string[] {"Left,Right,Forward"};
 
+    /*-----------------------Fitness:------------------------*/
+    static AgX_Interface.Vector3 targetPosition = new AgX_Interface.Vector3(0,10,10);
+    static int Xcompare = 1, Ycompare = 0, Zcompare = 1;
+    
+
     public static void Load(Robot robot)//run this only once
     {
-
+        //ASSIGN UPPER AND BOTTOM LIMIT
         //Create N dynamics scripts for this robot. (WHAT IS THE GENOME? maybe this variables)
         for(int i = 0; i<population; i++)
         {
@@ -32,7 +40,10 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
             else
             {
                 //DO SOMETHING GENOME STUFF WITH ORIGINAL GENOME random first time?
-                var newGenome = ModifyGenome(originalGenome);
+                double[] newGenome = new Double[7];
+                for (int j = 0; j < newGenome.Length; j++)//populate random genome
+                    newGenome[j] = GetRandomNumber(LowerLimit[j], UpperLimit[j]);
+
                 dynamics = new Opti_Dynamics(robot, newGenome);
             }
 
@@ -59,16 +70,82 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
         }
         else
         {
+            //Calculate the fitness of current solution
+            dynamics_List[patternNumber].fitnessValue = CalculateFitness(robot);
             //save result values
-            //Create new robot from the serialization
+            //Create new dynamics from the serialization
             //return true (so that main can reset time)
             return true;
         }
     }
-
-    public static void UpdatePopulation()//This one should mutate from the best survivors after time target is reached. 
+    static double CalculateFitness(Robot robot)
     {
+        //get robot position
+        var R = robot.position;
+        var T = targetPosition;
 
+        var x = Math.Pow((T.x - R.x), 2) * Xcompare;
+        var y = Math.Pow((T.y - R.y), 2) * Ycompare;
+        var z = Math.Pow((T.z - R.z), 2) * Zcompare;
+
+        var Euclid_Distance = Math.Sqrt( x + y + z );
+
+        return Euclid_Distance;
+    }
+
+    public static void UpdatePopulation(Robot robot)//This one should mutate from the best survivors after time target is reached. 
+    {
+        //Select the 40% best ones and 30% random solutions, and 30% new "random" ones (meaning set inbetween certain values).
+        //Change to a genome (random) will be + or - (random), 0.1%-99% (random), to the specified value. 
+
+        var newList = new List<Opti_Dynamics>();
+
+        dynamics_List.OrderBy(o => o.genome).ToList();
+
+        foreach (Opti_Dynamics y in dynamics_List)
+            UnityEngine.Debug.Log(y.fitnessValue);
+
+        int listCount = dynamics_List.Count;
+
+        //Get 40 best solutions
+        double percentile_40 = listCount * 0.4;
+
+        for (int i = 0; i < (int)percentile_40; i++)
+        {
+            newList.Add(dynamics_List[i]);dynamics_List.RemoveAt(i);
+        }
+
+        //get 30% random solutions:
+        double randomSelection_30 = listCount * 0.3;
+
+        for(int i = 0; i< (int)randomSelection_30;i++)
+        {
+            if(newList.Count < Robot_Optimization.population)
+            {
+                Random rnd = new Random();
+                int r = rnd.Next(dynamics_List.Count);//random with max as list count.
+
+                newList.Add(dynamics_List[r]);dynamics_List.RemoveAt(r);
+            }
+        }
+
+        //Get 30% breeding genomes (the rest):
+        
+
+        //Change to a genome (random) will be + or - (random), 0.1%-99% (random), to the specified value. 
+
+       
+    }
+
+    private static void Breeding()
+    {
+        
+    }
+
+    public static double GetRandomNumber(double minimum, double maximum)
+    {
+        Random random = new Random();
+        return random.NextDouble() * (maximum - minimum) + minimum;
     }
 
     static double[] ModifyGenome(double[] original)
@@ -86,13 +163,14 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
 
     public class Opti_Dynamics
     {
-        public double[] angles;
-        public double[] amplitudes;
-        public double[] period;
-        public double[] phaseDiff;
-        public double[] offset;
+        private double[] angles;
+        private double[] amplitudes;
+        private double[] period;
+        private double[] phaseDiff;
+        private double[] offset;
 
         public double[] genome = new double[7];
+        public double fitnessValue = 0;
 
         static double PitchMoveDirection = 1;static double YawMoveDirection = 1;
         static double PitchTurnDirection = 1;static double YawTurnDirection = 1;
@@ -115,7 +193,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
             Opti_angles(robot, t);
         }
 
-        public void Initialize(Robot robot, double _ampPitch, double _ampYaw, double _phaseOffsetPitch, double _phaseOffsetYaw, double _period, double _offsetPitch, double _offsetYaw)
+        private void Initialize(Robot robot, double _ampPitch, double _ampYaw, double _phaseOffsetPitch, double _phaseOffsetYaw, double _period, double _offsetPitch, double _offsetYaw)
         {
             int mod_n = robot.modules.Count;
             amplitudes = new double[mod_n];
