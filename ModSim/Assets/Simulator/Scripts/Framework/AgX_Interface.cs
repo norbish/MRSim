@@ -87,6 +87,10 @@ namespace AgX_Interface
         {
             Agx_Simulation.sim_Instance.add(Joint);
         }
+        public void Remove()
+        {
+            Agx_Simulation.sim_Instance.remove(Joint);
+        }
 
     }
 
@@ -125,6 +129,10 @@ namespace AgX_Interface
         public Vector3 GetPosition()
         {
             return Operations.FromAgxVec3(agx_Object.getLocalPosition());
+        }
+        public void Remove()
+        {
+            Agx_Simulation.sim_Instance.remove(agx_Object);
         }
     }
 
@@ -184,6 +192,10 @@ namespace AgX_Interface
         public agx.RigidBody GetAgxObject()
         {
             return agx_Object;
+        }
+        public void Remove()
+        {
+            Agx_Simulation.sim_Instance.remove(agx_Object);
         }
     }
 
@@ -300,6 +312,10 @@ namespace AgX_Interface
         {
             Agx_Simulation.sim_Instance.add(agx_Object);
         }
+        public void Remove()
+        {
+            Agx_Simulation.sim_Instance.remove(agx_Object);
+        }
 
     }
 
@@ -320,8 +336,14 @@ namespace AgX_Interface
         }
         public static void Stop()
         {
+            RemoveSimObjects();
             agx.agxSWIG.shutdown();
-            sim_Instance.removeAllObjects();
+            
+        }
+        public static void RemoveSimObjects()
+        {
+            if (sim_Instance != null)
+                sim_Instance.removeAllObjects();
         }
         public static void AddContactMaterial(string a, string b, double restitution, double friction, double youngsModulus)
         {
@@ -380,6 +402,10 @@ namespace AgX_Interface
             //simulation.add(terrain);
             Agx_Simulation.sim_Instance.add(terrain);
 
+        }
+        public void Remove()
+        {
+            Agx_Simulation.sim_Instance.remove(terrain);
         }
     }
 

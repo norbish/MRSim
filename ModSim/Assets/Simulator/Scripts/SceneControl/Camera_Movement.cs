@@ -31,7 +31,7 @@ public class Camera_Movement : MonoBehaviour {
         //this.transform.position = new Vector3(robot.transform.position.x, robot.transform.position.y + 6,robot.transform.position.z-10);
         if (robot != null)
         {
-            this.transform.position = new Vector3(robot.transform.position.x, robot.transform.position.y+6, robot.transform.position.z);
+            this.transform.position = new Vector3(robot.transform.position.x, robot.transform.position.y+6, robot.transform.position.z-5);
             this.transform.RotateAround(robot.transform.position, Vector3.up, 0);
             this.transform.LookAt(robot.transform.position);
         }

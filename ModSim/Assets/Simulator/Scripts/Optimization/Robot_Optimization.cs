@@ -8,72 +8,75 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
 {
     public static bool started = false;
     public static float runspeed = 0.1f;
-    static List<KeyValuePair<Robot, Opti_Dynamics>> robotsWithDynamics = new List<KeyValuePair<Robot, Opti_Dynamics>>();
-    static double[] original = new double[] {1,2,3,4,5,6,7 };
+    public static int population = 3;
+
+    static List<Opti_Dynamics> dynamics_List = new List<Opti_Dynamics>();
+
+    static double[] originalGenome = new double[7] { 2 * (Math.PI / 9.0f), 0, Math.PI * 2.0f / 3.0f, 0, 4.0f,0,0};
 
     static string[] movementPattern = new string[] {"Left,Right,Forward"};
 
-    public static List<Robot> Load(Robot original_Robot, float dt)//run this only once
+    public static void Load(Robot robot)//run this only once
     {
-        runspeed = dt;
-        //Create N robots like this robot. (WHAT IS THE GENOME? maybe this variables)
-        //REMOVE THIS:
-        int count = 0;
-        for(int i = 0; i<2; i++)
-        {
-            Robot tmp_Robot = new Robot();
-            tmp_Robot = original_Robot;
 
-            //REMOVE THIS:
-            foreach(Module mod in tmp_Robot.modules)
-            {
-                mod.frames[0].guid = mod.joint.leftFrameGuid = Guid.NewGuid();
-                mod.frames[1].guid = mod.joint.rightFrameGuid = Guid.NewGuid();
-               // mod.frames[0].position.x += count;
-                //mod.frames[1].position.x += count;
-                mod.joint.guid = Guid.NewGuid();
-            }
-            foreach(Sensor_Module mod in tmp_Robot.sensorModules)
-            {
-                mod.guid = Guid.NewGuid();
-                //mod.position.x += count;
-            }
-            count+=3;
+        //Create N dynamics scripts for this robot. (WHAT IS THE GENOME? maybe this variables)
+        for(int i = 0; i<population; i++)
+        {
 
             
-            tmp_Robot.Initialize();
+            Opti_Dynamics dynamics;
+            if (i == 0)
+            {
+                dynamics = new Opti_Dynamics(robot, originalGenome);
+            }
+            else
+            {
+                //DO SOMETHING GENOME STUFF WITH ORIGINAL GENOME random first time?
+                var newGenome = ModifyGenome(originalGenome);
+                dynamics = new Opti_Dynamics(robot, newGenome);
+            }
 
-            //DO SOMETHING GENOME STUFF WITH ORIGINAL GENOME random first time?
-
-            Opti_Dynamics dynamics = new Opti_Dynamics(tmp_Robot, original);
-
-            robotsWithDynamics.Add(new KeyValuePair<Robot, Opti_Dynamics>(tmp_Robot,dynamics));
+            //Adds a new movement pattern to the list
+            dynamics_List.Add(dynamics);
         }
-        List<Robot> robots = new List<Robot>();
-        foreach (KeyValuePair<Robot, Opti_Dynamics> rwd in robotsWithDynamics)
-        {
-            robots.Add(rwd.Key);
-        }
 
-        return robots;
+
     }
 
-    public static void Update(double time)
+    public static bool Update(Robot robot, double time, int patternNumber, double endTime)
     {
-        AgX_Interface.Agx_Simulation.StepForward();
-
-        foreach(KeyValuePair<Robot,Opti_Dynamics> rwd in robotsWithDynamics)
+        if (time < endTime)
         {
-            if(time > 2)
-            rwd.Value.Run(rwd.Key, time);
+            AgX_Interface.Agx_Simulation.StepForward();
 
-            rwd.Key.Update();
+            //Update robot with dynamics[0] until time is reached. Then, check position/goal(fitness), and run next one
+
+            if (time > 2)
+                dynamics_List[patternNumber].Run(robot, time);
+
+            robot.Update();
+            return false;//not ended
+        }
+        else
+        {
+            //save result values
+            //Create new robot from the serialization
+            //return true (so that main can reset time)
+            return true;
         }
     }
 
-    static void UpdatePopulation()//This one should mutate from the best survivors after time target is reached. 
+    public static void UpdatePopulation()//This one should mutate from the best survivors after time target is reached. 
     {
 
+    }
+
+    static double[] ModifyGenome(double[] original)
+    {
+        double[] newGenome = new double[7];
+        newGenome = original;
+        //cross or mutate?
+        return newGenome;
     }
 
     static Robot GetRobots()

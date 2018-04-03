@@ -64,7 +64,7 @@ public class Main : MonoBehaviour {
         /* Loading the directories for the object files */
         load_FrameDirectories(scenario.robot);
         robot =  Load_Robot(scenario.robot);
-        robot.Initialize();
+
         scene = new Scene(); Load_Scene(scenario.scene);
 
 
@@ -139,7 +139,7 @@ public class Main : MonoBehaviour {
             
         }
 
-        //robot.Initialize();//Initialize frames (creates AgX obj), initializes modules (connecting frames with joint), Locks modules together
+        robot.Initialize();//Initialize frames (creates AgX obj), initializes modules (connecting frames with joint), Locks modules together
 
         return robot;
         
@@ -227,7 +227,7 @@ public class Main : MonoBehaviour {
             robot.Update();
 
             if (Visualization.enabled)
-                Update_Vis();
+                Update_Vis(robot);
 
             simulationTime += Time.deltaTime;
         }
@@ -248,6 +248,9 @@ public class Main : MonoBehaviour {
         }
     }
 
+    //List<Robot> robots;
+    double Opti_IterationTime = 15;
+    int Opti_Iterator = 0;
     void OptimizationUpdate_Sim()
     {
         if (simulation_Running)//Check if simulation is paused
@@ -258,13 +261,35 @@ public class Main : MonoBehaviour {
                 Robot_Optimization.started = true;
             }*/
 
-            //foreach robot:
+            //if current robot end is reached:
+            if (Robot_Optimization.Update(robot, simulationTime, Opti_Iterator, Opti_IterationTime))
             {
-                Robot_Optimization.Update(simulationTime);
+                simulationTime = 0;
+
+                Debug.Log("Change");
+                robot.RemovePhysicsObjects();
+                robot = new Robot();
+                robot = Load_Robot(scenario.robot);
+                //RESET VIS TOO
+
+                Opti_Iterator++;
+
+                if (Opti_Iterator >= Robot_Optimization.population)//If all iterations have ran
+                {
+                    Robot_Optimization.UpdatePopulation();//Update the populations
+                    Debug.Log("Change");
+                    robot.RemovePhysicsObjects();
+                    robot = new Robot();
+                    robot = Load_Robot(scenario.robot);
+                    Opti_Iterator = 0;
+                }
             }
+
             //this will auto be for all:
             if (Visualization.enabled)
-                Update_Vis();
+            {
+                Update_Vis(robot);
+            }
 
             simulationTime += Time.deltaTime;
         }
@@ -274,19 +299,16 @@ public class Main : MonoBehaviour {
     {
         //Loadrobot for each robot
         //Loadvis for each robot
-        var robots = Robot_Optimization.Load(Load_Robot(scenario.robot),dt);
-        foreach(Robot robot in robots)
-        {
-            Load_RobotVis(robot);
-            Load_SensorVis(robot);
-        }
+        Robot_Optimization.Load(robot);
+
+        Robot_Optimization.runspeed = dt;
 
         InvokeRepeating("OptimizationUpdate_Sim", 0, Robot_Optimization.runspeed);
 
     }
 
     GameObject go;
-    void Update_Vis()
+    void Update_Vis(Robot robot)
     {
         
         foreach (Module module in robot.modules)

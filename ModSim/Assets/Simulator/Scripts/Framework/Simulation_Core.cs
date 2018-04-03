@@ -124,6 +124,23 @@ namespace Simulation_Core
                 mod.Update();
             }
         }
+        public void RemovePhysicsObjects()
+        {
+            foreach(Joint lockjoint in locks)
+            {
+                lockjoint.agxJoint.Remove();
+            }
+            foreach (Module mod in modules)
+            {
+                mod.joint.agxJoint.Remove();
+                mod.frames[0].agxFrame.Remove();
+                mod.frames[1].agxFrame.Remove();
+            }
+            foreach(Sensor_Module mod in sensorModules)
+            {
+                mod.agxPrimitive.Remove();
+            }
+        }
     }
 
 
@@ -272,69 +289,69 @@ namespace Simulation_Core
         public double Kp = 3;
         public double max_vel;
 
-        internal AgX_Joint joint;
+        internal AgX_Joint agxJoint;
         internal Frame left, right;
         
         public void Create_Hinge(Frame left, Frame right)
         {
             this.left = left; this.right = right;
             type = "Hinge";
-            joint = new AgX_Joint(guid);
+            agxJoint = new AgX_Joint(guid);
 
             //Add joint between top and bottom frame
-            joint.Create_Hinge("Hinge", left.agxFrame, right.agxFrame, leftRangeLimit, rightRangeLimit);
-            joint.AddToSim();
+            agxJoint.Create_Hinge("Hinge", left.agxFrame, right.agxFrame, leftRangeLimit, rightRangeLimit);
+            agxJoint.AddToSim();
         }
         public void Create_Lock(Frame left, Frame right)
         {
             this.left = left; this.right = right;
             type = "Lock";
-            joint = new AgX_Joint(guid);
-            joint.Create_Lock("Lock", left.agxFrame, right.agxFrame);
-            joint.AddToSim();
+            agxJoint = new AgX_Joint(guid);
+            agxJoint.Create_Lock("Lock", left.agxFrame, right.agxFrame);
+            agxJoint.AddToSim();
         }
 
         //Creates an AgX joint that locks a frame and a sensor module together (agxObjects can not be referenced because references are not saved to this joint object). 
         public void Create_SensorModuleLock(Frame right, Sensor_Module s_mod)//sensor placed last, right frame of left module 
         {
-            joint = new AgX_Joint(guid);
-            joint.Create_Lock("Lock",right.agxFrame,s_mod.agxPrimitive);//FIX IN AGX INTERFACE
-            joint.AddToSim();
+            agxJoint = new AgX_Joint(guid);
+            agxJoint.Create_Lock("Lock",right.agxFrame,s_mod.agxPrimitive);//FIX IN AGX INTERFACE
+            agxJoint.AddToSim();
         }
         public void Create_SensorModuleLock(Sensor_Module s_mod, Frame left)//sensor placed first, left frame of right module
         {
-            joint = new AgX_Joint(guid);
-            joint.Create_Lock("Lock", s_mod.agxPrimitive, left.agxFrame);//FIX IN AGX INTERFACE
-            joint.AddToSim();
+            agxJoint = new AgX_Joint(guid);
+            agxJoint.Create_Lock("Lock", s_mod.agxPrimitive, left.agxFrame);//FIX IN AGX INTERFACE
+            agxJoint.AddToSim();
         }
 
         public void MOVE(double requested_angle)
         {
-            double error = requested_angle - joint.Get_Angle();//Expand to pid if required later?
+            double error = requested_angle - agxJoint.Get_Angle();//Expand to pid if required later?
 
             if (Kp * error > max_vel)
-                joint.Set_Speed(max_vel);
+                agxJoint.Set_Speed(max_vel);
             else if (Kp * error < -max_vel)
-                joint.Set_Speed(-max_vel);
+                agxJoint.Set_Speed(-max_vel);
             else
-                joint.Set_Speed(Kp * error);
+                agxJoint.Set_Speed(Kp * error);
         }
 
         public void Reset_Angle()//Resets the joint movement
         {
-            double error = 0 - joint.Get_Angle();
+            double error = 0 - agxJoint.Get_Angle();
 
             if (Kp * error > 0.5f)
-                joint.Set_Speed(0.5f);
+                agxJoint.Set_Speed(0.5f);
             else if (Kp * error < -0.5f)
-                joint.Set_Speed(-0.5f);
+                agxJoint.Set_Speed(-0.5f);
             else
-                joint.Set_Speed(Kp * error);
+                agxJoint.Set_Speed(Kp * error);
         }
 
         public double GetAngle()
         {
-            return joint.Get_Angle();
+            return agxJoint.Get_Angle();
         }
 
         public void Update()
@@ -400,10 +417,14 @@ namespace Simulation_Core
             {
                 for (int j = 0; j < 250; j++) //OUTER PIXELS MUST BE 0, fix
                 {
-                        //Add each new vertex in the plane
+                    //Add each new vertex in the plane
+                    if (i < heightMap.Width && j < heightMap.Height)
+                    {
                         vertices.Add(new Vector3(i, heightMap.GetPixel(i, j).R * height / 255.0f, j));// dibide by 255 to get the normalized size, and multiply by height
+                    }
+                    else
+                        vertices.Add(new Vector3(i, 0, j));// dibide by 255 to get the normalized size, and multiply by height
 
-                        
                         //Skip if a new square on the plane hasn't been formed
                         if (i == 0 || j == 0||i==249||j==249) continue;
                         //Adds the index of the three vertices in order to make up each of the two tris
