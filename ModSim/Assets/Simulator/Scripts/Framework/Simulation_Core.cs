@@ -128,6 +128,7 @@ namespace Simulation_Core
         {
             foreach(Joint lockjoint in locks)
             {
+                if(lockjoint.agxJoint != null)
                 lockjoint.agxJoint.Remove();
             }
             foreach (Module mod in modules)

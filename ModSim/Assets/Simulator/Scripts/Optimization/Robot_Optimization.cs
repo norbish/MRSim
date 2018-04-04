@@ -9,13 +9,17 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
 {
     public static bool started = false;
     public static float runspeed = 0.1f;
-    public static int population = 3;
+    public static int population = 10;
+
+    public static int currentGeneration = 0;
 
     static List<Opti_Dynamics> dynamics_List = new List<Opti_Dynamics>();
                                                     //amplitudeP         AmpY    PhaseOffsetP        POY   Period OffsetP  OffsetY
     static double[] originalGenome = new double[7] { 2 * (Math.PI / 9.0f), 0, Math.PI * 2.0f / 3.0f, 0,    4.0f,    0,       0};
     static double[] UpperLimit = new double[7] { 2, 2, 8, 8, 12, 2, 2 };
-    static double[] LowerLimit = new double[7] { -2, -2, -8, -8, -12, -2, -2 };
+    static double[] LowerLimit = new double[7] { -2, -2, -8, -8, 0, -2, -2 };
+
+    static bool[] chosenForOptimization = new bool[7] { true, false, true, false, true, false, false };//at the moment
 
     static string[] movementPattern = new string[] {"Left,Right,Forward"};
 
@@ -28,6 +32,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
     {
         //ASSIGN UPPER AND BOTTOM LIMIT
         //Create N dynamics scripts for this robot. (WHAT IS THE GENOME? maybe this variables)
+        Random random = new Random();
         for(int i = 0; i<population; i++)
         {
 
@@ -41,8 +46,10 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
             {
                 //DO SOMETHING GENOME STUFF WITH ORIGINAL GENOME random first time?
                 double[] newGenome = new Double[7];
+                
                 for (int j = 0; j < newGenome.Length; j++)//populate random genome
-                    newGenome[j] = GetRandomNumber(LowerLimit[j], UpperLimit[j]);
+                    if(chosenForOptimization[j])
+                        newGenome[j] = GetRandomNumber(LowerLimit[j], UpperLimit[j], random);
 
                 dynamics = new Opti_Dynamics(robot, newGenome);
             }
@@ -78,6 +85,12 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
             return true;
         }
     }
+
+    public static void Reset()
+    {
+        dynamics_List.Clear();
+    }
+
     static double CalculateFitness(Robot robot)
     {
         //get robot position
@@ -90,68 +103,116 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
 
         var Euclid_Distance = Math.Sqrt( x + y + z );
 
-        return Euclid_Distance;
+        return Math.Abs(Euclid_Distance);//Target is to get as close as possible to 0-vector
     }
 
     public static void UpdatePopulation(Robot robot)//This one should mutate from the best survivors after time target is reached. 
     {
-        //Select the 40% best ones and 30% random solutions, and 30% new "random" ones (meaning set inbetween certain values).
         //Change to a genome (random) will be + or - (random), 0.1%-99% (random), to the specified value. 
 
         var newList = new List<Opti_Dynamics>();
 
-        dynamics_List.OrderBy(o => o.genome).ToList();
+        //Sort the list, ascending order, to get the best ones (smallest value) first
+        dynamics_List.OrderBy(o => o.fitnessValue).ToList();
 
-        foreach (Opti_Dynamics y in dynamics_List)
-            UnityEngine.Debug.Log(y.fitnessValue);
+        //CHECK
+        for(int i = 0; i<dynamics_List.Count; i++)
+            UnityEngine.Debug.Log(dynamics_List[i].fitnessValue);
 
-        int listCount = dynamics_List.Count;
+        //Save length of dynamics list (could use population from r_opti, but this is a precaution for errors.
+        int populationCount = dynamics_List.Count;
 
-        //Get 40 best solutions
-        double percentile_40 = listCount * 0.4;
 
-        for (int i = 0; i < (int)percentile_40; i++)
+
+        //Crossover 50% best solutions
+        double percentile_50 = populationCount * 0.5;
+        Random rnd = new Random();
+        for (int i = 0; i < (int)percentile_50; i++)
         {
-            newList.Add(dynamics_List[i]);dynamics_List.RemoveAt(i);
+            int r1 = rnd.Next((int)percentile_50);//index of best 50% population
+            int r2 = rnd.Next((int)percentile_50);
+
+            var newTmp = dynamics_List[r1];
+
+            newTmp.genome = UniformCrossover(dynamics_List[r1].genome,dynamics_List[r2].genome);
+            //add to new list, remove from old list.
+            newList.Add(newTmp);//dynamics_List.RemoveAt(i);
+            
         }
 
-        //get 30% random solutions:
-        double randomSelection_30 = listCount * 0.3;
 
-        for(int i = 0; i< (int)randomSelection_30;i++)
+        //Crossover rest from random existing solutions: 
+        rnd = new Random();
+        for(int i = 0; i< populationCount;i++)
         {
-            if(newList.Count < Robot_Optimization.population)
+            if(newList.Count < populationCount)
             {
-                Random rnd = new Random();
-                int r = rnd.Next(dynamics_List.Count);//random with max as list count.
+                int r1 = rnd.Next(dynamics_List.Count);//random of all population.
+                int r2 = rnd.Next(dynamics_List.Count);//random of all population.
 
-                newList.Add(dynamics_List[r]);dynamics_List.RemoveAt(r);
+                var newTmp = dynamics_List[r1];
+
+                newTmp.genome = UniformCrossover(dynamics_List[r1].genome, dynamics_List[r2].genome);
+
+                newList.Add(newTmp);
             }
         }
 
-        //Get 30% breeding genomes (the rest):
+
+        //Mutate 20% of all population:
+        double random_20 = populationCount * 0.2;
+        rnd = new Random();
+        for (int i = 0; i<random_20;i++)
+        {
+            
+            int r = rnd.Next(newList.Count);//index reaching all population
+
+            newList[r].genome = Mutate(newList[r].genome,chosenForOptimization);//Mutates a random offspring
+        }
+
+        currentGeneration++;
+        dynamics_List = newList;
         
-
-        //Change to a genome (random) will be + or - (random), 0.1%-99% (random), to the specified value. 
-
-       
     }
 
-    private static void Breeding()
+    private static double[] UniformCrossover(double[] first, double[] second)
     {
-        
+        //random selection
+        Random rand = new Random();
+        var result = new double[first.Length];
+        //Choose children (uniformCrossover):
+        result[0] = rand.Next(0, 2) == 0 ? first[0] : second[0];
+        result[1] = rand.Next(0, 2) == 0 ? first[1] : second[1];
+        result[2] = rand.Next(0, 2) == 0 ? first[2] : second[2];
+        result[3] = rand.Next(0, 2) == 0 ? first[3] : second[3];
+        result[4] = rand.Next(0, 2) == 0 ? first[4] : second[4];
+        result[5] = rand.Next(0, 2) == 0 ? first[5] : second[5];
+        result[6] = rand.Next(0, 2) == 0 ? first[6] : second[6];
+
+        return result;
     }
 
-    public static double GetRandomNumber(double minimum, double maximum)
+    public static double GetRandomNumber(double minimum, double maximum, Random random)
     {
-        Random random = new Random();
         return random.NextDouble() * (maximum - minimum) + minimum;
     }
 
-    static double[] ModifyGenome(double[] original)
+    static double[] Mutate(double[] original, bool[] optimize)
     {
         double[] newGenome = new double[7];
+
         newGenome = original;
+
+        //Random resetting:
+        Random random = new Random();
+        for(int i = 0; i< original.Length; i++)
+        {
+            if(optimize[i])
+                if (random.Next(100) < 20)//20% prob
+                newGenome[i] = GetRandomNumber(LowerLimit[i], UpperLimit[i], random);
+        }
+
+        
         //cross or mutate?
         return newGenome;
     }

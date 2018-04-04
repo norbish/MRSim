@@ -780,6 +780,14 @@ public class Scene_Designer : MonoBehaviour {
         else
             mainPanel.gameObject.SetActive(false);
     }
+    public GameObject optimizationPanel;
+    public void ToggleOptiPanel(bool toggled)
+    {
+        if (toggled)
+            optimizationPanel.gameObject.SetActive(true);
+        else
+            optimizationPanel.gameObject.SetActive(false);
+    }
        
 
     /*-------------------------------------------------Helper Functions:--------------------------------------------------*/

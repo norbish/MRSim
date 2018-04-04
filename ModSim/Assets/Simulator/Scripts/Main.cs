@@ -38,6 +38,8 @@ public class Main : MonoBehaviour {
         dir = Application.streamingAssetsPath;//Get the path of the streaming assets
         if (!simulation_Started)
         {
+            Clear_Vis();
+            Reset_Opti();
             Agx_Simulation.Start(dt);//Starts the sim.
             
             simulation_Started = true;
@@ -49,6 +51,7 @@ public class Main : MonoBehaviour {
         else
         {
             Clear_Vis();
+            Reset_Opti();
             Agx_Simulation.Stop();
             Agx_Simulation.Start(dt);
             simulation_Started = true;
@@ -63,7 +66,7 @@ public class Main : MonoBehaviour {
 
         /* Loading the directories for the object files */
         load_FrameDirectories(scenario.robot);
-        robot =  Load_Robot(scenario.robot);
+        robot = Load_Robot(scenario.robot);
 
         scene = new Scene(); Load_Scene(scenario.scene);
 
@@ -96,6 +99,11 @@ public class Main : MonoBehaviour {
             simulation_Running = false;
         else
             simulation_Running = true;
+    }
+
+    void Reset_Opti()
+    {
+        Robot_Optimization.Reset();
     }
 
     void SetContactPoints()
@@ -202,7 +210,8 @@ public class Main : MonoBehaviour {
         }
         sensorVis.Clear();
 
-        scene_vis.Remove();
+        if(scene_vis != null)
+            scene_vis.Remove();
     }
 
 
@@ -210,8 +219,10 @@ public class Main : MonoBehaviour {
     List<Frame_Vis> frameVis = new List<Frame_Vis>();
     List<Joint_Vis> jointVis = new List<Joint_Vis>();
     Scene_Vis scene_vis;
+
+    double[] dynamicVariables = new double[7] { 2 * (Math.PI / 9.0f), 0, Math.PI * 2.0f / 3.0f, 0, 4.0f, 0, 0 };
+
     float simulationTime = 0;
-    int TESTCOUNT = 0;
     void Update_Sim()
     {
         if (simulation_Running)//Check if simulation is paused
@@ -221,7 +232,7 @@ public class Main : MonoBehaviour {
             //CheckInputs();
 
             if (simulationTime >= 2)//Wait for robot to settle on terrain
-                if (!Dynamics.Control(robot, simulationTime))//Movement
+                if (!Dynamics.Control(robot, simulationTime,dynamicVariables))//Movement
                     Debug.Log("wrong command");
 
             robot.Update();
@@ -260,19 +271,19 @@ public class Main : MonoBehaviour {
             {
                 simulationTime = 0;
 
-                Debug.Log("Change");
                 robot.RemovePhysicsObjects();
                 robot = new Robot();
                 robot = Load_Robot(Deserialize<Scenario>().robot);//new robot
                 //RESET VIS TOO
 
                 Opti_Iterator++;
+                Debug.Log("Generation: " + Robot_Optimization.currentGeneration + "| Entity: "+ Opti_Iterator);
 
                 if (Opti_Iterator >= Robot_Optimization.population)//If all iterations have ran
                 {
                     //start new iterations with new population
-                    Robot_Optimization.UpdatePopulation();//Update the populations
-                    Debug.Log("Change");
+                    Robot_Optimization.UpdatePopulation(robot);//Update the populations
+                    
                     robot.RemovePhysicsObjects();
                     robot = new Robot();
                     robot = Load_Robot(Deserialize<Scenario>().robot);//new robot
@@ -296,7 +307,7 @@ public class Main : MonoBehaviour {
         //Loadvis for each robot
         Robot_Optimization.Load(robot);
 
-        Robot_Optimization.runspeed = dt;
+        Robot_Optimization.runspeed = 0.001f ;// dt;
 
         InvokeRepeating("OptimizationUpdate_Sim", 0, Robot_Optimization.runspeed);
 

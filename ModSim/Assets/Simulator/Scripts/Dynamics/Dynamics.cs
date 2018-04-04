@@ -120,7 +120,7 @@ public static class Dynamics
     static float turn_direction = 1;
     static float set_period = 4.0f;
     static bool NewAction = false;
-    public static bool Control(Simulation_Core.Robot robot, float t)
+    public static bool Control(Simulation_Core.Robot robot, float t, double[] dyn_vars)
     {
         switch(action)
         {
@@ -128,7 +128,8 @@ public static class Dynamics
             case "Forward":
                 {
                     if (NewAction)
-                        Initialize(action, robot, 2 * (Mathf.PI / 9.0f), 0, move_direction * 0.5f*Mathf.PI*2.0f/3.0f, 0, set_period, 0, 0);
+                        Initialize(action, robot, 2 * (Mathf.PI / 9.0f), 0, move_direction * 0.5f * Mathf.PI * 2.0f / 3.0f, 0, set_period, 0, 0);
+                    //Initialize(action, robot, (double)dyn_vars[0], 0, move_direction * (double)dyn_vars[2], 0, (double)dyn_vars[4], 0, 0);
                     Forward(robot, t);
                     return true;
                 }
@@ -136,7 +137,7 @@ public static class Dynamics
                 {
                     if (NewAction)
                         Initialize(action, robot, 2 * (Mathf.PI / 9.0f), 0, move_direction * Mathf.PI * 2.0f / 3.0f, 0, set_period, 0, turn_direction * 20 * Mathf.PI / 180);
-
+                    //Initialize(action, robot, (double)dyn_vars[0], 0, move_direction * (double)dyn_vars[2], 0, (double)dyn_vars[4], 0, turn_direction * (double)dyn_vars[6]);
 
                     Turn(robot, t);
                     return true;
