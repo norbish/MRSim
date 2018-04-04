@@ -32,6 +32,7 @@ public class Main : MonoBehaviour {
         
         //Main_Initialization();
     }
+    
     Scenario scenario = new Scenario();
     void Main_Initialization()
     {
@@ -78,9 +79,22 @@ public class Main : MonoBehaviour {
             Load_Vis();
 
 
-        //InvokeRepeating("Update_Sim", 0, dt);
-        CreateOptimizations();
+        //Start either the optimization or the dynamics
+        if(Robot_Optimization.activated)
+            CreateOptimizations();
+        else
+            InvokeRepeating("Update_Sim", 0.01f, dt);
         
+    }
+
+    void ChangeDeltaTime(float dt)
+    {
+        this.dt = dt;
+        if (simulation_Running && !Robot_Optimization.activated)
+        {
+            CancelInvoke("Update_Sim");
+            InvokeRepeating("Update_Sim", 0.01f, dt);
+        }
     }
 
     void Stop()
@@ -307,10 +321,20 @@ public class Main : MonoBehaviour {
         //Loadvis for each robot
         Robot_Optimization.Load(robot);
 
-        Robot_Optimization.runspeed = 0.001f ;// dt;
+        //Robot_Optimization.timeStep = 0.01f ;// dt;
 
-        InvokeRepeating("OptimizationUpdate_Sim", 0, Robot_Optimization.runspeed);
+        InvokeRepeating("OptimizationUpdate_Sim", 0.01f, Robot_Optimization.timeStep);
 
+    }
+    public void UpdateRepeatRate(float dt)
+    {
+        if (simulation_Running && Robot_Optimization.activated)
+        {
+            Robot_Optimization.timeStep = dt;
+            CancelInvoke("OptimizationUpdate_Sim");
+            InvokeRepeating("OptimizationUpdate_Sim", 0.01f, Robot_Optimization.timeStep);
+            Debug.Log("OptiTime: " + Time.deltaTime);
+        }
     }
 
     GameObject go;

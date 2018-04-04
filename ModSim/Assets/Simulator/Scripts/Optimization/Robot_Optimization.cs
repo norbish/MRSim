@@ -7,8 +7,9 @@ using System.Linq;
 public static class Robot_Optimization//IF we call the general class for Optimization, 
                                //then we can have inherited classes which specify this or parameters opti.
 {
+    public static bool activated = false;
     public static bool started = false;
-    public static float runspeed = 0.1f;
+    public static float timeStep = 0.01f;
     public static int population = 10;
 
     public static int currentGeneration = 0;

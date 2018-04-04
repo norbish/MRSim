@@ -32,7 +32,6 @@ public class Scene_Designer : MonoBehaviour {
     string jointType;
     double leftRangeLimit, rightRangeLimit, maxVelocity, pValue;
 
-
     string dir = "";
     string upperFrame_ObjName = "upper.obj";
     string bottomFrame_ObjName = "bottom.obj";
@@ -55,6 +54,7 @@ public class Scene_Designer : MonoBehaviour {
     /*----------------------------------------------Initializing Simulation-----------------------------------------------*/
     /**-----------------------------------------------Starting simulation-------------------------------------------------*/
     bool StartDesigner = false;
+    
     public void StartSimulation()
     {
         if (StartDesigner == false)
@@ -100,6 +100,8 @@ public class Scene_Designer : MonoBehaviour {
             //Serializing Robot:
             FinalizeCreation();
             SetAnalyticsPath();
+            UpdateSimTime();
+            UpdateOptimizationTime();
             SIMULATOR.SendMessage("Main_Initialization");
             CAMERA.SendMessage("Initialize");
             StartDesigner = true;
@@ -111,7 +113,22 @@ public class Scene_Designer : MonoBehaviour {
         }
 
     }
+    public InputField deltaTime;
+    public void UpdateSimTime()
+    {
+        float dt;
+        float.TryParse(deltaTime.text, out dt);
+        SIMULATOR.SendMessage("ChangeDeltaTime", dt);
+    }
+    public InputField optimizationTime;
+    public void UpdateOptimizationTime()
+    {
+        float dt;
+        float.TryParse(optimizationTime.text, out dt);
 
+        //Update time in main
+        SIMULATOR.SendMessage("UpdateRepeatRate",dt);
+    }
     public void StopSimulation()
     {
         SIMULATOR.SendMessage("Stop");
@@ -771,7 +788,7 @@ public class Scene_Designer : MonoBehaviour {
     public void LoadConfig()
     {
     }
-    /*------------------------------------------------Hiding the designer-------------------------------------------------*/
+    /*---------------------------------------------------Panel toggles----------------------------------------------------*/
     public GameObject mainPanel;
     public void ToggleDesigner(bool toggled)
     {
@@ -787,6 +804,13 @@ public class Scene_Designer : MonoBehaviour {
             optimizationPanel.gameObject.SetActive(true);
         else
             optimizationPanel.gameObject.SetActive(false);
+    }
+    public void ToggleOptimization(bool toggled)
+    {
+        if (toggled)
+            Robot_Optimization.activated = true;
+        else
+            Robot_Optimization.activated = false;
     }
        
 
