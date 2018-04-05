@@ -101,7 +101,6 @@ public class Scene_Designer : MonoBehaviour {
             FinalizeCreation();
             SetAnalyticsPath();
             UpdateSimTime();
-            UpdateOptimizationTime();
             SIMULATOR.SendMessage("Main_Initialization");
             CAMERA.SendMessage("Initialize");
             StartDesigner = true;
@@ -120,15 +119,15 @@ public class Scene_Designer : MonoBehaviour {
         float.TryParse(deltaTime.text, out dt);
         SIMULATOR.SendMessage("ChangeDeltaTime", dt);
     }
-    public InputField optimizationTime;
-    public void UpdateOptimizationTime()
-    {
-        float dt;
-        float.TryParse(optimizationTime.text, out dt);
 
-        //Update time in main
-        SIMULATOR.SendMessage("UpdateRepeatRate",dt);
+    public InputField GenerationGoal;
+    public void QuickOptimization()
+    {
+        int goal = 0;
+        int.TryParse(GenerationGoal.text, out goal);
+        SIMULATOR.SendMessage("QuickOptimization", goal);
     }
+
     public void StopSimulation()
     {
         SIMULATOR.SendMessage("Stop");

@@ -9,23 +9,25 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
 {
     public static bool activated = false;
     public static bool started = false;
-    public static float timeStep = 0.01f;
+    public static float deltaTime = 0.01f;//physics sim time
     public static int population = 10;
+    public static bool quickOpti = false;
+    public static int IterTime = 30;
 
     public static int currentGeneration = 0;
 
     static List<Opti_Dynamics> dynamics_List = new List<Opti_Dynamics>();
                                                     //amplitudeP         AmpY    PhaseOffsetP        POY   Period OffsetP  OffsetY
     static double[] originalGenome = new double[7] { 2 * (Math.PI / 9.0f), 0, Math.PI * 2.0f / 3.0f, 0,    4.0f,    0,       0};
-    static double[] UpperLimit = new double[7] { 2, 2, 8, 8, 12, 2, 2 };
-    static double[] LowerLimit = new double[7] { -2, -2, -8, -8, 0, -2, -2 };
+    static double[] UpperLimit = new double[7] { 4, 4, 8, 8, 10, 2, 2 };
+    static double[] LowerLimit = new double[7] { -4, -4, -8, -8, 1, -2, -2 };
 
     static bool[] chosenForOptimization = new bool[7] { true, false, true, false, true, false, false };//at the moment
 
     static string[] movementPattern = new string[] {"Left,Right,Forward"};
 
     /*-----------------------Fitness:------------------------*/
-    static AgX_Interface.Vector3 targetPosition = new AgX_Interface.Vector3(0,10,10);
+    static AgX_Interface.Vector3 targetPosition = new AgX_Interface.Vector3(0,10,30);
     static int Xcompare = 1, Ycompare = 0, Zcompare = 1;
     
 
@@ -114,7 +116,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
         var newList = new List<Opti_Dynamics>();
 
         //Sort the list, ascending order, to get the best ones (smallest value) first
-        dynamics_List.OrderBy(o => o.fitnessValue).ToList();
+        dynamics_List = dynamics_List.OrderBy(o => o.fitnessValue).ToList();
 
         //CHECK
         for(int i = 0; i<dynamics_List.Count; i++)
@@ -123,33 +125,41 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
         //Save length of dynamics list (could use population from r_opti, but this is a precaution for errors.
         int populationCount = dynamics_List.Count;
 
-
+        if (dynamics_List.Count > 2)
+        {
+            newList.Add( dynamics_List[0]);
+            newList.Add( dynamics_List[1]);
+        }
 
         //Crossover 50% best solutions
         double percentile_50 = populationCount * 0.5;
         Random rnd = new Random();
         for (int i = 0; i < (int)percentile_50; i++)
         {
-            int r1 = rnd.Next((int)percentile_50);//index of best 50% population
-            int r2 = rnd.Next((int)percentile_50);
+            if (newList.Count < populationCount)//ensure we don't make the list too big, in case user selects low population.
+            {
+                int r1 = rnd.Next((int)percentile_50);//index of best 50% population
+                int r2 = rnd.Next((int)percentile_50);
 
-            var newTmp = dynamics_List[r1];
+                var newTmp = dynamics_List[r1];
 
-            newTmp.genome = UniformCrossover(dynamics_List[r1].genome,dynamics_List[r2].genome);
-            //add to new list, remove from old list.
-            newList.Add(newTmp);//dynamics_List.RemoveAt(i);
+                newTmp.genome = UniformCrossover(dynamics_List[r1].genome, dynamics_List[r2].genome);
+                //add to new list, remove from old list.
+                newList.Add(newTmp);//dynamics_List.RemoveAt(i);
+            }
             
         }
 
 
         //Crossover rest from random existing solutions: 
+        double percentile_70 = populationCount * 0.7;
         rnd = new Random();
         for(int i = 0; i< populationCount;i++)
         {
             if(newList.Count < populationCount)
             {
-                int r1 = rnd.Next(dynamics_List.Count);//random of all population.
-                int r2 = rnd.Next(dynamics_List.Count);//random of all population.
+                int r1 = rnd.Next((int)percentile_70);//random of 70% best.
+                int r2 = rnd.Next((int)percentile_70);//random of 70% best.
 
                 var newTmp = dynamics_List[r1];
 
@@ -160,15 +170,12 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
         }
 
 
-        //Mutate 20% of all population:
-        double random_20 = populationCount * 0.2;
+        //Mutate function all population:
+        //double random_20 = populationCount * 0.2;
         rnd = new Random();
-        for (int i = 0; i<random_20;i++)
+        for (int i = 2; i<newList.Count;i++)//start from 2, want to save the two best.
         {
-            
-            int r = rnd.Next(newList.Count);//index reaching all population
-
-            newList[r].genome = Mutate(newList[r].genome,chosenForOptimization);//Mutates a random offspring
+            newList[i].genome = Mutate(newList[i].genome,chosenForOptimization);//Mutates a random offspring
         }
 
         currentGeneration++;
@@ -206,11 +213,11 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
 
         //Random resetting:
         Random random = new Random();
-        for(int i = 0; i< original.Length; i++)
+        for(int i = 0; i< original.Length; i++)//each genome
         {
-            if(optimize[i])
-                if (random.Next(100) < 20)//20% prob
-                newGenome[i] = GetRandomNumber(LowerLimit[i], UpperLimit[i], random);
+            if(optimize[i])//if current genome index is to be optimized
+                if (random.Next(100) < 50)//35% prob
+                    newGenome[i] = GetRandomNumber(LowerLimit[i], UpperLimit[i], random);
         }
 
         

@@ -274,14 +274,13 @@ public class Main : MonoBehaviour {
     }
 
     //List<Robot> robots;
-    double Opti_IterationTime = 15;
     int Opti_Iterator = 0;
     void OptimizationUpdate_Sim()
     {
         if (simulation_Running)//Check if simulation is paused
         {
-            //update dynamics/angle of robot, until 
-            if (Robot_Optimization.Update(robot, simulationTime, Opti_Iterator, Opti_IterationTime))
+            //OPTIMIZATION:
+            if (Robot_Optimization.Update(robot, simulationTime, Opti_Iterator, Robot_Optimization.IterTime))
             {
                 simulationTime = 0;
 
@@ -291,6 +290,7 @@ public class Main : MonoBehaviour {
                 //RESET VIS TOO
 
                 Opti_Iterator++;
+                if(!Robot_Optimization.quickOpti)
                 Debug.Log("Generation: " + Robot_Optimization.currentGeneration + "| Entity: "+ Opti_Iterator);
 
                 if (Opti_Iterator >= Robot_Optimization.population)//If all iterations have ran
@@ -305,13 +305,14 @@ public class Main : MonoBehaviour {
                 }
             }
 
-            //this will auto be for all:
+            //VISUALIZATION:
             if (Visualization.enabled)
             {
                 Update_Vis(robot);
             }
 
-            simulationTime += Time.deltaTime;
+            //this should be the Physics time
+            simulationTime += Robot_Optimization.deltaTime;//timestep = dt = each step time. 
         }
     }
 
@@ -321,19 +322,39 @@ public class Main : MonoBehaviour {
         //Loadvis for each robot
         Robot_Optimization.Load(robot);
 
+        Robot_Optimization.deltaTime = dt;
+
+        Robot_Optimization.IterTime = 30;
         //Robot_Optimization.timeStep = 0.01f ;// dt;
 
-        InvokeRepeating("OptimizationUpdate_Sim", 0.01f, Robot_Optimization.timeStep);
+        InvokeRepeating("OptimizationUpdate_Sim", 0.01f, Robot_Optimization.deltaTime);
 
     }
-    public void UpdateRepeatRate(float dt)
+
+    void QuickOptimization(int goal_generation)
     {
         if (simulation_Running && Robot_Optimization.activated)
         {
-            Robot_Optimization.timeStep = dt;
-            CancelInvoke("OptimizationUpdate_Sim");
-            InvokeRepeating("OptimizationUpdate_Sim", 0.01f, Robot_Optimization.timeStep);
-            Debug.Log("OptiTime: " + Time.deltaTime);
+            CancelInvoke();
+            Visualization.enabled = false;
+
+            simulation_Running = true;
+
+            Robot_Optimization.quickOpti = true;
+            //Optimize fast:
+            while(Robot_Optimization.currentGeneration < goal_generation)
+            {
+                OptimizationUpdate_Sim();
+            }
+            Debug.Log("Reached Generation: " + Robot_Optimization.currentGeneration);
+
+            simulation_Running = false;
+
+            Robot_Optimization.quickOpti = false;
+
+            //reenable normal optimization:
+            Visualization.enabled = true;
+            InvokeRepeating("OptimizationUpdate_Sim", 0.01f, Robot_Optimization.deltaTime);
         }
     }
 

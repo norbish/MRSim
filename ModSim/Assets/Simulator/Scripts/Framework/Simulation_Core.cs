@@ -130,17 +130,24 @@ namespace Simulation_Core
             {
                 if(lockjoint.agxJoint != null)
                 lockjoint.agxJoint.Remove();
+                lockjoint.agxJoint = null;
             }
+            locks.Clear();
+
             foreach (Module mod in modules)
             {
-                mod.joint.agxJoint.Remove();
-                mod.frames[0].agxFrame.Remove();
-                mod.frames[1].agxFrame.Remove();
+                mod.joint.agxJoint.Remove();mod.joint.agxJoint = null;
+                mod.frames[0].agxFrame.Remove();mod.frames[0].agxFrame = null;
+                mod.frames[1].agxFrame.Remove();mod.frames[1].agxFrame = null;
             }
+            modules.Clear();
+
             foreach(Sensor_Module mod in sensorModules)
             {
-                mod.agxPrimitive.Remove();
+                mod.agxPrimitive.Remove();mod.agxPrimitive = null;
             }
+            sensorModules.Clear();
+
         }
     }
 
