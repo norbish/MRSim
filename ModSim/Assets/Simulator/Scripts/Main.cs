@@ -34,6 +34,7 @@ public class Main : MonoBehaviour {
     }
     
     Scenario scenario = new Scenario();
+    Robot OriginalRobot = new Robot();
     void Main_Initialization()
     {
         dir = Application.streamingAssetsPath;//Get the path of the streaming assets
@@ -67,24 +68,61 @@ public class Main : MonoBehaviour {
 
         /* Loading the directories for the object files */
         load_FrameDirectories(scenario.robot);
+
         robot = Load_Robot(scenario.robot);
+        //OriginalRobot = scenario.robot;
 
         scene = new Scene(); Load_Scene(scenario.scene);
 
+        //SetMovementVariables();
 
-        simulation_Running = true;
+        
         Visualization.enabled = true;
 
         if (Visualization.enabled)
+        {
             Load_Vis();
+            Update_Vis(robot);
+        }
+        
+    }
+    public void SetMovementVariables(double[] forward_vars)
+    {
+        Robot_Optimization.originalGenome = forward_vars;
+        Dynamics.f_movementVars = forward_vars;
+        //add for turn, rotation, sidewinding, etc. vars.
+    }
 
-
+    public void StartSim()
+    {
+        simulation_Running = true;
         //Start either the optimization or the dynamics
         if(Robot_Optimization.activated)
             CreateOptimizations();
         else
             InvokeRepeating("Update_Sim", 0.01f, dt);
-        
+    }
+    AgX_Interface.Vector3 RobotStartPosition = new AgX_Interface.Vector3();
+    public void ChangeInitPos(AgX_Interface.Vector3 pos)
+    {
+        if (!simulation_Running)
+        {
+            AgX_Assembly.SetPosition(pos);
+            robot.Update();
+            Update_Vis(robot);
+            RobotStartPosition = pos;
+        }
+    }
+    AgX_Interface.Quaternion RobotStartRotation = new AgX_Interface.Quaternion();
+    public void ChangeInitRot(AgX_Interface.Quaternion rot)
+    {
+        if (!simulation_Running)
+        {
+            AgX_Assembly.SetRotation(rot);
+            robot.Update();
+            Update_Vis(robot);
+            RobotStartRotation = rot;
+        }
     }
 
     void ChangeDeltaTime(float dt)
@@ -284,10 +322,11 @@ public class Main : MonoBehaviour {
             {
                 simulationTime = 0;
 
-                robot.RemovePhysicsObjects();
-                robot = new Robot();
-                robot = Load_Robot(Deserialize<Scenario>().robot);//new robot
-                //RESET VIS TOO
+                //deletes and recreates robot
+                ResetRobot();
+                
+                //resets robot position:(gotta create AgX assembly first)
+                //robot.setPos(oldpos?);
 
                 Opti_Iterator++;
                 if(!Robot_Optimization.quickOpti)
@@ -297,10 +336,8 @@ public class Main : MonoBehaviour {
                 {
                     //start new iterations with new population
                     Robot_Optimization.UpdatePopulation(robot);//Update the populations
-                    
-                    robot.RemovePhysicsObjects();
-                    robot = new Robot();
-                    robot = Load_Robot(Deserialize<Scenario>().robot);//new robot
+
+                    ResetRobot();
                     Opti_Iterator = 0;
                 }
             }
@@ -314,6 +351,48 @@ public class Main : MonoBehaviour {
             //this should be the Physics time
             simulationTime += Robot_Optimization.deltaTime;//timestep = dt = each step time. 
         }
+    }
+    void ResetRobot()//Cannot reset robot while sim is running. why?
+    {
+
+        /* 1.attempt: */
+        
+        robot.RemovePhysicsObjects();
+        robot = new Robot();
+        robot = Load_Robot(Deserialize<Scenario>().robot);//new robot
+        
+
+        /*
+        robot.RemovePhysicsObjects();
+        robot = OriginalRobot;//new robot
+        robot = Load_Robot(robot);
+        */
+
+        /* 2. attempt: *"
+        AgX_Assembly.RemoveFromSim();
+
+        AgX_Assembly.SetPosition(RobotStartPosition);
+        AgX_Assembly.SetRotation(RobotStartRotation);
+        foreach(Module mod in robot.modules)
+        {
+            mod.joint.Stabilize_Angle();
+        }
+
+        AgX_Assembly.AddToSim();
+
+
+        /* 3. attempt: */
+        /*
+        Agx_Simulation.Stop();
+        Agx_Simulation.Start(dt);
+        var scen = Deserialize<Scenario>();
+
+        Load_Scene(scen.scene);
+        robot = Load_Robot(scen.robot);
+        */
+
+        
+
     }
 
     void CreateOptimizations()
@@ -348,7 +427,7 @@ public class Main : MonoBehaviour {
             }
             Debug.Log("Reached Generation: " + Robot_Optimization.currentGeneration);
 
-            simulation_Running = false;
+            //simulation_Running = false;
 
             Robot_Optimization.quickOpti = false;
 
@@ -358,7 +437,6 @@ public class Main : MonoBehaviour {
         }
     }
 
-    GameObject go;
     void Update_Vis(Robot robot)
     {
         
@@ -386,7 +464,7 @@ public class Main : MonoBehaviour {
     }
 
     /* Movement commands for the robot: */
-    void CheckInputs()
+        void CheckInputs()
     {
         if(Input.GetButtonUp("Turn"))
         {
