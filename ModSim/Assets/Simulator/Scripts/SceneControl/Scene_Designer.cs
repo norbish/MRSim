@@ -120,6 +120,10 @@ public class Scene_Designer : MonoBehaviour {
         {
             Double.TryParse(dynVars[i].text,out d_vars[i]);
         }
+        if(d_vars[4] < 1)
+        {
+            d_vars[4] = 1;
+        }
         SIMULATOR.SendMessage("SetMovementVariables",d_vars);//forward
     }
 

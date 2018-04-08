@@ -22,7 +22,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
     static double[] UpperLimit = new double[7] { 4, 4, 8, 8, 10, 2, 2 };
     static double[] LowerLimit = new double[7] { -4, -4, -8, -8, 1, -2, -2 };
 
-    static bool[] chosenForOptimization = new bool[7] { true, false, true, false, false, false, false };//at the moment
+    static bool[] chosenForOptimization = new bool[7] { true, false, true, false, true, false, false };//at the moment
 
     static string[] movementPattern = new string[] {"Left,Right,Forward"};
 
@@ -47,12 +47,16 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
             }
             else
             {
-                //DO SOMETHING GENOME STUFF WITH ORIGINAL GENOME random first time?
                 double[] newGenome = new Double[7];
-                
+                //Template
+                newGenome = originalGenome;
+
                 for (int j = 0; j < newGenome.Length; j++)//populate random genome
-                    if(chosenForOptimization[j])
+                {
+                    
+                    if (chosenForOptimization[j])
                         newGenome[j] = GetRandomNumber(LowerLimit[j], UpperLimit[j], random);
+                }
 
                 dynamics = new Opti_Dynamics(robot, newGenome);
             }

@@ -403,7 +403,7 @@ public class Main : MonoBehaviour {
 
         Robot_Optimization.deltaTime = dt;
 
-        Robot_Optimization.IterTime = 30;
+        Robot_Optimization.IterTime = 10;
         //Robot_Optimization.timeStep = 0.01f ;// dt;
 
         InvokeRepeating("OptimizationUpdate_Sim", 0.01f, Robot_Optimization.deltaTime);
