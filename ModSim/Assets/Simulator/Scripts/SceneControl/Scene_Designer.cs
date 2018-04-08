@@ -61,7 +61,7 @@ public class Scene_Designer : MonoBehaviour {
         {
             //Serialization();
             //Scene:
-            AddScene();
+            AddTerrain();
 
             //MAKE INTO SEPARATE FUNCTION(also the other place it is used):
             for (int i = 0; i < current_frameVis.Count; i++)
@@ -112,49 +112,12 @@ public class Scene_Designer : MonoBehaviour {
         }
 
     }
-    public InputField[] dynVars = new InputField[7];
-    double[] d_vars = new double[7];
-    public void ChangeVars()
-    {
-        for(int i = 0; i<dynVars.Length; i++)
-        {
-            Double.TryParse(dynVars[i].text,out d_vars[i]);
-        }
-        if(d_vars[4] < 1)
-        {
-            d_vars[4] = 1;
-        }
-        SIMULATOR.SendMessage("SetMovementVariables",d_vars);//forward
-    }
+    
 
     public void StartSimulation()
     {
         SIMULATOR.SendMessage("StartSim");
     }
-
-    public GameObject finalizeButton;
-    bool visible = true;
-    public void ToggleStartButton()
-    {
-        finalizeButton.SetActive(false);
-    }
-
-    public InputField deltaTime;
-    public void UpdateSimTime()
-    {
-        float dt;
-        float.TryParse(deltaTime.text, out dt);
-        SIMULATOR.SendMessage("ChangeDeltaTime", dt);
-    }
-
-    public InputField GenerationGoal;
-    public void QuickOptimization()
-    {
-        int goal = 0;
-        int.TryParse(GenerationGoal.text, out goal);
-        SIMULATOR.SendMessage("QuickOptimization", goal);
-    }
-
     public void StopSimulation()
     {
         //SIMULATOR.SendMessage("Stop");
@@ -170,111 +133,7 @@ public class Scene_Designer : MonoBehaviour {
         SIMULATOR.SendMessage("Pause");
     }
 
-    public InputField analyticsPathName,analyticsFileName,Interval;
-    void SetAnalyticsPath()
-    {
-        Analytics_Visualization.Input_Filename = analyticsPathName.text + @"\" + analyticsFileName.text;
-        double.TryParse(Interval.text, out Analytics_Visualization.Interval);
-    }
-
-    public void ClearFileButton()
-    {
-        string path = analyticsPathName.text + @"\" + analyticsFileName.text;
-        if (File.Exists(path))
-            File.Delete(path);
-    }
-    /**------------------------------------------------Serializing robot-------------------------------------------------*/
-    /*void Serialization()//Make into static class?
-    {
-        robot_serialize = new Robot();
-
-        //Start position for the first module
-        .Vector3 start_Position = new .Vector3(15, 12, 40);
-
-        //For finding the size of the modules:
-        ObjImporter import = new ObjImporter();
-
-        Mesh leftMesh = import.ImportFile(dir + upperFrame_ObjName); Bounds leftBound = leftMesh.bounds;
-        Mesh rightMesh = import.ImportFile(dir + bottomFrame_ObjName); Bounds rightBound = rightMesh.bounds;
-
-        //Creating modules
-        for (int i = 0; i < 10; i++)
-        {
-            //This, user should decide him/herself:
-            var rot = i % 2 == 0 ? new .Vector3(0, -Mathf.PI / 2, 0) : new .Vector3(0, -Mathf.PI / 2, -Mathf.PI / 2);
-
-            Frame f1 = DefineFrame("Box", start_Position, 10, rot, 50, "Plastic");
-            Frame f2 = DefineFrame("Box", start_Position, 10, rot, 50, "Plastic");
-
-            //Position of frames in modules based on meshes and scale (0-point is between the two frames):
-            double module_leftEdge = start_Position.z + (f1.scale * leftBound.max.x);//x is z before they are rotated in the scene +
-            double module_rightEdge = start_Position.z + (f1.scale * rightBound.min.x);// -
-
-            start_Position.z = start_Position.z - (module_leftEdge - module_rightEdge) - 0.01f;
-
-            Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, "Hinge", -(double)Math.PI / 2, (double)Math.PI / 2, 20.0f);
-
-            Module module = DefineModule(f1, j1, f2);
-
-            //CREATES A LOCK BETWEEN MODULES when adding new module to robot:
-            if (i > 0)
-            {
-                robot_serialize.Add_Module(module, new Simulation_Core.Joint());
-            }
-            else
-                robot_serialize.Add_Module(module);
-        }
-
-        //Assign object model names:
-        robot_serialize.leftFrameDir = upperFrame_ObjName;
-        robot_serialize.rightFrameDir = bottomFrame_ObjName;
-
-        //CREATE Terrain(ONCE):
-        Texture2D hMap = Resources.Load("Heightmap3") as Texture2D;//Rename to terrain
-        byte[] bytes = hMap.EncodeToPNG();
-
-        var scene_serialize = DefineScene(bytes, .Vector3.zero, "Rock", 10);
-
-        //Add robot and scene to scenario:
-        Scenario scenario_serialize = new Scenario()
-        {
-            robot = robot_serialize,
-            scene = scene_serialize
-        };
-
-        //Add to XML file (SERIALIZE):
-        Serialize(scenario_serialize);
-
-    }*/
-
-
-
-    /*---------------------------------------------------Defining robot---------------------------------------------------*/
-
-    Robot robot_ForSerialization = new Robot();
-    public void AddRobot()
-    {
-        robot_ForSerialization = new Robot();
-
-        List<Frame> frames = new List<Frame>();
-        List<Simulation_Core.Joint> joints = new List<Simulation_Core.Joint>();
-
-        //Assign object model names:
-        robot_ForSerialization.leftFrameDir = upperFrame_ObjName;
-        robot_ForSerialization.rightFrameDir = bottomFrame_ObjName;
-
-    }
-    public InputField HeightMapSelection;
-    Scene scene_serialize = new Scene();
-    public void AddScene()
-    {
-        Texture2D hMap = previewImage.GetComponent<RawImage>().texture as Texture2D;
-        //Texture2D hMap = Resources.Load(HeightMapSelection.text) as Texture2D;//Rename to terrain
-        byte[] bytes = hMap.EncodeToPNG();
-
-        scene_serialize = DefineScene(bytes, new AgX_Interface.Vector3(-125,0,-125), "Rock", 10);
-    }
-
+    public GameObject robotConfigPanel;
     public void FinalizeCreation()
     {
         //Add robot and scene to scenario:
@@ -286,6 +145,15 @@ public class Scene_Designer : MonoBehaviour {
 
         //Add to XML file (SERIALIZE):
         Serialize(scenario_serialize);
+
+        robotConfigPanel.active = false;
+
+        start_Position_X.interactable = true;
+        start_Position_Y.interactable = true;
+        start_Position_Z.interactable = true;
+        start_Rotation_X.interactable = true;
+        start_Rotation_Y.interactable = true;
+        start_Rotation_Z.interactable = true;
     }
     public static void Serialize(object item)
     {
@@ -569,7 +437,7 @@ public class Scene_Designer : MonoBehaviour {
 
     }
 
-    /*--------------------------------------------------Visualizations----------------------------------------------------*/
+    /*-----------------------------------------------Robot Visualizations-------------------------------------------------*/
     /*--------------------------------------------Visualizing current modules---------------------------------------------*/
     List<Unity_Visualization.Frame_Vis> current_frameVis = new List<Unity_Visualization.Frame_Vis>();
     List<Unity_Visualization.Sensor_Vis> current_SMVis = new List<Unity_Visualization.Sensor_Vis>();
@@ -581,7 +449,6 @@ public class Scene_Designer : MonoBehaviour {
         for(int i = 0; i<current_frameVis.Count; i++)
         {
             current_frameVis[i].Remove();
-            //frameVis.Remove(frameVis[i]);
         }
         current_frameVis.Clear();
 
@@ -679,8 +546,19 @@ public class Scene_Designer : MonoBehaviour {
         }
     }
 
-    /*--------------------------------------------------Visualize Scene---------------------------------------------------*/
+    /*-------------------------------------------------Visualize Terrain--------------------------------------------------*/
     /*------------------------------------------------Opening file dialog-------------------------------------------------*/
+    public InputField HeightMapSelection;
+    Scene scene_serialize = new Scene();
+    public void AddTerrain()
+    {
+        Texture2D hMap = previewImage.GetComponent<RawImage>().texture as Texture2D;
+        //Texture2D hMap = Resources.Load(HeightMapSelection.text) as Texture2D;//Rename to terrain
+        byte[] bytes = hMap.EncodeToPNG();
+
+        scene_serialize = DefineScene(bytes, new AgX_Interface.Vector3(-125,0,-125), "Rock", 10);
+    }
+
     public class OpenTerrain : EditorWindow
     {
         public static string terrainPath = "";
@@ -744,8 +622,149 @@ public class Scene_Designer : MonoBehaviour {
             sceneVis.Remove();
             sceneVis = null;
         }
-    }    
+    }
 
+    
+    /*-----------------------------------------------------Settings-------------------------------------------------------*/
+    /*---------------------------------------------------Save Config:-----------------------------------------------------*/
+    public void SaveConfig()
+    {
+
+    }
+
+    public void LoadConfig()
+    {
+    }
+    
+    /*-------------------------------------------------Buttons and Inputs-------------------------------------------------*/
+    /*---------------------------------------------Change dynamics variables----------------------------------------------*/
+    public InputField[] dynVars = new InputField[7];
+    double[] d_vars = new double[7];
+    public void UpdateMovementVars()
+    {
+        for(int i = 0; i<dynVars.Length; i++)
+        {
+            Double.TryParse(dynVars[i].text,out d_vars[i]);
+        }
+        if(d_vars[4] <= 0)
+        {
+            d_vars[4] = 1;
+            EditorUtility.DisplayDialog("Movement variable error",
+                "Period must be larger than 0", "Ok");
+            SIMULATOR.SendMessage("Pause");
+        }
+        SIMULATOR.SendMessage("SetMovementVariables",d_vars);//forward
+    }
+    /*-----------------------------------------------Optimization variables-----------------------------------------------*/
+    public InputField[] targetPosition = new InputField[3];
+    double[] t_pos = new double[3];
+    public void UpdateTargetPosition()
+    {
+        for (int i = 0; i < targetPosition.Length; i++)
+        {
+            Double.TryParse(targetPosition[i].text, out t_pos[i]);
+        }
+        SIMULATOR.SendMessage("SetOptimizationTarget",new AgX_Interface.Vector3(t_pos[0],t_pos[1],t_pos[2]));
+    }
+    public InputField[] AxisWeighting = new InputField[3];
+    double[] a_weight = new double[3];
+    public void UpdateAxisWeight()
+    {
+        for (int i = 0; i < AxisWeighting.Length; i++)
+        {
+            Double.TryParse(AxisWeighting[i].text, out a_weight[i]);
+        }
+        SIMULATOR.SendMessage("SetAxisWeighting", new AgX_Interface.Vector3(a_weight[0],a_weight[1],a_weight[2]));
+    }
+    public InputField[] UpperLimits = new InputField[7];
+    public InputField[] LowerLimits = new InputField[7];
+    double[] limits = new double[14];
+    public void UpdateUpperLowerLimits()
+    {
+        for (int i = 0; i < 7; i++)
+        {
+            Double.TryParse(UpperLimits[i].text, out limits[i]);
+        }
+        for (int i = 7; i < 14; i++)
+        {
+            Double.TryParse(LowerLimits[i].text, out limits[i]);
+        }
+        SIMULATOR.SendMessage("SetOptimizationLimits", limits);
+    }
+    public Toggle[] optiToggle = new Toggle[7];
+    bool[] o_toggled = new bool[7];
+    public void UpdateVarsToOptimize()
+    {
+        for(int i = 0; i<optiToggle.Length; i++)
+        {
+            if (optiToggle[i].isOn)
+            {
+                o_toggled[i] = true;
+            }
+            else
+                o_toggled[i] = false;
+        }
+
+        SIMULATOR.SendMessage("SetOptiToggle", o_toggled);
+    }
+
+    /*--------------------------------------------Button for finalizing robot---------------------------------------------*/
+    public GameObject finalizeButton;
+    bool visible = true;
+    public void ToggleStartButton()
+    {
+        finalizeButton.SetActive(false);
+    }
+    /*--------------------------------------------Field for setting sim time----------------------------------------------*/
+    public InputField deltaTime;
+    public void UpdateSimTime()
+    {
+        float dt;
+        float.TryParse(deltaTime.text, out dt);
+        SIMULATOR.SendMessage("ChangeDeltaTime", dt);
+    }
+    /*--------------------------------------------Button for fast optimization--------------------------------------------*/
+    public InputField GenerationGoal;
+    public void QuickOptimization()
+    {
+        int goal = 0;
+        int.TryParse(GenerationGoal.text, out goal);
+        SIMULATOR.SendMessage("QuickOptimization", goal);
+    }
+
+
+    /*--------------------------------------------Field for setting log path----------------------------------------------*/
+    public InputField analyticsPathName,analyticsFileName,Interval;
+    void SetAnalyticsPath()
+    {
+        Analytics_Visualization.Input_Filename = analyticsPathName.text + @"\" + analyticsFileName.text;
+        double.TryParse(Interval.text, out Analytics_Visualization.Interval);
+    }
+
+    public void ClearFileButton()
+    {
+        string path = analyticsPathName.text + @"\" + analyticsFileName.text;
+        if (File.Exists(path))
+            File.Delete(path);
+    }
+
+    /*---------------------------------------------------Defining robot---------------------------------------------------*/
+
+    Robot robot_ForSerialization = new Robot();
+    public void AddRobot()
+    {
+        robot_ForSerialization = new Robot();
+
+        List<Frame> frames = new List<Frame>();
+        List<Simulation_Core.Joint> joints = new List<Simulation_Core.Joint>();
+
+        //Assign object model names:
+        robot_ForSerialization.leftFrameDir = upperFrame_ObjName;
+        robot_ForSerialization.rightFrameDir = bottomFrame_ObjName;
+
+    }
+
+    /*------------------------------------------Button for global robot position------------------------------------------*/
     public InputField start_Position_X, start_Position_Y, start_Position_Z;
     AgX_Interface.Vector3 new_robot_pos;
     public void RobotPositionChanged()
@@ -756,7 +775,7 @@ public class Scene_Designer : MonoBehaviour {
 
         SIMULATOR.SendMessage("ChangeInitPos",new_robot_pos);
     }
-
+    /*------------------------------------------Button for global robot rotation------------------------------------------*/
     public InputField start_Rotation_X, start_Rotation_Y, start_Rotation_Z;
     Vector3 new_robot_rot;
     public void RobotRotationChanged()
@@ -768,80 +787,6 @@ public class Scene_Designer : MonoBehaviour {
         var quat = Quaternion.Euler(new_robot_rot);
 
         SIMULATOR.SendMessage("ChangeInitRot", new AgX_Interface.Quaternion(quat.x,quat.y,quat.z,quat.w));
-    }
-
-        /*public InputField start_Position_X, start_Position_Y, start_Position_Z;
-        AgX_Interface.Vector3 old_robot_pos, new_robot_pos;
-        public void RobotPositionChanged()
-        {
-            double.TryParse(start_Position_X.text, out new_robot_pos.x);
-            double.TryParse(start_Position_Y.text, out new_robot_pos.y);
-            double.TryParse(start_Position_Z.text, out new_robot_pos.z);
-
-            var distance = ModifyRobotPosition(robot_ForSerialization, new_robot_pos);
-
-            l_pos += distance;
-            r_pos += distance;
-            sm_pos += distance;
-            currentModulePosition += distance;
-
-            if(left_planned != null && right_planned != null)
-            left_planned.gameobject.transform.position = right_planned.gameobject.transform.position = new Vector3((float)currentModulePosition.x,(float)currentModulePosition.y,(float)currentModulePosition.x);
-
-            if (SM_planned != null)
-                SM_planned.gameobject.transform.position = new Vector3((float)currentModulePosition.x, (float)currentModulePosition.y, (float)currentModulePosition.z);
-
-            UpdateUIText();
-
-            ShowCurrentRobotConfig();
-
-        }
-        AgX_Interface.Vector3 prevPos = new AgX_Interface.Vector3(0,12,0), origin = AgX_Interface.Vector3.zero;
-        bool first = true;
-        AgX_Interface.Vector3 ModifyRobotPosition(Robot robot, AgX_Interface.Vector3 new_pos)
-        {
-
-            var midDistance = origin - prevPos;
-            midDistance += new_pos;  
-
-
-            foreach(Module mod in robot_ForSerialization.modules)
-            {
-                mod.frames[0].position += midDistance;
-                mod.frames[1].position += midDistance;
-            }
-
-            foreach(Sensor_Module mod in robot_ForSerialization.sensorModules)
-            {
-                mod.position += midDistance;
-            }
-
-            prevPos = new_pos;
-
-            return midDistance;
-        }*/
-
-    /*    void UpdateUIText()
-    {
-        left_Position_X.text = right_Position_X.text = l_pos.x.ToString();
-        left_Position_Y.text = right_Position_Y.text = l_pos.y.ToString();
-        left_Position_Z.text = right_Position_Z.text = l_pos.z.ToString();
-
-        Ism_pos_x.text =sm_pos.x.ToString();
-        Ism_pos_y.text =sm_pos.y.ToString();
-        Ism_pos_z.text =sm_pos.z.ToString();
-    }
-    */
-
-    /*-----------------------------------------------------Settings-------------------------------------------------------*/
-    /*---------------------------------------------------Save Config:-----------------------------------------------------*/
-    public void SaveConfig()
-    {
-
-    }
-
-    public void LoadConfig()
-    {
     }
     /*---------------------------------------------------Panel toggles----------------------------------------------------*/
     public GameObject mainPanel;

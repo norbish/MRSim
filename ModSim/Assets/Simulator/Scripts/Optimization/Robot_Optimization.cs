@@ -19,16 +19,17 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
     static List<Opti_Dynamics> dynamics_List = new List<Opti_Dynamics>();
                                                     //amplitudeP         AmpY    PhaseOffsetP        POY   Period OffsetP  OffsetY
     public static double[] originalGenome = new double[7] { 2 * (Math.PI / 9.0f), 0, Math.PI * 2.0f / 3.0f, 0,    4.0f,    0,       0};
-    static double[] UpperLimit = new double[7] { 4, 4, 8, 8, 10, 2, 2 };
-    static double[] LowerLimit = new double[7] { -4, -4, -8, -8, 1, -2, -2 };
+    public static double[] UpperLimit = new double[7] { 4, 4, 8, 8, 10, 2, 2 };
+    public static double[] LowerLimit = new double[7] { -4, -4, -8, -8, 1, -2, -2 };
 
-    static bool[] chosenForOptimization = new bool[7] { true, false, true, false, true, false, false };//at the moment
+    public static bool[] toggledForOptimization = new bool[7] { true, false, true, false, true, false, false };//at the moment
 
     static string[] movementPattern = new string[] {"Left,Right,Forward"};
 
     /*-----------------------Fitness:------------------------*/
-    static AgX_Interface.Vector3 targetPosition = new AgX_Interface.Vector3(0,10,30);
-    static int Xcompare = 1, Ycompare = 0, Zcompare = 1;
+    public static AgX_Interface.Vector3 targetPosition = new AgX_Interface.Vector3(0,10,30);
+    //static int Xcompare = 1, Ycompare = 0, Zcompare = 1;
+    public static AgX_Interface.Vector3 AxisWeight = new AgX_Interface.Vector3(1, 0, 1);
     
 
     public static void Load(Robot robot)//run this only once
@@ -54,7 +55,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
                 for (int j = 0; j < newGenome.Length; j++)//populate random genome
                 {
                     
-                    if (chosenForOptimization[j])
+                    if (toggledForOptimization[j])
                         newGenome[j] = GetRandomNumber(LowerLimit[j], UpperLimit[j], random);
                 }
 
@@ -104,9 +105,9 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
         var R = robot.position;
         var T = targetPosition;
 
-        var x = Math.Pow((T.x - R.x), 2) * Xcompare;
-        var y = Math.Pow((T.y - R.y), 2) * Ycompare;
-        var z = Math.Pow((T.z - R.z), 2) * Zcompare;
+        var x = Math.Pow((T.x - R.x), 2) * AxisWeight.x;
+        var y = Math.Pow((T.y - R.y), 2) * AxisWeight.y;
+        var z = Math.Pow((T.z - R.z), 2) * AxisWeight.z;
 
         var Euclid_Distance = Math.Sqrt( x + y + z );
 
@@ -179,7 +180,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
         rnd = new Random();
         for (int i = 2; i<newList.Count;i++)//start from 2, want to save the two best.
         {
-            newList[i].genome = Mutate(newList[i].genome,chosenForOptimization);//Mutates a random offspring
+            newList[i].genome = Mutate(newList[i].genome,toggledForOptimization);//Mutates a random offspring
         }
 
         currentGeneration++;

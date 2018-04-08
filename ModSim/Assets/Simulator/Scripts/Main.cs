@@ -86,12 +86,43 @@ public class Main : MonoBehaviour {
         }
         
     }
+
+    /*-----------------------------------------------Optimization variables-----------------------------------------------*/
     public void SetMovementVariables(double[] forward_vars)
     {
         Robot_Optimization.originalGenome = forward_vars;
         Dynamics.f_movementVars = forward_vars;
         //add for turn, rotation, sidewinding, etc. vars.
     }
+    public void SetOptimizationTarget(AgX_Interface.Vector3 pos)
+    {
+        Robot_Optimization.targetPosition = pos;
+    }
+    public void SetAxisWeighting(AgX_Interface.Vector3 axis)
+    {
+        Robot_Optimization.AxisWeight = axis;
+    }
+    public void SetOptimizationLimits(double[] limits)
+    {
+        var upper = new double[7];
+        var lower = new double[7];
+
+        for (int i = 0; i < 14; i++)
+        {
+            if (i < 7)
+                upper[i] = limits[i];
+            else
+                lower[i] = limits[i];
+        }
+
+        Robot_Optimization.UpperLimit = upper;
+        Robot_Optimization.LowerLimit = lower;
+    }
+    public void SetOptiToggle(bool[] toggled)
+    {
+        Robot_Optimization.toggledForOptimization = toggled;
+    }
+
 
     public void StartSim()
     {
