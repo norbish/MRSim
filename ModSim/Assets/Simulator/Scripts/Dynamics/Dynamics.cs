@@ -5,33 +5,29 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using System;
-//using UnityEngine;
+using UnityEngine;
 
 public static class Dynamics
 {
     public static int mode = 1; //Must be changed if the script is customized. 
     public static string currentAction = "Idle";//check this string to see if have to initialize
     public static string action = "Idle";// = "Turn";
-    public static double[] angles;
-    public static double[] amplitudes;
-    public static double[] period;
-    public static double[] phaseDiff;
-    public static double[] offset;
+    public static float[] angles;
+    public static float[] amplitudes;
+    public static float[] period;
+    public static float[] phaseDiff;
+    public static float[] offset;
 
-    public static double[] f_movementVars = new double[7] { 2 * (double)(Math.PI / 9.0f), 0, (double)Math.PI * 2.0f / 3.0f, 0, 4.0f, 0, 0 };
-    public static double[] t_movementVars = new double[7] { 2 * (double)(Math.PI / 9.0f), 0, (double)Math.PI * 2.0f / 3.0f, 0, 4.0f, 0, 20 * (double)Math.PI / 180 };
+    static float angle; //rads
 
-    static double angle; //rads
-
-    public static void Initialize(string newAction, Simulation_Core.Robot robot, double _ampPitch,double _ampYaw, double _phaseOffsetPitch, double _phaseOffsetYaw, double _period, double _offsetPitch, double _offsetYaw)
+    public static void Initialize(string newAction, Simulation_Core.Robot robot, float _ampPitch,float _ampYaw, float _phaseOffsetPitch, float _phaseOffsetYaw, float _period, float _offsetPitch, float _offsetYaw)
     {
         Dynamics.action = newAction;
         int mod_n = robot.modules.Count;
-        amplitudes = new double[mod_n];
-        period = new double[mod_n];
-        phaseDiff = new double[mod_n];
-        offset = new double[mod_n];
+        amplitudes = new float[mod_n];
+        period = new float[mod_n];
+        phaseDiff = new float[mod_n];
+        offset = new float[mod_n];
 
         //can set "buttons" for each turning, rolling, etc.
         for (int i = 0; i < robot.modules.Count; i++)
@@ -57,7 +53,7 @@ public static class Dynamics
         {
             case "Turn":
                 {
-                    //double phaseOffset = _phaseOffsetPitch;
+                    //float phaseOffset = _phaseOffsetPitch;
                     for (int i = 0; i < mod_n; i++)
                     {
                         if (i > 1)//Not taking into account the first pitch and first yaw which should be 0
@@ -99,7 +95,7 @@ public static class Dynamics
 
         Dynamics.currentAction = newAction;
     }
-    public static void SetMovement(string command, double move_dir, double turn_dir)
+    public static void SetMovement(string command, float move_dir, float turn_dir)
     {
         action = command;
         if(move_dir != 0)
@@ -109,22 +105,22 @@ public static class Dynamics
 
         NewAction = true;
 
-        //Debug.Log("Action: " + command);
+        Debug.Log("Action: " + command);
     }
-    public static void ChangeSpeed(double speed)
+    public static void ChangeSpeed(float speed)
     {
         if (set_period - speed > 0 && set_period - speed < 20)
         {
             set_period -= speed;
             NewAction = true;
-            //Debug.Log("Period: " + set_period);
+            Debug.Log("Period: " + set_period);
         }
     }
-    static double move_direction = 1;
-    static double turn_direction = 1;
-    static double set_period = 4.0f;
+    static float move_direction = 1;
+    static float turn_direction = 1;
+    static float set_period = 4.0f;
     static bool NewAction = false;
-    public static bool Control(Simulation_Core.Robot robot, double t, double[] dyn_vars)
+    public static bool Control(Simulation_Core.Robot robot, float t, double[] dyn_vars)
     {
         switch(action)
         {
@@ -132,7 +128,7 @@ public static class Dynamics
             case "Forward":
                 {
                     if (NewAction)
-                        Initialize(action, robot, f_movementVars[0], f_movementVars[1], move_direction * f_movementVars[2], f_movementVars[3], f_movementVars[4], f_movementVars[5], f_movementVars[6]);
+                        Initialize(action, robot, 2 * (Mathf.PI / 9.0f), 0, move_direction * 0.5f * Mathf.PI * 2.0f / 3.0f, 0, set_period, 0, 0);
                     //Initialize(action, robot, (double)dyn_vars[0], 0, move_direction * (double)dyn_vars[2], 0, (double)dyn_vars[4], 0, 0);
                     Forward(robot, t);
                     return true;
@@ -140,7 +136,7 @@ public static class Dynamics
             case "Turn":
                 {
                     if (NewAction)
-                        Initialize(action, robot, t_movementVars[0], t_movementVars[1], move_direction * t_movementVars[2], t_movementVars[3], t_movementVars[4], t_movementVars[5], turn_direction * t_movementVars[6]);
+                        Initialize(action, robot, 2 * (Mathf.PI / 9.0f), 0, move_direction * Mathf.PI * 2.0f / 3.0f, 0, set_period, 0, turn_direction * 20 * Mathf.PI / 180);
                     //Initialize(action, robot, (double)dyn_vars[0], 0, move_direction * (double)dyn_vars[2], 0, (double)dyn_vars[4], 0, turn_direction * (double)dyn_vars[6]);
 
                     Turn(robot, t);
@@ -158,15 +154,15 @@ public static class Dynamics
     {
 
     }
-    public static void Reset(Simulation_Core.Robot robot, double t)
+    public static void Reset(Simulation_Core.Robot robot, float t)
     {
         foreach (var mod in robot.modules)
         {
-            mod.joint.Stabilize_Angle();
+            mod.joint.Reset_Angle();
         }
     }
 
-    public static void Forward(Simulation_Core.Robot robot, double t)//Standard forward movement
+    public static void Forward(Simulation_Core.Robot robot, float t)//Standard forward movement
     {
         //Pitches:
         for (int i = 0; i<robot.modules.Count; i++)
@@ -174,7 +170,7 @@ public static class Dynamics
             if (robot.modules[i].Axis == "Pitch")
             {
 
-                angle = amplitudes[i] * (double)Math.Sin(2 * Math.PI * t / period[i] + phaseDiff[i]) + offset[i]; //Angle = amplitude + sin(2pi * t / period + phase diff) + offset
+                angle = amplitudes[i] * Mathf.Sin(2 * Mathf.PI * t / period[i] + phaseDiff[i]) + offset[i]; //Angle = amplitude + sin(2pi * t / period + phase diff) + offset
                 robot.modules[i].joint.MOVE(angle);
             }
             else
@@ -185,7 +181,7 @@ public static class Dynamics
     }
     
 
-    public static void Turn(Simulation_Core.Robot robot, double t)//Sideways rolling movement
+    public static void Turn(Simulation_Core.Robot robot, float t)//Sideways rolling movement
     {
 
         for (int i = 0; i < robot.modules.Count; i++)
@@ -193,14 +189,14 @@ public static class Dynamics
             if (robot.modules[i].Axis == "Pitch")
             {
 
-                angle = amplitudes[i] * (double)Math.Sin(2 * Math.PI * t / period[i] + phaseDiff[i]) + offset[i]; //Angle = amplitude + sin(2pi * t / period + phase diff) + offset
+                angle = amplitudes[i] * Mathf.Sin(2 * Mathf.PI * t / period[i] + phaseDiff[i]) + offset[i]; //Angle = amplitude + sin(2pi * t / period + phase diff) + offset
                 robot.modules[i].joint.MOVE(angle);
             }
             //Reduntant, dont need the IFs
             if (robot.modules[i].Axis == "Yaw")
             {
 
-                angle = amplitudes[i] *(double) Math.Sin(2 * Math.PI * t / period[i] + phaseDiff[i]) + offset[i]; //Angle = amplitude + sin(2pi * t / period + phase diff) + offset
+                angle = amplitudes[i] * Mathf.Sin(2 * Mathf.PI * t / period[i] + phaseDiff[i]) + offset[i]; //Angle = amplitude + sin(2pi * t / period + phase diff) + offset
                 robot.modules[i].joint.MOVE(angle);
             }
         }

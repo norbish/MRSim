@@ -55,7 +55,7 @@ public class Scene_Designer : MonoBehaviour {
     /**-----------------------------------------------Starting simulation-------------------------------------------------*/
     bool StartDesigner = false;
     
-    public void InitSimulation()
+    public void StartSimulation()
     {
         if (StartDesigner == false)
         {
@@ -112,29 +112,6 @@ public class Scene_Designer : MonoBehaviour {
         }
 
     }
-    public InputField[] dynVars = new InputField[7];
-    double[] d_vars = new double[7];
-    public void ChangeVars()
-    {
-        for(int i = 0; i<dynVars.Length; i++)
-        {
-            Double.TryParse(dynVars[i].text,out d_vars[i]);
-        }
-        SIMULATOR.SendMessage("SetMovementVariables",d_vars);//forward
-    }
-
-    public void StartSimulation()
-    {
-        SIMULATOR.SendMessage("StartSim");
-    }
-
-    public GameObject finalizeButton;
-    bool visible = true;
-    public void ToggleStartButton()
-    {
-        finalizeButton.SetActive(false);
-    }
-
     public InputField deltaTime;
     public void UpdateSimTime()
     {
@@ -153,12 +130,8 @@ public class Scene_Designer : MonoBehaviour {
 
     public void StopSimulation()
     {
-        //SIMULATOR.SendMessage("Stop");
-        AgX_Interface.AgX_Assembly.RemoveFromSim();
-        AgX_Interface.Agx_Simulation.Stop();
-        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
-        //StartDesigner = false;
-        //finalizeButton.SetActive(true);
+        SIMULATOR.SendMessage("Stop");
+        StartDesigner = false;
     }
 
     public void PauseSimulation()
@@ -740,84 +713,59 @@ public class Scene_Designer : MonoBehaviour {
             sceneVis.Remove();
             sceneVis = null;
         }
-    }    
-
+    }
     public InputField start_Position_X, start_Position_Y, start_Position_Z;
-    AgX_Interface.Vector3 new_robot_pos;
+    AgX_Interface.Vector3 old_robot_pos, new_robot_pos;
     public void RobotPositionChanged()
     {
         double.TryParse(start_Position_X.text, out new_robot_pos.x);
         double.TryParse(start_Position_Y.text, out new_robot_pos.y);
         double.TryParse(start_Position_Z.text, out new_robot_pos.z);
 
-        SIMULATOR.SendMessage("ChangeInitPos",new_robot_pos);
-    }
+        var distance = ModifyRobotPosition(robot_ForSerialization, new_robot_pos);
 
-    public InputField start_Rotation_X, start_Rotation_Y, start_Rotation_Z;
-    Vector3 new_robot_rot;
-    public void RobotRotationChanged()
+        l_pos += distance;
+        r_pos += distance;
+        sm_pos += distance;
+        currentModulePosition += distance;
+
+        if(left_planned != null && right_planned != null)
+        left_planned.gameobject.transform.position = right_planned.gameobject.transform.position = new Vector3((float)currentModulePosition.x,(float)currentModulePosition.y,(float)currentModulePosition.x);
+
+        if (SM_planned != null)
+            SM_planned.gameobject.transform.position = new Vector3((float)currentModulePosition.x, (float)currentModulePosition.y, (float)currentModulePosition.z);
+
+        UpdateUIText();
+
+        ShowCurrentRobotConfig();
+
+    }
+    AgX_Interface.Vector3 prevPos = new AgX_Interface.Vector3(0,12,0), origin = AgX_Interface.Vector3.zero;
+    bool first = true;
+    AgX_Interface.Vector3 ModifyRobotPosition(Robot robot, AgX_Interface.Vector3 new_pos)
     {
-        float.TryParse(start_Rotation_X.text, out new_robot_rot.x);
-        float.TryParse(start_Rotation_Y.text, out new_robot_rot.y);
-        float.TryParse(start_Rotation_Z.text, out new_robot_rot.z);
 
-        var quat = Quaternion.Euler(new_robot_rot);
+        var midDistance = origin - prevPos;
+        midDistance += new_pos;  
 
-        SIMULATOR.SendMessage("ChangeInitRot", new AgX_Interface.Quaternion(quat.x,quat.y,quat.z,quat.w));
+
+        foreach(Module mod in robot_ForSerialization.modules)
+        {
+            mod.frames[0].position += midDistance;
+            mod.frames[1].position += midDistance;
+        }
+
+        foreach(Sensor_Module mod in robot_ForSerialization.sensorModules)
+        {
+            mod.position += midDistance;
+        }
+
+        prevPos = new_pos;
+
+        return midDistance;
     }
 
-        /*public InputField start_Position_X, start_Position_Y, start_Position_Z;
-        AgX_Interface.Vector3 old_robot_pos, new_robot_pos;
-        public void RobotPositionChanged()
-        {
-            double.TryParse(start_Position_X.text, out new_robot_pos.x);
-            double.TryParse(start_Position_Y.text, out new_robot_pos.y);
-            double.TryParse(start_Position_Z.text, out new_robot_pos.z);
-
-            var distance = ModifyRobotPosition(robot_ForSerialization, new_robot_pos);
-
-            l_pos += distance;
-            r_pos += distance;
-            sm_pos += distance;
-            currentModulePosition += distance;
-
-            if(left_planned != null && right_planned != null)
-            left_planned.gameobject.transform.position = right_planned.gameobject.transform.position = new Vector3((float)currentModulePosition.x,(float)currentModulePosition.y,(float)currentModulePosition.x);
-
-            if (SM_planned != null)
-                SM_planned.gameobject.transform.position = new Vector3((float)currentModulePosition.x, (float)currentModulePosition.y, (float)currentModulePosition.z);
-
-            UpdateUIText();
-
-            ShowCurrentRobotConfig();
-
-        }
-        AgX_Interface.Vector3 prevPos = new AgX_Interface.Vector3(0,12,0), origin = AgX_Interface.Vector3.zero;
-        bool first = true;
-        AgX_Interface.Vector3 ModifyRobotPosition(Robot robot, AgX_Interface.Vector3 new_pos)
-        {
-
-            var midDistance = origin - prevPos;
-            midDistance += new_pos;  
-
-
-            foreach(Module mod in robot_ForSerialization.modules)
-            {
-                mod.frames[0].position += midDistance;
-                mod.frames[1].position += midDistance;
-            }
-
-            foreach(Sensor_Module mod in robot_ForSerialization.sensorModules)
-            {
-                mod.position += midDistance;
-            }
-
-            prevPos = new_pos;
-
-            return midDistance;
-        }*/
-
-    /*    void UpdateUIText()
+    void UpdateUIText()
     {
         left_Position_X.text = right_Position_X.text = l_pos.x.ToString();
         left_Position_Y.text = right_Position_Y.text = l_pos.y.ToString();
@@ -827,7 +775,7 @@ public class Scene_Designer : MonoBehaviour {
         Ism_pos_y.text =sm_pos.y.ToString();
         Ism_pos_z.text =sm_pos.z.ToString();
     }
-    */
+
 
     /*-----------------------------------------------------Settings-------------------------------------------------------*/
     /*---------------------------------------------------Save Config:-----------------------------------------------------*/

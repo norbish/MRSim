@@ -12,49 +12,7 @@ using System.Linq;
 
 namespace AgX_Interface
 {
-    public static class AgX_Assembly
-    {
-        static agxSDK.Assembly robotAssembly = new agxSDK.Assembly();
-        
 
-        public static void AddToAssembly(agx.RigidBody body)
-        {
-            robotAssembly.add(body);
-        }
-        public static void AddToAssembly(agx.Constraint joint)
-        {
-            robotAssembly.add(joint);
-        }
-
-        public static Vector3 GetPosition()
-        {
-            return Operations.FromAgxVec3(robotAssembly.getPosition());
-            //return Operations.FromAgxVec3(robotAssembly.getFrame().getTranslate());
-        }
-        public static Quaternion GetRotation()
-        {
-            return Operations.FromAgxQuat(robotAssembly.getRotation());
-        }
-
-        public static void SetPosition(Vector3 pos)
-        {
-            robotAssembly.setPosition(Operations.ToAgxVec3(pos));
-        }
-        public static void SetRotation(Quaternion rot)
-        {
-            robotAssembly.setRotation(Operations.ToAgxQuat(rot));
-        }
-
-        public static void AddToSim()
-        {
-            Agx_Simulation.sim_Instance.add(robotAssembly,true);
-        }
-        public static void RemoveFromSim()
-        {
-            Agx_Simulation.sim_Instance.remove(robotAssembly,true);
-            robotAssembly = new agxSDK.Assembly();
-        }
-    }
 
     public class AgX_Joint
     {
@@ -76,14 +34,13 @@ namespace AgX_Interface
 
             //Hinge is locked between the two objects.
             hinge_Frame.setCenter((left.GetAgxObject().getPosition() + right.GetAgxObject().getPosition()).Divide(2));
-            if (left.Get_Rotation().x == 0)//pitch or yaw module
+            if (left.Get_Rotation().x == 0)
             {
                 hinge_Frame.setAxis(new agx.Vec3(1, 0, 0)); //axis along the x direction
                 //UnityEngine.Debug.Log("z in agxint: " + left.Get_Rotation().x);
             }
             else
                 hinge_Frame.setAxis(new agx.Vec3(0, 1, 0)); //axis along the x direction
-
             Joint = new agx.Hinge(hinge_Frame, left.GetAgxObject(), right.GetAgxObject());
             //Joint.asHinge().getLock1D().setEnable(true);
             Joint.asHinge().getMotor1D().setEnable(true);
@@ -128,8 +85,7 @@ namespace AgX_Interface
 
         public void AddToSim()
         {
-            AgX_Assembly.AddToAssembly(Joint);
-            //Agx_Simulation.sim_Instance.add(Joint);
+            Agx_Simulation.sim_Instance.add(Joint);
         }
         public void Remove()
         {
@@ -172,7 +128,7 @@ namespace AgX_Interface
         }
         public Vector3 GetPosition()
         {
-            return Operations.FromAgxVec3(agx_Object.getPosition());
+            return Operations.FromAgxVec3(agx_Object.getLocalPosition());
         }
         public void Remove()
         {
@@ -219,20 +175,19 @@ namespace AgX_Interface
 
         public Vector3 Get_Position()
         {
-            return Operations.FromAgxVec3(agx_Object.getPosition());
+            return Operations.FromAgxVec3(agx_Object.getLocalPosition());
         }
         /*public Vector3 Get_Rotation()
         {
-            return Operations.FromAgxQuat(agx_Object.GetRotation()).ToEulerRad();
+            return Operations.FromAgxQuat(agx_Object.getLocalRotation()).ToEulerRad();
         }*/
         public Quaternion Get_QuatRotation()
         {
-            return Operations.FromAgxQuat(agx_Object.getRotation());
+            return Operations.FromAgxQuat(agx_Object.getLocalRotation());
         }
         public void AddToSim()
         {
-            AgX_Assembly.AddToAssembly(agx_Object);
-            //Agx_Simulation.sim_Instance.add(agx_Object);
+            Agx_Simulation.sim_Instance.add(agx_Object);
         }
         public agx.RigidBody GetAgxObject()
         {
@@ -299,7 +254,7 @@ namespace AgX_Interface
 
             //agx_Object.setLocalRotation(new agx.EulerAngles(Operations.ToAgxVec3(rot)));///AgX
 
-            //UnityEngine.Debug.Log("x: " +agx_Object.GetPosition().x + ", y: " + agx_Object.GetPosition().y + ", z: " + agx_Object.GetPosition().z);
+            //UnityEngine.Debug.Log("x: " +agx_Object.getLocalPosition().x + ", y: " + agx_Object.getLocalPosition().y + ", z: " + agx_Object.getLocalPosition().z);
 
             agx_Object.getMassProperties().setMass(mass);
 
@@ -326,7 +281,7 @@ namespace AgX_Interface
         }
         public Vector3 Get_Position()
         {
-            return Operations.FromAgxVec3(agx_Object.getPosition());
+            return Operations.FromAgxVec3(agx_Object.getLocalPosition());
         }
         public double Get_Size()
         {
@@ -334,12 +289,12 @@ namespace AgX_Interface
         }
         public agx.Vec3 Get_Rotation()
         {
-            //UnityEngine.Debug.Log(agx_Object.GetRotation().asVec3().x+","+agx_Object.GetRotation().asVec3().y+","+agx_Object.GetRotation().asVec3().z);
-            return agx_Object.getRotation().asVec3();
+            //UnityEngine.Debug.Log(agx_Object.getLocalRotation().asVec3().x+","+agx_Object.getLocalRotation().asVec3().y+","+agx_Object.getLocalRotation().asVec3().z);
+            return agx_Object.getLocalRotation().asVec3();
         }
         public Quaternion Get_QuatRotation()
         {
-            return Operations.FromAgxQuat(agx_Object.getRotation());
+            return Operations.FromAgxQuat(agx_Object.getLocalRotation());
         }
         public double Get_Mass()
         {
@@ -355,8 +310,7 @@ namespace AgX_Interface
         ///Simulation:
         public void AddToSim()
         {
-            AgX_Assembly.AddToAssembly(agx_Object);
-            //Agx_Simulation.sim_Instance.add(agx_Object);
+            Agx_Simulation.sim_Instance.add(agx_Object);
         }
         public void Remove()
         {
@@ -383,16 +337,13 @@ namespace AgX_Interface
         public static void Stop()
         {
             RemoveSimObjects();
-            sim_Instance = null;
             agx.agxSWIG.shutdown();
             
         }
         public static void RemoveSimObjects()
         {
             if (sim_Instance != null)
-            {
                 sim_Instance.removeAllObjects();
-            }sim_Instance = null;
         }
         public static void AddContactMaterial(string a, string b, double restitution, double friction, double youngsModulus)
         {
@@ -405,10 +356,6 @@ namespace AgX_Interface
             sim_Instance.add(material_A);
             sim_Instance.add(material_B);
             sim_Instance.add(contact_material);
-        }
-        public static void Reset()
-        {
-            
         }
     }
     
@@ -478,15 +425,10 @@ namespace AgX_Interface
             return new agx.Vec3(vector3.x, vector3.y, vector3.z);
         }
         /**---------------------------------------From agx.Quat to UnityEngine.Quaternion-------------------------------------*/
-        public static Quaternion FromAgxQuat(agx.Quat quat)
+        public static Quaternion FromAgxQuat(agx.Quat quat)//wrong
         {
             return new Quaternion((double)quat.x, (double)quat.y, (double)quat.z, (double)quat.w);
         }
-        public static agx.Quat ToAgxQuat(Quaternion quat)
-        {
-            return new agx.Quat(quat.x,quat.y,quat.z,quat.w);
-        }
-
         public static agx.Vec3Vector ToAgxVec3Vector(Vector3[] vector3)
         {
             agx.Vec3Vector vec3 = vector3.Count() > 0 ? new agx.Vec3Vector(vector3.Count()) : new agx.Vec3Vector();
