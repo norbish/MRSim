@@ -18,11 +18,11 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
 
     static List<Opti_Dynamics> dynamics_List = new List<Opti_Dynamics>();
                                                     //amplitudeP         AmpY    PhaseOffsetP        POY   Period OffsetP  OffsetY
-    static double[] originalGenome = new double[7] { 2 * (Math.PI / 9.0f), 0, Math.PI * 2.0f / 3.0f, 0,    4.0f,    0,       0};
+    public static double[] originalGenome = new double[7] { 2 * (Math.PI / 9.0f), 0, Math.PI * 2.0f / 3.0f, 0,    4.0f,    0,       0};
     static double[] UpperLimit = new double[7] { 4, 4, 8, 8, 10, 2, 2 };
     static double[] LowerLimit = new double[7] { -4, -4, -8, -8, 1, -2, -2 };
 
-    static bool[] chosenForOptimization = new bool[7] { true, false, true, false, true, false, false };//at the moment
+    static bool[] chosenForOptimization = new bool[7] { true, false, true, false, false, false, false };//at the moment
 
     static string[] movementPattern = new string[] {"Left,Right,Forward"};
 
@@ -309,7 +309,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
         {
             foreach (var mod in robot.modules)
             {
-                mod.joint.Reset_Angle();
+                mod.joint.Stabilize_Angle();
             }
         }
 

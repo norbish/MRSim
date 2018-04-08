@@ -104,10 +104,10 @@ namespace Simulation_Core
                 }
 
             }
-            //Set Pitch or Yaw
-            /*foreach (Module module in modules)
-                module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";*/
-            
+
+            //AgX_Assembly.SetPosition(new Vector3(2,15,5));
+
+            AgX_Assembly.AddToSim();            
         }
 
         public void Update()
@@ -126,26 +126,28 @@ namespace Simulation_Core
         }
         public void RemovePhysicsObjects()
         {
-            foreach(Joint lockjoint in locks)
+            AgX_Assembly.RemoveFromSim();
+            
+            /*foreach(Joint lockjoint in locks)
             {
                 if(lockjoint.agxJoint != null)
                 lockjoint.agxJoint.Remove();
                 lockjoint.agxJoint = null;
-            }
+            }*/
             locks.Clear();
 
-            foreach (Module mod in modules)
+            /*foreach (Module mod in modules)
             {
                 mod.joint.agxJoint.Remove();mod.joint.agxJoint = null;
                 mod.frames[0].agxFrame.Remove();mod.frames[0].agxFrame = null;
                 mod.frames[1].agxFrame.Remove();mod.frames[1].agxFrame = null;
-            }
+            }*/
             modules.Clear();
 
-            foreach(Sensor_Module mod in sensorModules)
+            /*foreach(Sensor_Module mod in sensorModules)
             {
                 mod.agxPrimitive.Remove();mod.agxPrimitive = null;
-            }
+            }*/
             sensorModules.Clear();
 
         }
@@ -345,7 +347,7 @@ namespace Simulation_Core
                 agxJoint.Set_Speed(Kp * error);
         }
 
-        public void Reset_Angle()//Resets the joint movement
+        public void Stabilize_Angle()//Resets the joint movement
         {
             double error = 0 - agxJoint.Get_Angle();
 
@@ -355,6 +357,10 @@ namespace Simulation_Core
                 agxJoint.Set_Speed(-0.5f);
             else
                 agxJoint.Set_Speed(Kp * error);
+        }
+        public void Reset_Angle()
+        {
+
         }
 
         public double GetAngle()
