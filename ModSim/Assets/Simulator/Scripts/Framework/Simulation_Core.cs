@@ -21,6 +21,13 @@ namespace Simulation_Core
     {
         public Robot robot;
         public Scene scene;
+        public List<ContactFriction> contactFrictions;
+    }
+
+    public class ContactFriction
+    {
+        public string material1, material2;
+        public double restitution, friction, youngsModulus;
     }
 
 

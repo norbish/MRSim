@@ -46,7 +46,7 @@ public class Main : MonoBehaviour {
             
             simulation_Started = true;
 
-            SetContactPoints();//if custom contact points: move to MainInitialization().
+            SetContactFriction();//if custom contact points: move to MainInitialization().
             CancelInvoke();
             Dynamics.action = "Idle";
         }
@@ -57,7 +57,7 @@ public class Main : MonoBehaviour {
             Agx_Simulation.Stop();
             Agx_Simulation.Start(dt);
             simulation_Started = true;
-            SetContactPoints();
+            SetContactFriction();
             CancelInvoke();
             Dynamics.action = "Idle";
         }
@@ -193,9 +193,13 @@ public class Main : MonoBehaviour {
         Robot_Optimization.Reset();
     }
 
-    void SetContactPoints()
+    void SetContactFriction()
     {
-        Agx_Simulation.AddContactMaterial("Plastic","Rock",0.4f,0.3f, (float)3.654E9);
+        //Foreach in scenario.contactmats:
+        if(scenario.contactFrictions.Count == 0)
+            Agx_Simulation.AddContactMaterial("Plastic", "Rock", 0.4f, 0.3f, 3.654E9);//Standard plastic and rock
+        foreach (ContactFriction cf in scenario.contactFrictions)
+            Agx_Simulation.AddContactMaterial(cf.material1,cf.material2,cf.restitution,cf.friction, cf.youngsModulus);
     }
 
 
@@ -238,7 +242,7 @@ public class Main : MonoBehaviour {
 
             simulation_Started = true;
 
-            SetContactPoints();//if custom contact points: move to MainInitialization().
+            SetContactFriction();//if custom contact points: move to MainInitialization().
             CancelInvoke();
             Dynamics.action = "Idle";
 

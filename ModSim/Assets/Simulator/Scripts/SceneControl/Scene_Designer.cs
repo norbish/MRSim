@@ -135,19 +135,71 @@ public class Scene_Designer : MonoBehaviour {
     }
 
     public GameObject robotConfigPanel;
+    List<ContactFriction> contactMaterials = new List<Simulation_Core.ContactFriction>();
     public void FinalizeCreation()
     {
         //Add robot and scene to scenario:
         Scenario scenario_serialize = new Scenario()
         {
             robot = robot_ForSerialization,
-            scene = scene_serialize
+            scene = scene_serialize,
+            contactFrictions = contactMaterials
+
         };
 
         //Add to XML file (SERIALIZE):
         Serialize(scenario_serialize);
 
         Interactable();
+    }
+    public GameObject FrictPanel;
+    bool opened = false;
+    public void OpenFrictionWindow()
+    {
+        if (!opened)
+        {
+            FrictPanel.SetActive(true);opened = true;
+        }else
+        {
+            FrictPanel.SetActive(false);opened = false;
+        }
+    }
+    public InputField[] ContactFriction = new InputField[5];public InputField FricCount;
+    int fricCount = 0;
+    public void AddContactFriction()
+    {
+        try
+        {
+            string[] mat = new string[2];
+            double[] coeffs = new double[3];
+
+            mat[0] = ContactFriction[0].text;
+            mat[1] = ContactFriction[1].text;
+
+            for (int i = 0; i < 3; i++)
+                coeffs[i] = double.Parse(ContactFriction[i + 2].text);
+
+            ContactFriction c = new ContactFriction()
+            {
+                material1 = mat[0],
+                material2 = mat[1],
+                restitution = coeffs[0],
+                friction = coeffs[1],
+                youngsModulus = coeffs[2]
+            };
+
+            contactMaterials.Add(c);
+            fricCount++;
+            FricCount.text = fricCount.ToString();
+            foreach(InputField f in ContactFriction)
+                f.text = "";
+
+        }catch(Exception )
+        {
+            EditorUtility.DisplayDialog("Input error!","Text for materials. \nDecimals for coefficients with period, not comma.", "Ok");
+        }
+
+
     }
 
     void Interactable()
@@ -388,6 +440,14 @@ public class Scene_Designer : MonoBehaviour {
 
     }
 
+    public InputField sceneMaterial, sceneHeight;
+    string s_mat;double s_height;
+    public void GetSceneValues()
+    {
+        s_mat = sceneMaterial.text;
+        double.TryParse(sceneHeight.text, out s_height);
+    }
+
     void GetFrameValues()
     {
         //Left Frame:
@@ -567,9 +627,11 @@ public class Scene_Designer : MonoBehaviour {
     {
         Texture2D hMap = previewImage.GetComponent<RawImage>().texture as Texture2D;
         //Texture2D hMap = Resources.Load(HeightMapSelection.text) as Texture2D;//Rename to terrain
-        byte[] bytes = hMap.EncodeToPNG();
 
-        scene_serialize = DefineScene(bytes, new AgX_Interface.Vector3(-125,0,-125), "Rock", 10);
+        byte[] bytes = hMap.EncodeToPNG();
+        GetSceneValues();
+
+        scene_serialize = DefineScene(bytes, new AgX_Interface.Vector3(-125,0,-125), s_mat, s_height);
     }
 
     public class OpenTerrain : EditorWindow
@@ -610,7 +672,7 @@ public class Scene_Designer : MonoBehaviour {
             byte[] bytes = hMap.EncodeToPNG();
 
             //scene visualization
-            sceneVals = DefineScene(bytes, new AgX_Interface.Vector3(-125, 0, -125), "Rock", 10);
+            sceneVals = DefineScene(bytes, new AgX_Interface.Vector3(-125, 0, -125), s_mat, s_height);
             sceneVals.CreateMesh();
 
             if (sceneVis == null)//first time scene is loaded
