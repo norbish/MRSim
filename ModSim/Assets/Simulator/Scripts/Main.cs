@@ -34,7 +34,7 @@ public class Main : MonoBehaviour {
     }
     
     Scenario scenario = new Scenario();
-    Robot OriginalRobot = new Robot();
+    //Robot OriginalRobot = new Robot();
     void Main_Initialization()
     {
         dir = Application.streamingAssetsPath;//Get the path of the streaming assets
@@ -64,10 +64,10 @@ public class Main : MonoBehaviour {
         //If I start with 3 modules. Then, each time user clicks "Add Module", it adds a new module to the simulation (sim will be started, but not timestep).
 
         //LOAD:
-        scenario = Deserialize<Scenario>();
+        scenario = Deserialize<Scenario>(Application.streamingAssetsPath + "/XML/Scenario.xml");
 
         /* Loading the directories for the object files */
-        load_FrameDirectories(scenario.robot);
+        Load_FrameDirectories(scenario.robot);
 
         robot = Load_Robot(scenario.robot);
         //OriginalRobot = scenario.robot;
@@ -176,6 +176,10 @@ public class Main : MonoBehaviour {
 
         Clear_Vis();
     }
+    public void CancelRepeats()
+    {
+        CancelInvoke();
+    }
     void Pause()
     {
         if (simulation_Running)
@@ -195,21 +199,80 @@ public class Main : MonoBehaviour {
     }
 
 
-    public static T Deserialize<T>()
+    public static T Deserialize<T>(string path)
     {
-        string fileName = Application.streamingAssetsPath + "/XML/Scenario.xml";
+        string fileName = path;// Application.streamingAssetsPath + "/XML/Scenario.xml";
         XmlSerializer serializer = new XmlSerializer(typeof(T));
         StreamReader reader = new StreamReader(fileName);
         T deserialized = (T)serializer.Deserialize(reader.BaseStream);
         reader.Close();
         return deserialized;
     }
+    public static void Serialize(object item,string path)
+    {
+        string fileName = path;
+        XmlSerializer serializer = new XmlSerializer(item.GetType());
+        StreamWriter writer = new StreamWriter(fileName);
+        serializer.Serialize(writer.BaseStream, item);
+        writer.Close();
+    }
+    public void SaveToXml(string path)
+    {
+        if(simulation_Started)
+            Serialize(scenario,path);
+        else
+            UnityEditor.EditorUtility.DisplayDialog("Load/Save error!","Robot must be finalized.", "Ok");
+    }
+    public GameObject finalizeButton;
+    public void LoadFromXml(string path)
+    {
+        //get robot
+        //design finished
+        //deserialize
+        if (!simulation_Started)
+        {
+            dir = Application.streamingAssetsPath;//Get the path of the streaming assets
+            Clear_Vis();
+            Reset_Opti();
+            Agx_Simulation.Start(dt);//Starts the sim.
+
+            simulation_Started = true;
+
+            SetContactPoints();//if custom contact points: move to MainInitialization().
+            CancelInvoke();
+            Dynamics.action = "Idle";
+
+            //scenario = Deserialize<Scenario>(Application.streamingAssetsPath + "/XML/Scenario.xml");
+
+            try { scenario = Deserialize<Scenario>(path); }catch(Exception e) { Debug.Log("Path Error! " + e); }
+
+            robot = Load_Robot(scenario.robot);
+
+            /* Loading the directories for the object files */
+            Load_FrameDirectories(robot);
+
+            //possibly remove this
+            scene = new Scene(); Load_Scene(scenario.scene);
+
+            Visualization.enabled = true;
+
+            if (Visualization.enabled)
+            {
+                Load_Vis();
+                Update_Vis(robot);
+            }
+            finalizeButton.SetActive(false);
+        }
+        else
+            UnityEditor.EditorUtility.DisplayDialog("Load/Save error!", "Must load before simulation is started", "Ok");
+
+
+    }
+
 
     Robot robot;//Global for pos/rot update
-    
-    
 
-    void load_FrameDirectories(Robot robot)
+    void Load_FrameDirectories(Robot robot)
     {
         upperFrame_directory = "/Robot/" + robot.leftFrameDir;
         bottomFrame_directory = "/Robot/" + robot.rightFrameDir;
@@ -223,13 +286,13 @@ public class Main : MonoBehaviour {
         Mesh leftMesh = import.ImportFile(dir + upperFrame_directory);Bounds leftBound = leftMesh.bounds;
         Mesh rightMesh = import.ImportFile(dir + bottomFrame_directory);Bounds rightBound = rightMesh.bounds;
 
-        //new z pos is start.z - meshLength*i. 
+        //SET MESH 
         foreach (Module mod in robot.modules)
         {
             mod.frames[0].setMesh(AgxHelper(leftMesh.vertices),AgxHelper(leftMesh.uv),leftMesh.triangles); mod.frames[1].setMesh(AgxHelper(rightMesh.vertices),AgxHelper(rightMesh.uv),rightMesh.triangles);
             
         }
-
+        //Creates AgX objects and joint connections:
         robot.Initialize();//Initialize frames (creates AgX obj), initializes modules (connecting frames with joint), Locks modules together
 
         return robot;
@@ -249,7 +312,7 @@ public class Main : MonoBehaviour {
     {
         //Frames:
         Load_RobotVis(robot);
-        Load_SensorVis(robot);
+        Load_SensorModuleVis(robot);
         
 
         //Scene:
@@ -270,11 +333,13 @@ public class Main : MonoBehaviour {
             frameVis.Add(new Frame_Vis(mod.frames[1].guid, r, AgxHelper(mod.frames[1].position),mod.frames[1].scale));
         }
     }
-    void Load_SensorVis(Robot robot)
+    void Load_SensorModuleVis(Robot robot)
     {
         foreach (Sensor_Module mod in robot.sensorModules)
         {
-            sensorVis.Add(new Sensor_Vis(mod.guid, AgxHelper(mod.position), AgxHelper(mod.size)));
+            sensorModuleVis.Add(new SensorModule_Vis(mod.guid, AgxHelper(mod.position), AgxHelper(mod.size)));
+            if (mod.forceSensor != null)
+                forceSensorVis.Add(new ForceSensor_Vis(mod.forceSensor.guid, AgxHelper(mod.forceSensor.position), AgxHelper(mod.forceSensor.size)));
         }
 
     }
@@ -282,25 +347,25 @@ public class Main : MonoBehaviour {
     void Clear_Vis()
     {
         foreach (Frame_Vis vis in frameVis)
-        {
             vis.Remove();
-        }
         frameVis.Clear();
 
-        foreach (Sensor_Vis vis in sensorVis)
-        {
+        foreach (SensorModule_Vis vis in sensorModuleVis)
             vis.Remove();
-        }
-        sensorVis.Clear();
+        sensorModuleVis.Clear();
+
+        foreach (ForceSensor_Vis vis in forceSensorVis)
+            vis.Remove();
+        forceSensorVis.Clear();
 
         if(scene_vis != null)
             scene_vis.Remove();
     }
 
 
-    List<Sensor_Vis> sensorVis = new List<Sensor_Vis>();
+    List<SensorModule_Vis> sensorModuleVis = new List<SensorModule_Vis>();
+    List<ForceSensor_Vis> forceSensorVis = new List<ForceSensor_Vis>();
     List<Frame_Vis> frameVis = new List<Frame_Vis>();
-    List<Joint_Vis> jointVis = new List<Joint_Vis>();
     Scene_Vis scene_vis;
 
     double[] dynamicVariables = new double[7] { 2 * (Math.PI / 9.0f), 0, Math.PI * 2.0f / 3.0f, 0, 4.0f, 0, 0 };
@@ -322,6 +387,8 @@ public class Main : MonoBehaviour {
 
             if (Visualization.enabled)
                 Update_Vis(robot);
+
+            //Debug.Log(robot.sensorModules[0].GetJointForce().x +","+ robot.sensorModules[0].GetJointForce().y+","+ robot.sensorModules[0].GetJointForce().z);
 
             simulationTime += Time.deltaTime;
         }
@@ -390,7 +457,7 @@ public class Main : MonoBehaviour {
         
         robot.RemovePhysicsObjects();
         robot = new Robot();
-        robot = Load_Robot(Deserialize<Scenario>().robot);//new robot
+        robot = Load_Robot(Deserialize<Scenario>(Application.streamingAssetsPath + "/XML/Scenario.xml").robot);//new robot
         
 
         /*
@@ -483,7 +550,10 @@ public class Main : MonoBehaviour {
         }
         foreach(Sensor_Module mod in robot.sensorModules)
         {
-            try { sensorVis.Find(x => x.guid == mod.guid).Update(AgxHelper(mod.position), AgxHelper(mod.quatRotation)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
+            try { sensorModuleVis.Find(x => x.guid == mod.guid).Update(AgxHelper(mod.position), AgxHelper(mod.quatRotation)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
+
+            if (mod.forceSensor != null)
+                try { forceSensorVis.Find(x => x.guid == mod.forceSensor.guid).Update(AgxHelper(mod.forceSensor.position), AgxHelper(mod.forceSensor.rotation)); } catch (NullReferenceException e) { Debug.Log("Could not find Force Sensor with Guid." + e); }
         }
 
     }

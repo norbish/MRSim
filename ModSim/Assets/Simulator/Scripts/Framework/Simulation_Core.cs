@@ -124,6 +124,10 @@ namespace Simulation_Core
             foreach(Sensor_Module mod in sensorModules)
             {
                 mod.Update();
+                if(mod.forceSensor != null)
+                {
+                    mod.forceSensor.Update();
+                }
             }
         }
         public void RemovePhysicsObjects()
@@ -166,7 +170,7 @@ namespace Simulation_Core
 
         public double z_leftEdge, z_rightEdge, top, bot;
 
-        public void Create(Frame left, Joint joint, Frame right)//Creates are for Scecne designer, Initialize is for simulator
+        public void Create(Frame left, Joint joint, Frame right)//Creates are for Scene designer, Initialize is for simulator
         {
             frames[0] = left; frames[1] = right;
             this.joint = joint;
@@ -308,10 +312,11 @@ namespace Simulation_Core
         }
 
         /*-------------------------------------------------Force Sensors:-------------------------------------------------*/
-        public void CreateForceSensorLock(Sensor_Module sm, ForceSensor fs)
+        public void CreateForceSensorLock(Sensor_Module sm, ForceSensor fs, Vector3 lockPosition)
         {
             agxJoint = new AgX_Joint(guid);
-
+            agxJoint.SensorLock(sm.agxPrimitive,fs.agxSensor,lockPosition);
+            agxJoint.AddToSim();
         }
 
         public void MOVE(double requested_angle)
@@ -452,7 +457,8 @@ namespace Simulation_Core
     {
         public Guid guid;
         public int leftMod_Nr, rightMod_Nr;
-        public ForceSensor forceSensor;public Joint sensorLock;
+        public ForceSensor forceSensor;
+        public Joint sensorLock;public Vector3 lockPosition;
 
         public Vector3 position;
         public Vector3 rotation;
@@ -463,9 +469,34 @@ namespace Simulation_Core
 
         internal AgX_Primitive agxPrimitive;
 
+        public void ConnectSensor(ForceSensor fs)//Pre-initialize
+        {
+            forceSensor = fs;
+            sensorLock = new Joint();
+            switch(fs.sensorPosition)
+            {
+                case 0:
+                    {
+                        fs.position = position; fs.position.y = position.y - size.y  - fs.size.y / 2 - 0.001;
+                        lockPosition = fs.position; lockPosition.y = fs.position.y + fs.size.y/2 + 0.0005;//position of the point where they are locked together.
+                        break;//
+                    }
+            }
+        }
+
+        public Vector3 GetJointForce()
+        {
+            return sensorLock.agxJoint.GetJointForce(forceSensor.agxSensor);
+        }
+
         public void Initialize()
         {
             agxPrimitive = new AgX_Primitive(guid,"Box",position,quatRotation,size,mass,materialName);
+            if (forceSensor != null)
+            {
+                forceSensor.Initialize();
+                sensorLock.CreateForceSensorLock(this,forceSensor,lockPosition);
+            }
         }
         public void Update()
         {
@@ -487,19 +518,19 @@ namespace Simulation_Core
     public class ForceSensor
     {
         public Guid guid;
-        public double value;//private?get?
-        public bool[] SensorPosition = new bool[4];//0 = below, 1 = left, 2 = top, 3 = right;
+        public Vector3 forceValue;//private?get?
+        public int sensorPosition;//0 = below, 1 = left, 2 = top, 3 = right;
         public Vector3 position;
         public Quaternion rotation;
         public string materialName;
         public double mass;
-        public Vector3 size = new Vector3(0.1,0.001,0.04);//??
+        public Vector3 size = new Vector3(0.1,0.01,0.04);//??
 
-        internal AgX_Sensor agxSensor;
+        internal AgX_ForceSensor agxSensor;
 
         public void Initialize()
         {
-            agxSensor = new AgX_Sensor(guid, materialName, position,rotation, size, mass);
+            agxSensor = new AgX_ForceSensor(guid, materialName, position,rotation, size, mass);
 
         }
 
@@ -507,6 +538,7 @@ namespace Simulation_Core
         {
             position = agxSensor.GetPosition();
             rotation = agxSensor.GetRotation();
+            forceValue = agxSensor.GetForce();
         }
     }
 

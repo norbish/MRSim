@@ -99,7 +99,7 @@ namespace AgX_Interface
             Joint = new agx.LockJoint(left.GetAgxObject(), right.GetAgxObject(), (left.GetAgxObject().getPosition() + right.GetAgxObject().getPosition()).Divide(2));
         }
 
-        //Sensory module lock:
+        //Sensory module locks:
         public void Create_Lock(string type, AgX_Frame right, AgX_Primitive s_mod)
         {
             //Creates a joint with a specified middle position for the lockframe.
@@ -112,14 +112,22 @@ namespace AgX_Interface
             Joint = new agx.LockJoint(s_mod.GetAgxObject(), left.GetAgxObject(), (left.GetAgxObject().getPosition() + s_mod.GetAgxObject().getPosition()).Divide(2));
         }
 
-        /*public void SensorLock(AgX_Frame frame, ForceSensor sensor)
+        public void SensorLock(AgX_Primitive sm, AgX_ForceSensor fs, Vector3 lockPosition)
         {
-            Joint = new agx.LockJoint(frame.agxFrame.GetAgxObject(), sensor.agxSensor.GetAgxObject(), Operations.ToAgxVec3(sensor.position) );
-        }*/
+            Joint = new agx.LockJoint(sm.GetAgxObject(), fs.GetAgxObject(), Operations.ToAgxVec3(lockPosition));
+            Joint.setEnableComputeForces(true);
+        }
 
         public double Get_Angle()
         {
             return Joint.asHinge().getAngle();
+        }
+        public Vector3 GetJointForce(AgX_ForceSensor fs)
+        {
+            agx.Vec3 force = new agx.Vec3();
+            agx.Vec3 torque = new agx.Vec3();
+            Joint.getLastForce(fs.GetAgxObject(),force,torque);
+            return Operations.FromAgxVec3(force);
         }
         public void Set_Speed(double vel)
         {
@@ -138,13 +146,13 @@ namespace AgX_Interface
 
     }
 
-    public class AgX_Sensor
+    public class AgX_ForceSensor
     {
         private Guid guid;
         private Vector3 scale;
         private agx.RigidBody agx_Object;
 
-        public AgX_Sensor(Guid guid, string materialName, Vector3 pos, Quaternion rot, Vector3 scale, double mass)
+        public AgX_ForceSensor(Guid guid, string materialName, Vector3 pos, Quaternion rot, Vector3 scale, double mass)
         {
             this.guid = guid;
             this.scale = scale;
@@ -166,6 +174,11 @@ namespace AgX_Interface
             agx_Object.getMassProperties().setMass(mass);
 
             Agx_Simulation.sim_Instance.add(agx_Object);
+        }
+
+        public Vector3 GetForce()
+        {
+            return Operations.FromAgxVec3(agx_Object.getForce());
         }
 
         public agx.RigidBody GetAgxObject()
@@ -208,13 +221,13 @@ namespace AgX_Interface
 
             var dynamicRBGeometry = new agxCollide.Geometry();
 
-            switch (shape)
+            switch (this.shape)
             {
                 case "Box": dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(this.size))); break;
                 case "Sphere": dynamicRBGeometry.add(new agxCollide.Sphere((this.size.x + this.size.y + this.size.z) / 3)); break;
             }
 
-            dynamicRBGeometry.setMaterial(new agx.Material(materialName));
+            dynamicRBGeometry.setMaterial(new agx.Material(this.materialName));
 
             agx_Object = new agx.RigidBody();
             agx_Object.add(dynamicRBGeometry);

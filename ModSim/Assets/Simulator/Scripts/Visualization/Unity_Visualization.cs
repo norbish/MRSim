@@ -15,26 +15,57 @@ namespace Unity_Visualization
         public static bool enabled = false;
     }
 
-    public class Sensor_Vis
+    public class ForceSensor_Vis
     {
         public System.Guid guid;
         public GameObject gameobject;
 
-        public Sensor_Vis(System.Guid guid, Vector3 position, Vector3 scale)
+        public ForceSensor_Vis(System.Guid guid, Vector3 position, Vector3 scale)
+        {
+            this.guid = guid;
+            gameobject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            gameobject.name = "ForceSensor";
+            MeshRenderer renderer = gameobject.GetComponent<MeshRenderer>();
+
+            renderer.material = new Material(Shader.Find("Transparent/Diffuse"))
+            {
+                color = Color.red
+            };
+
+            gameobject.transform.localScale = scale * 2;
+            gameobject.transform.position = position;
+        }
+        public void Update(Vector3 position, Quaternion rotation)
+        {
+            gameobject.transform.position = position;
+            gameobject.transform.rotation = rotation;
+        }
+        public void Remove()
+        {
+            GameObject.Destroy(gameobject.gameObject);
+            //this.Dispose();
+        }
+    }
+
+    public class SensorModule_Vis
+    {
+        public System.Guid guid;
+        public GameObject gameobject;
+
+        public SensorModule_Vis(System.Guid guid, Vector3 position, Vector3 scale)
         {
             this.guid = guid;
             gameobject = GameObject.CreatePrimitive(PrimitiveType.Cube);
             gameobject.name = "SensorModule";
             MeshRenderer renderer = gameobject.GetComponent<MeshRenderer>();
 
-
-            renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
-            renderer.material.color = Color.white;
+            renderer.material = new Material(Shader.Find("Transparent/Diffuse"))
+            {
+                color = Color.white
+            };
 
             gameobject.transform.localScale = scale*2;
             gameobject.transform.position = position;
-
-            
         }
         public void Update(Vector3 position, Quaternion rotation)
         {
@@ -47,7 +78,6 @@ namespace Unity_Visualization
             gameobject.transform.eulerAngles = rotation;
             gameobject.transform.localScale = size*2;//*2 for scaling up to AgX size
         }
-
         public void Remove()
         {
             GameObject.Destroy(gameobject.gameObject);
@@ -123,8 +153,7 @@ namespace Unity_Visualization
         public GameObject left_p;
         public GameObject mid_p;
         public GameObject right_p;
-        Vector3[] contactPoints = new Vector3[3];//left attachment point, middle of joint, and right attachment point. 
-
+        
         public Joint_Vis(System.Guid guid)
         {
             this.guid = guid;

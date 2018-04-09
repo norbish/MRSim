@@ -19,8 +19,8 @@ public static class Dynamics
     public static double[] phaseDiff;
     public static double[] offset;
 
-    public static double[] f_movementVars = new double[7] { 2 * (double)(Math.PI / 9.0f), 0, (double)Math.PI * 2.0f / 3.0f, 0, 4.0f, 0, 0 };
-    public static double[] t_movementVars = new double[7] { 2 * (double)(Math.PI / 9.0f), 0, (double)Math.PI * 2.0f / 3.0f, 0, 4.0f, 0, 20 * (double)Math.PI / 180 };
+    public static double[] f_movementVars = new double[7] { 2 * (double)(Math.PI / 9.0), 0, (double)Math.PI * 2.0 / 3.0f, 0, 4.0f, 0, 0 };
+    public static double[] t_movementVars = new double[7] { 2 * (double)(Math.PI / 9.0), 0, (double)Math.PI * 2.0 / 3.0f, 0, 4.0f, 0, 20 * (double)Math.PI / 180 };
 
     static double angle; //rads
 

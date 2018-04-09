@@ -18,7 +18,8 @@ public class Camera_Movement : MonoBehaviour {
     }
     public void Initialize()
     {
-        InvokeRepeating("getrobot", 0.0f, 99999);
+        CancelInvoke("getrobot");CancelInvoke("getpos");
+        InvokeRepeating("getrobot", 0.1f, 99999);
         InvokeRepeating("getPos", 0.5f, 0.01f);
     }
 
@@ -31,7 +32,7 @@ public class Camera_Movement : MonoBehaviour {
         //this.transform.position = new Vector3(robot.transform.position.x, robot.transform.position.y + 6,robot.transform.position.z-10);
         if (robot != null)
         {
-            this.transform.position = new Vector3(robot.transform.position.x, robot.transform.position.y+6, robot.transform.position.z-5);
+            //this.transform.position = new Vector3(robot.transform.position.x, robot.transform.position.y+6, robot.transform.position.z-5);
             this.transform.RotateAround(robot.transform.position, Vector3.up, 0);
             this.transform.LookAt(robot.transform.position);
         }
@@ -58,6 +59,12 @@ public class Camera_Movement : MonoBehaviour {
         this.transform.position += new Vector3(0,6,-10);
         this.transform.SetParent(robot.transform);
         this.transform.eulerAngles = new Vector3(30, 0, 0);*/
+    }
+
+    public Scrollbar scroll;
+    public void Zoom()
+    {
+        this.GetComponent<Camera>().fieldOfView = 80 * scroll.value + 1;
     }
 
     public void R_left()

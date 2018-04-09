@@ -248,8 +248,6 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
 
         static double PitchMoveDirection = 1;static double YawMoveDirection = 1;
         static double PitchTurnDirection = 1;static double YawTurnDirection = 1;
-        static double set_period = 4.0f;
-        static bool NewAction = false;
 
         static double angle; //rads
 

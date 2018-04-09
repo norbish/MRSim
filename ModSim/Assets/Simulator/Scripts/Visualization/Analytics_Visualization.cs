@@ -67,7 +67,6 @@ public static class Analytics_Visualization {
 
     }
     public static string Input_Filename = @"";
-    static string path = "";
     public static int SaveToFile(string data,int mod_nr)
     {
         if (Input_Filename != "")

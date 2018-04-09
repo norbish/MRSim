@@ -121,6 +121,7 @@ public class Scene_Designer : MonoBehaviour {
     public void StopSimulation()
     {
         //SIMULATOR.SendMessage("Stop");
+        SIMULATOR.SendMessage("CancelRepeats");
         AgX_Interface.AgX_Assembly.RemoveFromSim();
         AgX_Interface.Agx_Simulation.Stop();
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
@@ -146,6 +147,11 @@ public class Scene_Designer : MonoBehaviour {
         //Add to XML file (SERIALIZE):
         Serialize(scenario_serialize);
 
+        Interactable();
+    }
+
+    void Interactable()
+    {
         robotConfigPanel.SetActive(false);
 
         start_Position_X.interactable = true;
@@ -192,9 +198,9 @@ public class Scene_Designer : MonoBehaviour {
         double module_rightEdge = (double)currentModulePosition.z + (f1.scale * rightBound.min.x);// -
 
         //if next is a module:
-        currentModulePosition.z = currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
+        currentModulePosition.z = currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.0001f;//next module position, relative to previous.
 
-        Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, jointType, leftRangeLimit, rightRangeLimit, maxVelocity);
+        Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, jointType, leftRangeLimit, rightRangeLimit, maxVelocity,pValue);
 
         Module module = DefineModule(f1, j1, f2);
         //Which number, for the sensor modules:
@@ -235,7 +241,7 @@ public class Scene_Designer : MonoBehaviour {
         moduleCount.text = module_Count.ToString();
 
         PrepareForNextModuleInput();
-        Debug.Log("Module created: ");
+        SensorModuleButton.interactable = true;
 
     }
 
@@ -287,7 +293,7 @@ public class Scene_Designer : MonoBehaviour {
     public InputField sensorModuleCount;
 
     int SensoryModule_Count = 0;
-
+    public Button SensorModuleButton;
     public void ButtonAddSensoryModule()
     {
         //Opens and closes the sensory module panel when needed:
@@ -299,6 +305,7 @@ public class Scene_Designer : MonoBehaviour {
             addSensoryModuleText.text = "Add Sensor Module";
             sm_panelOpen = false;
             sensorModuleCount.text = SensoryModule_Count.ToString();
+            SensorModuleButton.interactable = false;
         }else
         {//Opens panel
             PrepareSMPosition();
@@ -330,12 +337,18 @@ public class Scene_Designer : MonoBehaviour {
             else//From left, position:
             {
                 //Position for this module center, if not first:
-                currentModulePosition.z = currentModulePosition.z + leftModSize_Z - sm_size.z - 0.01f;//Sensor.z = sensor.z + (l_scale * leftSize.z) - sensorScale.z/2 (+ because we are going backwards)
+                currentModulePosition.z = currentModulePosition.z + leftModSize_Z - sm_size.z - 0.0001f;//Sensor.z = sensor.z + (l_scale * leftSize.z) - sensorScale.z/2 (+ because we are going backwards)
             }
 
             //Create the sensory module:
             var mod = DefineSensoryModule(module_Count - 1, module_Count, currentModulePosition, sm_size, sm_mass, new AgX_Interface.Quaternion(0,0,0,1), sm_mat);//module count-1 and module count will be the place where sensor module is set.
-            Debug.Log("Left: " + (module_Count - 1) + ", Right: " + module_Count);
+
+            /////////////////////////////////////////////////////
+            var fs = DefineForceSensor(0, mod.materialName, 0.1, new AgX_Interface.Vector3(mod.size.x,/*0.002*/0.1,mod.size.z) ,mod.quatRotation);
+
+            mod.ConnectSensor(fs);
+
+            //Debug.Log("Left: " + (module_Count - 1) + ", Right: " + module_Count);
             if (module_Count == 0 && SensoryModule_Count == 0)
             {
                 robot_ForSerialization.Add_SensorModule(mod, new Simulation_Core.Joint());
@@ -400,7 +413,7 @@ public class Scene_Designer : MonoBehaviour {
         r_mat = right_Material.text;
         double.TryParse(right_Mass.text, out r_mass);
 
-        Debug.Log("Frames created");
+       // Debug.Log("Frames created");
     }
 
     void GetJointValues()
@@ -411,7 +424,7 @@ public class Scene_Designer : MonoBehaviour {
         double.TryParse(joint_maxVelocity.text, out maxVelocity);
         double.TryParse(joint_pValue.text, out pValue);
 
-        Debug.Log("Joint created");
+        //Debug.Log("Joint created");
     }
 
     bool GetSensoryModuleValues()
@@ -431,7 +444,7 @@ public class Scene_Designer : MonoBehaviour {
             return true;
         }catch(NullReferenceException)
         {
-            Debug.Log("could not get textbox data");
+            //Debug.Log("could not get textbox data");
             return false;
         }
 
@@ -440,7 +453,7 @@ public class Scene_Designer : MonoBehaviour {
     /*-----------------------------------------------Robot Visualizations-------------------------------------------------*/
     /*--------------------------------------------Visualizing current modules---------------------------------------------*/
     List<Unity_Visualization.Frame_Vis> current_frameVis = new List<Unity_Visualization.Frame_Vis>();
-    List<Unity_Visualization.Sensor_Vis> current_SMVis = new List<Unity_Visualization.Sensor_Vis>();
+    List<Unity_Visualization.SensorModule_Vis> current_SMVis = new List<Unity_Visualization.SensorModule_Vis>();
     void ShowCurrentRobotConfig()
     {
         ObjImporter import = new ObjImporter();
@@ -473,13 +486,13 @@ public class Scene_Designer : MonoBehaviour {
                 new Quaternion((float)frame.quatRotation.x,(float)frame.quatRotation.y,(float)frame.quatRotation.z,(float)frame.quatRotation.w), //needs to be in degrees for vis
                 mod.Axis);
                 }
-            catch (NullReferenceException e) { Debug.Log("Could not create frame gameobject."); }
+            catch (NullReferenceException) { Debug.Log("Could not create frame gameobject."); }
         }
 
         //SensoryModules:
         foreach(Sensor_Module mod in robot_ForSerialization.sensorModules)
         {
-            current_SMVis.Add(new Unity_Visualization.Sensor_Vis(mod.guid,new Vector3((float)mod.position.x,(float)mod.position.y,(float)mod.position.z),new Vector3((float)mod.size.x,(float)mod.size.y,(float)mod.size.z)));
+            current_SMVis.Add(new Unity_Visualization.SensorModule_Vis(mod.guid,new Vector3((float)mod.position.x,(float)mod.position.y,(float)mod.position.z),new Vector3((float)mod.size.x,(float)mod.size.y,(float)mod.size.z)));
 
         }
 
@@ -519,7 +532,7 @@ public class Scene_Designer : MonoBehaviour {
         }
     }
 
-    Unity_Visualization.Sensor_Vis SM_planned;
+    Unity_Visualization.SensorModule_Vis SM_planned;
     public void ShowPlannedSensoryModuleConfig()
     {
         //sm_pos = new AgX_Interface.Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z);
@@ -538,11 +551,11 @@ public class Scene_Designer : MonoBehaviour {
 
         if (SM_planned == null)
         {
-            SM_planned = new Unity_Visualization.Sensor_Vis(Guid.NewGuid(), new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
+            SM_planned = new Unity_Visualization.SensorModule_Vis(Guid.NewGuid(), new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
             SM_planned.Update(new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), Vector3.zero, new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
         } else
         {
-            SM_planned.Update(new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), Vector3.zero, new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));Debug.Log("working");
+            SM_planned.Update(new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), Vector3.zero, new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));//Debug.Log("working");
         }
     }
 
@@ -562,7 +575,7 @@ public class Scene_Designer : MonoBehaviour {
     public class OpenTerrain : EditorWindow
     {
         public static string terrainPath = "";
-        [MenuItem("Example/Overwrite Texture")]
+        //[MenuItem("Example/Overwrite Texture")]
         public static void LOADTerrain()
         {
             terrainPath = EditorUtility.OpenFilePanel("Upload a PNG file", Application.streamingAssetsPath, "png");
@@ -610,7 +623,7 @@ public class Scene_Designer : MonoBehaviour {
                 sceneVis = new Unity_Visualization.Scene_Vis(sceneVals.guid, AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load("grass") as Texture);
             }
         }
-        catch (NullReferenceException e)
+        catch (NullReferenceException)
         {
             //PopupWindow.Show(new Rect(0,0,500,500),);
         }
@@ -624,16 +637,25 @@ public class Scene_Designer : MonoBehaviour {
         }
     }
 
-    
+
     /*-----------------------------------------------------Settings-------------------------------------------------------*/
     /*---------------------------------------------------Save Config:-----------------------------------------------------*/
-    public void SaveConfig()
+    string savePath;
+    public void SaveConfig()//XML
     {
+        savePath = EditorUtility.SaveFilePanel("Save robot config", Application.streamingAssetsPath, "saved_robot","xml");
+        SIMULATOR.SendMessage("SaveToXml", savePath);
 
     }
-
-    public void LoadConfig()
+    string loadPath;
+    public void LoadConfig()//XML
     {
+        loadPath = EditorUtility.OpenFilePanel("Load robot config", Application.streamingAssetsPath, "xml");
+        Interactable();
+        RemoveSceneVis();
+        SetAnalyticsPath();
+        UpdateSimTime();
+        SIMULATOR.SendMessage("LoadFromXml", loadPath);
     }
     
     /*-------------------------------------------------Buttons and Inputs-------------------------------------------------*/
@@ -710,7 +732,7 @@ public class Scene_Designer : MonoBehaviour {
 
     /*--------------------------------------------Button for finalizing robot---------------------------------------------*/
     public GameObject finalizeButton;
-    bool visible = true;
+   
     public void ToggleStartButton()
     {
         finalizeButton.SetActive(false);
@@ -754,9 +776,6 @@ public class Scene_Designer : MonoBehaviour {
     public void AddRobot()
     {
         robot_ForSerialization = new Robot();
-
-        List<Frame> frames = new List<Frame>();
-        List<Simulation_Core.Joint> joints = new List<Simulation_Core.Joint>();
 
         //Assign object model names:
         robot_ForSerialization.leftFrameDir = upperFrame_ObjName;
@@ -831,7 +850,7 @@ public class Scene_Designer : MonoBehaviour {
             materialName = materialName
         };
     }
-    Simulation_Core.Joint DefineJoint(Guid f1_guid, Guid f2_guid, string type, double l_rangeLimit, double r_rangeLimit, double max_vel)
+    Simulation_Core.Joint DefineJoint(Guid f1_guid, Guid f2_guid, string type, double l_rangeLimit, double r_rangeLimit, double max_vel, double pValue)
     {
         return new Simulation_Core.Joint()
         {
@@ -841,7 +860,8 @@ public class Scene_Designer : MonoBehaviour {
             type = type,
             leftRangeLimit = l_rangeLimit,
             rightRangeLimit = r_rangeLimit,
-            max_vel = max_vel
+            max_vel = max_vel,
+            Kp = pValue
 
         };
     }
@@ -876,6 +896,18 @@ public class Scene_Designer : MonoBehaviour {
             materialName = materialName,
             mass = mass,
             quatRotation = rot
+        };
+    }
+    ForceSensor DefineForceSensor(int sensorPosition, string materialName, double mass, AgX_Interface.Vector3 size, AgX_Interface.Quaternion smRot)
+    {
+        return new ForceSensor()
+        {
+            guid = Guid.NewGuid(),
+            sensorPosition = sensorPosition,
+            materialName = materialName,
+            mass = mass,
+            size = size,
+            rotation = smRot
         };
     }
 

@@ -578,7 +578,7 @@ GameObject:
   - component: {fileID: 27028149}
   - component: {fileID: 27028148}
   m_Layer: 5
-  m_Name: Button
+  m_Name: saveButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -643,7 +643,18 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 27028149}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 393505522}
+        m_MethodName: SaveConfig
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!114 &27028149
@@ -2183,7 +2194,6 @@ RectTransform:
   - {fileID: 385183423}
   - {fileID: 1012866973}
   - {fileID: 256383454}
-  - {fileID: 1690359372}
   - {fileID: 932588549}
   - {fileID: 579297146}
   - {fileID: 1515618213}
@@ -2403,7 +2413,7 @@ RectTransform:
   m_Children:
   - {fileID: 1152228144}
   m_Father: {fileID: 106520793}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -2606,7 +2616,7 @@ RectTransform:
   m_LocalScale: {x: 3.9999435, y: 1.9999717, z: 1}
   m_Children: []
   m_Father: {fileID: 154887635}
-  m_RootOrder: 1
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -3388,10 +3398,10 @@ RectTransform:
   m_LocalScale: {x: 0.62500876, y: 1.2500175, z: 1}
   m_Children:
   - {fileID: 1111889453}
-  - {fileID: 127505916}
-  - {fileID: 1759388935}
   - {fileID: 1226091382}
   - {fileID: 725537734}
+  - {fileID: 127505916}
+  - {fileID: 1759388935}
   m_Father: {fileID: 1442647733}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -4649,7 +4659,7 @@ RectTransform:
   - {fileID: 299203720}
   - {fileID: 1751114632}
   m_Father: {fileID: 106520793}
-  m_RootOrder: 9
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -8108,7 +8118,7 @@ MonoBehaviour:
   joint_rightRangeLimit: {fileID: 259689057}
   joint_maxVelocity: {fileID: 2053099646}
   joint_pValue: {fileID: 1258845697}
-  robotConfigPanel: {fileID: 0}
+  robotConfigPanel: {fileID: 106520792}
   moduleCount: {fileID: 583987800}
   Ism_leftnr: {fileID: 334418583}
   Ism_rightnr: {fileID: 446306012}
@@ -8123,6 +8133,7 @@ MonoBehaviour:
   sensoryModulePanel: {fileID: 214177730}
   addSensoryModuleText: {fileID: 1152228145}
   sensorModuleCount: {fileID: 1839817822}
+  SensorModuleButton: {fileID: 117045154}
   HeightMapSelection: {fileID: 933559421}
   previewImage: {fileID: 987100703}
   dynVars:
@@ -8795,7 +8806,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 0
+  m_Text: 1
 --- !u!222 &427177021
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -9327,6 +9338,7 @@ MonoBehaviour:
   robot: {fileID: 0}
   r_left: {fileID: 0}
   r_right: {fileID: 0}
+  scroll: {fileID: 1111889454}
 --- !u!1 &451497838
 GameObject:
   m_ObjectHideFlags: 0
@@ -9725,6 +9737,7 @@ RectTransform:
   - {fileID: 1846707188}
   - {fileID: 1239235755}
   - {fileID: 106520793}
+  - {fileID: 1690359372}
   m_Father: {fileID: 1608212106}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -11024,7 +11037,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: 0
+  m_Text: 30
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -11480,7 +11493,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 0
+  m_Text: 30
 --- !u!222 &558243992
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -12355,7 +12368,7 @@ RectTransform:
   - {fileID: 135375571}
   - {fileID: 1671201098}
   m_Father: {fileID: 106520793}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -15567,7 +15580,7 @@ RectTransform:
   - {fileID: 835191227}
   - {fileID: 2029927379}
   m_Father: {fileID: 154887635}
-  m_RootOrder: 4
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -20284,7 +20297,7 @@ RectTransform:
   - {fileID: 1330568424}
   - {fileID: 1313678383}
   m_Father: {fileID: 106520793}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -22790,7 +22803,7 @@ RectTransform:
   m_Children:
   - {fileID: 1676950498}
   m_Father: {fileID: 106520793}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -24353,12 +24366,23 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 660568243}
   m_HandleRect: {fileID: 660568242}
   m_Direction: 0
-  m_Value: 0.5
+  m_Value: 0.501
   m_Size: 0.2
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 450547106}
+        m_MethodName: Zoom
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.Scrollbar+ScrollEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!114 &1111889455
@@ -25024,7 +25048,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 153.19995}
-  m_SizeDelta: {x: 158.3, y: 19.8}
+  m_SizeDelta: {x: 158.3, y: 29.5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1130915685
 MonoBehaviour:
@@ -25059,7 +25083,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Save
+  m_Text: "Save \n(after design finished)"
 --- !u!222 &1130915686
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -26037,7 +26061,7 @@ RectTransform:
   - {fileID: 1835679068}
   - {fileID: 1072361455}
   m_Father: {fileID: 154887635}
-  m_RootOrder: 3
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -27692,7 +27716,7 @@ GameObject:
   - component: {fileID: 1283291246}
   - component: {fileID: 1283291245}
   m_Layer: 5
-  m_Name: Button (1)
+  m_Name: loadButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -27757,7 +27781,18 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1283291246}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 393505522}
+        m_MethodName: LoadConfig
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!114 &1283291246
@@ -30467,6 +30502,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dt: 0.01
+  finalizeButton: {fileID: 136797436}
 --- !u!4 &1447445072
 Transform:
   m_ObjectHideFlags: 0
@@ -30561,7 +30597,7 @@ GameObject:
   - component: {fileID: 1454399094}
   - component: {fileID: 1454399093}
   m_Layer: 5
-  m_Name: SaveLoadPanel
+  m_Name: UploadMeshPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31960,7 +31996,7 @@ RectTransform:
   - {fileID: 592071876}
   - {fileID: 438610096}
   m_Father: {fileID: 106520793}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -35519,9 +35555,9 @@ RectTransform:
   m_GameObject: {fileID: 1690359369}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 106520793}
+  m_Father: {fileID: 466707206}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -36546,7 +36582,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: 0
+  m_Text: 1
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -36614,7 +36650,7 @@ RectTransform:
   m_LocalScale: {x: 3.9999437, y: 1.9999719, z: 1}
   m_Children: []
   m_Father: {fileID: 154887635}
-  m_RootOrder: 2
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -37295,7 +37331,7 @@ GameObject:
   - component: {fileID: 1789621221}
   - component: {fileID: 1789621220}
   m_Layer: 5
-  m_Name: ModuleMeshPanel
+  m_Name: LoadSaveRobotXMLPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -37322,7 +37358,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 46.620026}
+  m_AnchoredPosition: {x: -85.9, y: 46.620026}
   m_SizeDelta: {x: 800, y: 360.7}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1789621220
@@ -43773,7 +43809,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -18.6}
-  m_SizeDelta: {x: 158.3, y: 19.8}
+  m_SizeDelta: {x: 158.3, y: 29.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2129228383
 MonoBehaviour:
@@ -43808,7 +43844,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Load
+  m_Text: 'Load
+
+    (before design finished)'
 --- !u!222 &2129228384
 CanvasRenderer:
   m_ObjectHideFlags: 0
