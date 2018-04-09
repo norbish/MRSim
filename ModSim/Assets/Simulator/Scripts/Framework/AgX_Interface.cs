@@ -144,7 +144,7 @@ namespace AgX_Interface
         private Vector3 scale;
         private agx.RigidBody agx_Object;
 
-        public AgX_Sensor(Guid guid, string materialName, Vector3 pos, Vector3 scale, double mass)
+        public AgX_Sensor(Guid guid, string materialName, Vector3 pos, Quaternion rot, Vector3 scale, double mass)
         {
             this.guid = guid;
             this.scale = scale;
@@ -159,7 +159,9 @@ namespace AgX_Interface
 
             agx_Object.add(dynamicRBGeometry);
 
-            agx_Object.setLocalPosition(Operations.ToAgxVec3(pos));
+            agx_Object.setPosition(Operations.ToAgxVec3(pos));
+
+            agx_Object.setRotation(Operations.ToAgxQuat(rot));
 
             agx_Object.getMassProperties().setMass(mass);
 
@@ -173,6 +175,14 @@ namespace AgX_Interface
         public Vector3 GetPosition()
         {
             return Operations.FromAgxVec3(agx_Object.getPosition());
+        }
+        public Quaternion GetRotation()
+        {
+            return Operations.FromAgxQuat(agx_Object.getRotation());
+        }
+        public void AddToSim()
+        {
+            AgX_Assembly.AddToAssembly(agx_Object);
         }
         public void Remove()
         {

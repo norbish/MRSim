@@ -146,7 +146,7 @@ public class Scene_Designer : MonoBehaviour {
         //Add to XML file (SERIALIZE):
         Serialize(scenario_serialize);
 
-        robotConfigPanel.active = false;
+        robotConfigPanel.SetActive(false);
 
         start_Position_X.interactable = true;
         start_Position_Y.interactable = true;

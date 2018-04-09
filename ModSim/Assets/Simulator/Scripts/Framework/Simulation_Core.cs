@@ -102,9 +102,11 @@ namespace Simulation_Core
                     locks[lockNrCount].Create_Lock(modules[i].frames[1], modules[i + 1].frames[0]);
                     lockNrCount++;
                 }
-
             }
 
+            //find agx module height, pos, etc. depending on this, and where the sensor is 
+            //supposed to be placed, place the sensor.
+            
             //AgX_Assembly.SetPosition(new Vector3(2,15,5));
 
             AgX_Assembly.AddToSim();            
@@ -195,37 +197,7 @@ namespace Simulation_Core
         }
     }
 
-    public class Sensor_Module //Square
-    {
-        public Guid guid;
-        public int leftMod_Nr, rightMod_Nr;
-
-        public Vector3 position;
-        public Vector3 rotation;
-        public Vector3 size;
-        public Quaternion quatRotation;
-        public double mass;
-        public string materialName;
-
-        internal AgX_Primitive agxPrimitive;
-
-        public void Initialize()
-        {
-            agxPrimitive = new AgX_Primitive(guid,"Box",position,quatRotation,size,mass,materialName);
-        }
-        public void Update()
-        {
-            position = agxPrimitive.Get_Position();
-            //rotation = agxPrimitive.Get_Rotation();
-            quatRotation = agxPrimitive.Get_QuatRotation();
-        }
-
-        public Vector3 QuatToRot()
-        {
-            rotation = quatRotation.ToEulerRad();
-            return quatRotation.ToEulerRad();
-        }
-    }
+    
     
 
     public class Frame
@@ -321,7 +293,7 @@ namespace Simulation_Core
             agxJoint.AddToSim();
         }
 
-        //Creates an AgX joint that locks a frame and a sensor module together (agxObjects can not be referenced because references are not saved to this joint object). 
+        /*------------------------------------------------Sensory Modules:------------------------------------------------*/
         public void Create_SensorModuleLock(Frame right, Sensor_Module s_mod)//sensor placed last, right frame of left module 
         {
             agxJoint = new AgX_Joint(guid);
@@ -333,6 +305,13 @@ namespace Simulation_Core
             agxJoint = new AgX_Joint(guid);
             agxJoint.Create_Lock("Lock", s_mod.agxPrimitive, left.agxFrame);//FIX IN AGX INTERFACE
             agxJoint.AddToSim();
+        }
+
+        /*-------------------------------------------------Force Sensors:-------------------------------------------------*/
+        public void CreateForceSensorLock(Sensor_Module sm, ForceSensor fs)
+        {
+            agxJoint = new AgX_Joint(guid);
+
         }
 
         public void MOVE(double requested_angle)
@@ -469,34 +448,65 @@ namespace Simulation_Core
         }
     }
 
+    public class Sensor_Module //Square
+    {
+        public Guid guid;
+        public int leftMod_Nr, rightMod_Nr;
+        public ForceSensor forceSensor;public Joint sensorLock;
+
+        public Vector3 position;
+        public Vector3 rotation;
+        public Vector3 size;
+        public Quaternion quatRotation;
+        public double mass;
+        public string materialName;
+
+        internal AgX_Primitive agxPrimitive;
+
+        public void Initialize()
+        {
+            agxPrimitive = new AgX_Primitive(guid,"Box",position,quatRotation,size,mass,materialName);
+        }
+        public void Update()
+        {
+            position = agxPrimitive.Get_Position();
+            //rotation = agxPrimitive.Get_Rotation();
+            quatRotation = agxPrimitive.Get_QuatRotation();
+            if (forceSensor != null)
+                forceSensor.Update();
+        }
+
+        public Vector3 QuatToRot()
+        {
+            rotation = quatRotation.ToEulerRad();
+            return quatRotation.ToEulerRad();
+        }
+    }
+
 
     public class ForceSensor
     {
         public Guid guid;
-        public double value;
+        public double value;//private?get?
+        public bool[] SensorPosition = new bool[4];//0 = below, 1 = left, 2 = top, 3 = right;
         public Vector3 position;
-        public Vector3 scale;
+        public Quaternion rotation;
+        public string materialName;
+        public double mass;
+        public Vector3 size = new Vector3(0.1,0.001,0.04);//??
 
         internal AgX_Sensor agxSensor;
-        internal AgX_Joint lockJoint;
 
         public void Initialize()
         {
-            agxSensor = new AgX_Sensor(guid, "Plastic", position, scale, 1.0f);
-            lockJoint = new AgX_Joint(guid);//Ikke festet
+            agxSensor = new AgX_Sensor(guid, materialName, position,rotation, size, mass);
 
         }
-
-       /* public void Lock(Frame frame)
-        {
-            lockJoint.SensorLock(frame.agxFrame, this.agxSensor);
-            lockJoint.AddToSim();
-        }*/
 
         public void Update()
         {
             position = agxSensor.GetPosition();
-            //rotation
+            rotation = agxSensor.GetRotation();
         }
     }
 
