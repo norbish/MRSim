@@ -45,27 +45,25 @@ public class Main : MonoBehaviour {
             Agx_Simulation.Start(dt);//Starts the sim.
             
             simulation_Started = true;
-
-            SetContactFriction();//if custom contact points: move to MainInitialization().
             CancelInvoke();
             Dynamics.action = "Idle";
         }
         else
         {
-            Clear_Vis();
+           /* Clear_Vis();
             Reset_Opti();
             Agx_Simulation.Stop();
             Agx_Simulation.Start(dt);
             simulation_Started = true;
             SetContactFriction();
             CancelInvoke();
-            Dynamics.action = "Idle";
+            Dynamics.action = "Idle";*/
         }
         //If I start with 3 modules. Then, each time user clicks "Add Module", it adds a new module to the simulation (sim will be started, but not timestep).
 
         //LOAD:
         scenario = Deserialize<Scenario>(Application.streamingAssetsPath + "/XML/Scenario.xml");
-
+        SetContactFriction();
         /* Loading the directories for the object files */
         Load_FrameDirectories(scenario.robot);
 

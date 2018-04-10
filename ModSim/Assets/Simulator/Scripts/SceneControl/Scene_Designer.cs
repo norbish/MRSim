@@ -14,7 +14,7 @@ using System.IO;
 using UnityEditor;
 
 public class Scene_Designer : MonoBehaviour {
-    public GameObject SIMULATOR,CAMERA;
+    public GameObject SIMULATOR, CAMERA;
 
     public InputField left_scale, left_Position_X, left_Position_Y, left_Position_Z, left_Rotation_X, left_Rotation_Y, left_Rotation_Z, left_Material, left_Mass;
 
@@ -37,7 +37,7 @@ public class Scene_Designer : MonoBehaviour {
     string bottomFrame_ObjName = "bottom.obj";
 
     // Use this for initialization
-    void Start ()
+    void Start()
     {
         dir = Application.streamingAssetsPath + "/Robot/";//Get the path of the streaming assets
         upperFrame_ObjName = leftFrame_name.text;
@@ -46,15 +46,15 @@ public class Scene_Designer : MonoBehaviour {
         AddRobot();
         VisualizeScene();
     }
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
+    // Update is called once per frame
+    void Update() {
+
+    }
     /*----------------------------------------------Initializing Simulation-----------------------------------------------*/
     /**-----------------------------------------------Starting simulation-------------------------------------------------*/
     bool StartDesigner = false;
-    
+
     public void InitSimulation()
     {
         if (StartDesigner == false)
@@ -112,7 +112,7 @@ public class Scene_Designer : MonoBehaviour {
         }
 
     }
-    
+
 
     public void StartSimulation()
     {
@@ -158,13 +158,13 @@ public class Scene_Designer : MonoBehaviour {
     {
         if (!opened)
         {
-            FrictPanel.SetActive(true);opened = true;
-        }else
+            FrictPanel.SetActive(true); opened = true;
+        } else
         {
-            FrictPanel.SetActive(false);opened = false;
+            FrictPanel.SetActive(false); opened = false;
         }
     }
-    public InputField[] ContactFriction = new InputField[5];public InputField FricCount;
+    public InputField[] ContactFriction = new InputField[5]; public InputField FricCount;
     int fricCount = 0;
     public void AddContactFriction()
     {
@@ -191,12 +191,12 @@ public class Scene_Designer : MonoBehaviour {
             contactMaterials.Add(c);
             fricCount++;
             FricCount.text = fricCount.ToString();
-            foreach(InputField f in ContactFriction)
+            foreach (InputField f in ContactFriction)
                 f.text = "";
 
-        }catch(Exception )
+        } catch (Exception)
         {
-            EditorUtility.DisplayDialog("Input error!","Text for materials. \nDecimals for coefficients with period, not comma.", "Ok");
+            EditorUtility.DisplayDialog("Input error!", "Text for materials. \nDecimals for coefficients with period, not comma.", "Ok");
         }
 
 
@@ -252,7 +252,7 @@ public class Scene_Designer : MonoBehaviour {
         //if next is a module:
         currentModulePosition.z = currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.0001f;//next module position, relative to previous.
 
-        Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, jointType, leftRangeLimit, rightRangeLimit, maxVelocity,pValue);
+        Simulation_Core.Joint j1 = DefineJoint(f1.guid, f2.guid, jointType, leftRangeLimit, rightRangeLimit, maxVelocity, pValue);
 
         Module module = DefineModule(f1, j1, f2);
         //Which number, for the sensor modules:
@@ -262,7 +262,7 @@ public class Scene_Designer : MonoBehaviour {
         if (module_Count == 0 && SensoryModule_Count == 0)
         {
             robot_ForSerialization.Add_Module(module);
-            
+
         }
         else
             robot_ForSerialization.Add_Module(module, new Simulation_Core.Joint());
@@ -275,7 +275,7 @@ public class Scene_Designer : MonoBehaviour {
     public InputField moduleCount;
     public void ButtonAddModule()
     {
-        
+
         GetFrameValues();
         GetJointValues();
 
@@ -286,9 +286,9 @@ public class Scene_Designer : MonoBehaviour {
             FirstModule = false;
         }
 
-        
 
-        AddModules(module_Count);module_Count++;
+
+        AddModules(module_Count); module_Count++;
 
         moduleCount.text = module_Count.ToString();
 
@@ -302,15 +302,15 @@ public class Scene_Designer : MonoBehaviour {
         PrepareNextCurrentPosition();
 
         //Y should always be rotated, atleast propose it:
-        left_Rotation_Y.text = right_Rotation_Y.text = "-90";l_rot.y = r_rot.y = -90;
+        left_Rotation_Y.text = right_Rotation_Y.text = "-90"; l_rot.y = r_rot.y = -90;
 
         if (module_Count % 2 != 0)
         {
-            left_Rotation_X.text = right_Rotation_X.text = "90";l_rot.x = r_rot.x = 90;
+            left_Rotation_X.text = right_Rotation_X.text = "90"; l_rot.x = r_rot.x = 90;
         }
         else
         {
-            left_Rotation_X.text = right_Rotation_X.text = "0";l_rot.x = r_rot.x = 0;
+            left_Rotation_X.text = right_Rotation_X.text = "0"; l_rot.x = r_rot.x = 0;
         }
 
         ShowCurrentRobotConfig();
@@ -349,7 +349,7 @@ public class Scene_Designer : MonoBehaviour {
     public void ButtonAddSensoryModule()
     {
         //Opens and closes the sensory module panel when needed:
-        if(sm_panelOpen)
+        if (sm_panelOpen)
         {//Closes panel
             if (AddSensoryModule())
                 SensoryModule_Count++;
@@ -358,7 +358,7 @@ public class Scene_Designer : MonoBehaviour {
             sm_panelOpen = false;
             sensorModuleCount.text = SensoryModule_Count.ToString();
             SensorModuleButton.interactable = false;
-        }else
+        } else
         {//Opens panel
             PrepareSMPosition();
             sensoryModulePanel.gameObject.SetActive(true);
@@ -378,7 +378,7 @@ public class Scene_Designer : MonoBehaviour {
             //Ensure the current mesh is calculated:
             RefreshBounds();
 
-            var leftModSize_Z = (l_scale * ((leftBound.max.x + Math.Abs(rightBound.min.x))/2));//length of the left module
+            var leftModSize_Z = (l_scale * ((leftBound.max.x + Math.Abs(rightBound.min.x)) / 2));//length of the left module
 
             if (module_Count == 0 && SensoryModule_Count == 0)
             {
@@ -393,12 +393,19 @@ public class Scene_Designer : MonoBehaviour {
             }
 
             //Create the sensory module:
-            var mod = DefineSensoryModule(module_Count - 1, module_Count, currentModulePosition, sm_size, sm_mass, new AgX_Interface.Quaternion(0,0,0,1), sm_mat);//module count-1 and module count will be the place where sensor module is set.
+            var mod = DefineSensoryModule(module_Count - 1, module_Count, currentModulePosition, sm_size, sm_mass, new AgX_Interface.Quaternion(0, 0, 0, 1), sm_mat);//module count-1 and module count will be the place where sensor module is set.
 
-            /////////////////////////////////////////////////////
-            var fs = DefineForceSensor(0, mod.materialName, 0.1, new AgX_Interface.Vector3(mod.size.x,/*0.002*/0.1,mod.size.z) ,mod.quatRotation);
+            ///////////////////////////Force sensors//////////////////////////
+            ForceSensorInputChanged();
 
-            mod.ConnectSensor(fs);
+            for (int i = 0; i < 4; i++)
+                if (bltr[i].isOn)
+                {
+                    var fs = DefineForceSensor(i, fs_mat, fs_mass, fs_size, mod.quatRotation);
+                    mod.ConnectSensor(fs);
+                }
+
+            
 
             //Debug.Log("Left: " + (module_Count - 1) + ", Right: " + module_Count);
             if (module_Count == 0 && SensoryModule_Count == 0)
@@ -409,7 +416,7 @@ public class Scene_Designer : MonoBehaviour {
                 robot_ForSerialization.Add_SensorModule(new Simulation_Core.Joint(), mod, new Simulation_Core.Joint());
 
             //Position for the next module center:
-            currentModulePosition.z = currentModulePosition.z - sm_size.z  - leftModSize_Z - 0.01f;// currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
+            currentModulePosition.z = currentModulePosition.z - sm_size.z - leftModSize_Z - 0.01f;// currentModulePosition.z - (module_leftEdge - module_rightEdge) - 0.01f;
 
             PrepareNextCurrentPosition();
             return true;
@@ -434,14 +441,14 @@ public class Scene_Designer : MonoBehaviour {
         Ism_leftnr.text = (module_Count - 1).ToString();
         Ism_rightnr.text = module_Count.ToString();
     }
-    
+
     public void RemoveModule()
     {
 
     }
 
     public InputField sceneMaterial, sceneHeight;
-    string s_mat;double s_height;
+    string s_mat; double s_height;
     public void GetSceneValues()
     {
         s_mat = sceneMaterial.text;
@@ -473,14 +480,14 @@ public class Scene_Designer : MonoBehaviour {
         r_mat = right_Material.text;
         double.TryParse(right_Mass.text, out r_mass);
 
-       // Debug.Log("Frames created");
+        // Debug.Log("Frames created");
     }
 
     void GetJointValues()
     {
         jointType = joint_jointType.text;
-        double.TryParse(joint_leftRangeLimit.text, out leftRangeLimit);leftRangeLimit *= ((double)Math.PI/180);//deg to rad
-        double.TryParse(joint_rightRangeLimit.text, out rightRangeLimit); rightRangeLimit *= ((double)Math.PI/180);//deg to rad
+        double.TryParse(joint_leftRangeLimit.text, out leftRangeLimit); leftRangeLimit *= ((double)Math.PI / 180);//deg to rad
+        double.TryParse(joint_rightRangeLimit.text, out rightRangeLimit); rightRangeLimit *= ((double)Math.PI / 180);//deg to rad
         double.TryParse(joint_maxVelocity.text, out maxVelocity);
         double.TryParse(joint_pValue.text, out pValue);
 
@@ -502,7 +509,7 @@ public class Scene_Designer : MonoBehaviour {
             sm_mat = Ism_mat.text;
             double.TryParse(Ism_mass.text, out sm_mass);
             return true;
-        }catch(NullReferenceException)
+        } catch (NullReferenceException)
         {
             //Debug.Log("could not get textbox data");
             return false;
@@ -517,42 +524,42 @@ public class Scene_Designer : MonoBehaviour {
     void ShowCurrentRobotConfig()
     {
         ObjImporter import = new ObjImporter();
-        
+
         //Frame vis reset:
-        for(int i = 0; i<current_frameVis.Count; i++)
+        for (int i = 0; i < current_frameVis.Count; i++)
         {
             current_frameVis[i].Remove();
         }
         current_frameVis.Clear();
 
         //Sensory module vis reset:
-        for(int i = 0; i<current_SMVis.Count; ++i)
+        for (int i = 0; i < current_SMVis.Count; ++i)
         {
             current_SMVis[i].Remove();
         }
         current_SMVis.Clear();
 
         foreach (Module mod in robot_ForSerialization.modules)
-        {   Mesh leftMesh = import.ImportFile(dir + robot_ForSerialization.leftFrameDir);
+        { Mesh leftMesh = import.ImportFile(dir + robot_ForSerialization.leftFrameDir);
             Mesh rightMesh = import.ImportFile(dir + robot_ForSerialization.rightFrameDir);
 
-            current_frameVis.Add(new Unity_Visualization.Frame_Vis(mod.frames[0].guid, leftMesh ,new Vector3((float)mod.frames[0].position.x,(float)mod.frames[0].position.y,(float)mod.frames[0].position.z),mod.frames[0].scale));
+            current_frameVis.Add(new Unity_Visualization.Frame_Vis(mod.frames[0].guid, leftMesh, new Vector3((float)mod.frames[0].position.x, (float)mod.frames[0].position.y, (float)mod.frames[0].position.z), mod.frames[0].scale));
             current_frameVis.Add(new Unity_Visualization.Frame_Vis(mod.frames[1].guid, rightMesh, new Vector3((float)mod.frames[1].position.x, (float)mod.frames[1].position.y, (float)mod.frames[1].position.z), mod.frames[1].scale));
             //Debug.Log("Vert: " + leftMesh.vertices[5] + " |Scale: " + mod.frames[0].scale);
             //Update:
-            foreach(Frame frame in mod.frames)
-            try { current_frameVis.Find(x => x.guid == frame.guid).Update(
-                new Vector3((float)frame.position.x,(float)frame.position.y,(float)frame.position.z), 
-                new Quaternion((float)frame.quatRotation.x,(float)frame.quatRotation.y,(float)frame.quatRotation.z,(float)frame.quatRotation.w), //needs to be in degrees for vis
-                mod.Axis);
+            foreach (Frame frame in mod.frames)
+                try { current_frameVis.Find(x => x.guid == frame.guid).Update(
+                    new Vector3((float)frame.position.x, (float)frame.position.y, (float)frame.position.z),
+                    new Quaternion((float)frame.quatRotation.x, (float)frame.quatRotation.y, (float)frame.quatRotation.z, (float)frame.quatRotation.w), //needs to be in degrees for vis
+                    mod.Axis);
                 }
-            catch (NullReferenceException) { Debug.Log("Could not create frame gameobject."); }
+                catch (NullReferenceException) { Debug.Log("Could not create frame gameobject."); }
         }
 
         //SensoryModules:
-        foreach(Sensor_Module mod in robot_ForSerialization.sensorModules)
+        foreach (Sensor_Module mod in robot_ForSerialization.sensorModules)
         {
-            current_SMVis.Add(new Unity_Visualization.SensorModule_Vis(mod.guid,new Vector3((float)mod.position.x,(float)mod.position.y,(float)mod.position.z),new Vector3((float)mod.size.x,(float)mod.size.y,(float)mod.size.z)));
+            current_SMVis.Add(new Unity_Visualization.SensorModule_Vis(mod.guid, new Vector3((float)mod.position.x, (float)mod.position.y, (float)mod.position.z), new Vector3((float)mod.size.x, (float)mod.size.y, (float)mod.size.z)));
 
         }
 
@@ -568,7 +575,7 @@ public class Scene_Designer : MonoBehaviour {
         if (SM_planned != null)
             if (SM_planned.gameobject.gameObject != null)
             {
-                SM_planned.Remove();SM_planned = null;
+                SM_planned.Remove(); SM_planned = null;
             }
 
         GetFrameValues();
@@ -587,7 +594,7 @@ public class Scene_Designer : MonoBehaviour {
         }
         else
         {
-            left_planned.Update(new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z),new Vector3((float)l_rot.x,(float)l_rot.y,(float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
+            left_planned.Update(new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), new Vector3((float)l_rot.x, (float)l_rot.y, (float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
             right_planned.Update(new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
         }
     }
@@ -599,12 +606,12 @@ public class Scene_Designer : MonoBehaviour {
         if (left_planned != null)
             if (left_planned.gameobject.gameObject != null)
             {
-                left_planned.Remove();left_planned = null;
+                left_planned.Remove(); left_planned = null;
             }
         if (right_planned != null)
             if (right_planned.gameobject.gameObject != null)
             {
-                right_planned.Remove();right_planned = null;
+                right_planned.Remove(); right_planned = null;
             }
 
         GetSensoryModuleValues();
@@ -631,7 +638,7 @@ public class Scene_Designer : MonoBehaviour {
         byte[] bytes = hMap.EncodeToPNG();
         GetSceneValues();
 
-        scene_serialize = DefineScene(bytes, new AgX_Interface.Vector3(-125,0,-125), s_mat, s_height);
+        scene_serialize = DefineScene(bytes, new AgX_Interface.Vector3(-125, 0, -125), s_mat, s_height);
     }
 
     public class OpenTerrain : EditorWindow
@@ -692,7 +699,7 @@ public class Scene_Designer : MonoBehaviour {
     }
     void RemoveSceneVis()
     {
-        if(sceneVis != null)
+        if (sceneVis != null)
         {
             sceneVis.Remove();
             sceneVis = null;
@@ -705,7 +712,7 @@ public class Scene_Designer : MonoBehaviour {
     string savePath;
     public void SaveConfig()//XML
     {
-        savePath = EditorUtility.SaveFilePanel("Save robot config", Application.streamingAssetsPath, "saved_robot","xml");
+        savePath = EditorUtility.SaveFilePanel("Save robot config", Application.streamingAssetsPath, "saved_robot", "xml");
         SIMULATOR.SendMessage("SaveToXml", savePath);
 
     }
@@ -719,25 +726,25 @@ public class Scene_Designer : MonoBehaviour {
         UpdateSimTime();
         SIMULATOR.SendMessage("LoadFromXml", loadPath);
     }
-    
+
     /*-------------------------------------------------Buttons and Inputs-------------------------------------------------*/
     /*---------------------------------------------Change dynamics variables----------------------------------------------*/
     public InputField[] dynVars = new InputField[7];
     double[] d_vars = new double[7];
     public void UpdateMovementVars()
     {
-        for(int i = 0; i<dynVars.Length; i++)
+        for (int i = 0; i < dynVars.Length; i++)
         {
-            Double.TryParse(dynVars[i].text,out d_vars[i]);
+            Double.TryParse(dynVars[i].text, out d_vars[i]);
         }
-        if(d_vars[4] <= 0)
+        if (d_vars[4] <= 0)
         {
             d_vars[4] = 1;
             EditorUtility.DisplayDialog("Movement variable error",
                 "Period must be larger than 0", "Ok");
             SIMULATOR.SendMessage("Pause");
         }
-        SIMULATOR.SendMessage("SetMovementVariables",d_vars);//forward
+        SIMULATOR.SendMessage("SetMovementVariables", d_vars);//forward
     }
     /*-----------------------------------------------Optimization variables-----------------------------------------------*/
     public InputField[] targetPosition = new InputField[3];
@@ -748,7 +755,7 @@ public class Scene_Designer : MonoBehaviour {
         {
             Double.TryParse(targetPosition[i].text, out t_pos[i]);
         }
-        SIMULATOR.SendMessage("SetOptimizationTarget",new AgX_Interface.Vector3(t_pos[0],t_pos[1],t_pos[2]));
+        SIMULATOR.SendMessage("SetOptimizationTarget", new AgX_Interface.Vector3(t_pos[0], t_pos[1], t_pos[2]));
     }
     public InputField[] AxisWeighting = new InputField[3];
     double[] a_weight = new double[3];
@@ -758,7 +765,7 @@ public class Scene_Designer : MonoBehaviour {
         {
             Double.TryParse(AxisWeighting[i].text, out a_weight[i]);
         }
-        SIMULATOR.SendMessage("SetAxisWeighting", new AgX_Interface.Vector3(a_weight[0],a_weight[1],a_weight[2]));
+        SIMULATOR.SendMessage("SetAxisWeighting", new AgX_Interface.Vector3(a_weight[0], a_weight[1], a_weight[2]));
     }
     public InputField[] UpperLimits = new InputField[7];
     public InputField[] LowerLimits = new InputField[7];
@@ -779,7 +786,7 @@ public class Scene_Designer : MonoBehaviour {
     bool[] o_toggled = new bool[7];
     public void UpdateVarsToOptimize()
     {
-        for(int i = 0; i<optiToggle.Length; i++)
+        for (int i = 0; i < optiToggle.Length; i++)
         {
             if (optiToggle[i].isOn)
             {
@@ -794,7 +801,7 @@ public class Scene_Designer : MonoBehaviour {
 
     /*--------------------------------------------Button for finalizing robot---------------------------------------------*/
     public GameObject finalizeButton;
-   
+
     public void ToggleStartButton()
     {
         finalizeButton.SetActive(false);
@@ -818,7 +825,7 @@ public class Scene_Designer : MonoBehaviour {
 
 
     /*--------------------------------------------Field for setting log path----------------------------------------------*/
-    public InputField analyticsPathName,analyticsFileName,Interval;
+    public InputField analyticsPathName, analyticsFileName, Interval;
     void SetAnalyticsPath()
     {
         Analytics_Visualization.Input_Filename = analyticsPathName.text + @"\" + analyticsFileName.text;
@@ -844,7 +851,41 @@ public class Scene_Designer : MonoBehaviour {
         robot_ForSerialization.rightFrameDir = bottomFrame_ObjName;
 
     }
+    /*--------------------------------------------Buttons for Sensor Placement--------------------------------------------*/
+    public Toggle[] bltr = new Toggle[4];//bottom, left, top, right
+    bool[] savedToggles = new bool[4];
+    bool[] newToggles = new bool[4];
+    public void SensoryPlacement()
+    {
+        for(int i = 0; i<4; i++)
+        {
+            if (bltr[i].isOn && !savedToggles[i])
+                newToggles[i] = true;
+            else
+                newToggles[i] = false;
+        }
+        //Make All toggles non-interactable, change value, and then reenable.
+        for (int i = 0; i < 4; i++)
+        {
+            if (newToggles[i])
+                bltr[i].isOn = true;
+            else
+                bltr[i].isOn = false;
+        }
 
+        savedToggles = newToggles;
+
+    }
+    public InputField Fs_Mass,Fs_Mat;public InputField[] Fs_Size = new InputField[3];
+    double fs_mass;string fs_mat; AgX_Interface.Vector3 fs_size = new AgX_Interface.Vector3();
+    public void ForceSensorInputChanged()
+    {
+        double.TryParse(Fs_Mass.text, out fs_mass);
+        fs_mat = Fs_Mat.text;
+        double.TryParse(Fs_Size[0].text, out fs_size.x);
+        double.TryParse(Fs_Size[1].text, out fs_size.y);
+        double.TryParse(Fs_Size[2].text, out fs_size.z);
+    }
     /*------------------------------------------Button for global robot position------------------------------------------*/
     public InputField start_Position_X, start_Position_Y, start_Position_Z;
     AgX_Interface.Vector3 new_robot_pos;
