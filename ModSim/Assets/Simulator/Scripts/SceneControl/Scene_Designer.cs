@@ -63,41 +63,7 @@ public class Scene_Designer : MonoBehaviour {
             //Scene:
             AddTerrain();
 
-            //MAKE INTO SEPARATE FUNCTION(also the other place it is used):
-            for (int i = 0; i < current_frameVis.Count; i++)
-            {
-                current_frameVis[i].Remove();
-                //frameVis.Remove(frameVis[i]);
-            }
-            current_frameVis.Clear();
-
-            for (int i = 0; i < current_SMVis.Count; ++i)
-            {
-                current_SMVis[i].Remove();
-            }
-            current_SMVis.Clear();
-
-
-            if (SM_planned != null)
-                if (SM_planned.gameobject.gameObject != null)
-                {
-                    SM_planned.Remove(); SM_planned = null;
-                }
-
-            if (left_planned != null)
-                if (left_planned.gameobject.gameObject != null)
-                {
-                    left_planned.Remove(); left_planned = null;
-                }
-            if (right_planned != null)
-                if (right_planned.gameobject.gameObject != null)
-                {
-                    right_planned.Remove(); right_planned = null;
-                }
-            if(tmpSceneObjVis != null)
-                tmpSceneObjVis.Remove();
-
-            RemoveSceneVis();
+            DeleteTempData();
 
             //Serializing Robot:
             FinalizeCreation();
@@ -114,6 +80,49 @@ public class Scene_Designer : MonoBehaviour {
             StartDesigner = false;
         }
 
+    }
+
+    private void DeleteTempData()
+    {
+        for (int i = 0; i < current_frameVis.Count; i++)
+        {
+            current_frameVis[i].Remove();
+            //frameVis.Remove(frameVis[i]);
+        }
+        current_frameVis.Clear();
+
+        for (int i = 0; i < current_SMVis.Count; ++i)
+        {
+            current_SMVis[i].Remove();
+        }
+        current_SMVis.Clear();
+
+        foreach (Unity_Visualization.SceneObject_Vis sov in SceneObjectVisualizations)
+            sov.Remove();
+        SceneObjectVisualizations.Clear();
+
+        if (tmpSceneObjVis != null)
+            tmpSceneObjVis.Remove();
+
+
+        if (SM_planned != null)
+            if (SM_planned.gameobject.gameObject != null)
+            {
+                SM_planned.Remove(); SM_planned = null;
+            }
+
+        if (left_planned != null)
+            if (left_planned.gameobject.gameObject != null)
+            {
+                left_planned.Remove(); left_planned = null;
+            }
+        if (right_planned != null)
+            if (right_planned.gameobject.gameObject != null)
+            {
+                right_planned.Remove(); right_planned = null;
+            }
+
+            RemoveSceneVis();
     }
 
 
@@ -730,6 +739,7 @@ public class Scene_Designer : MonoBehaviour {
 
     //Unity_Visualization.SceneObject_Vis sceneObject;
     bool ObjectCreationNext = false;
+    List<Unity_Visualization.SceneObject_Vis> SceneObjectVisualizations = new List<Unity_Visualization.SceneObject_Vis>();
     public void Button_CreateSceneObject()
     {
         //Get values:
@@ -744,6 +754,7 @@ public class Scene_Designer : MonoBehaviour {
         var size = new Vector3((float)sceneObject.size.x, (float)sceneObject.size.y, (float)sceneObject.size.z);
 
         var sceneObjectVis = new Unity_Visualization.SceneObject_Vis(sceneObject.guid, pos, size, sceneObject.shape);
+        SceneObjectVisualizations.Add(sceneObjectVis);
 
         //Update object once:
         var rot = new Quaternion((float)objRot.x, (float)objRot.y, (float)objRot.z, (float)objRot.w);

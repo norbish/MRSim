@@ -15,7 +15,6 @@ using System.IO;
 
 namespace Simulation_Core
 {
-    
 
     public class Scenario
     {
@@ -465,8 +464,13 @@ namespace Simulation_Core
     {
         public Guid guid;
         public int leftMod_Nr, rightMod_Nr;
+        //Force sensor:
         public ForceSensor forceSensor;
+        //Distance sensor:
+        public DistanceSensor distanceSensor;
+        //Sensor locks:
         public Joint sensorLock;public Vector3 lockPosition;
+
         public Vector3 position;
         public Vector3 rotation;
         public Vector3 size;
@@ -499,6 +503,11 @@ namespace Simulation_Core
                         fs.position = position; fs.position.y = position.y - size.y  - fs.size.y / 2 - 0.001;
                         lockPosition = fs.position; lockPosition.y = fs.position.y + fs.size.y/2 + 0.0005;//position of the point where they are locked together.
                         break;//
+                    }
+                case 1:
+                    {
+
+                        break;
                     }
             }
         }
@@ -551,8 +560,17 @@ namespace Simulation_Core
         }
     }
 
-    class DistanceSensor
+    public class DistanceSensor
     {
+        public Guid guid;
+        public Vector3 distanceValue;//private?get?
+        public int sensorPosition;//0 = below, 1 = left, 2 = top, 3 = right;
+        public Vector3 position;
+        public Quaternion rotation;
+        public string materialName;
+        public double mass;
+        public Vector3 size = new Vector3(0.1, 0.01, 0.04);//??
+
         void Initialize()
         {
 
