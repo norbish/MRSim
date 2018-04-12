@@ -15,6 +15,49 @@ namespace Unity_Visualization
         public static bool enabled = false;
     }
 
+    public class SceneObject_Vis
+    {
+        public System.Guid guid;
+        public GameObject gameobject;
+
+        public SceneObject_Vis(System.Guid guid, Vector3 position, Vector3 scale, string shape)
+        {
+            this.guid = guid;
+            switch(shape)
+            {
+                case "Cube": gameobject = GameObject.CreatePrimitive(PrimitiveType.Cube);break;
+                case "Sphere": gameobject = GameObject.CreatePrimitive(PrimitiveType.Sphere); break;
+            }
+            
+            gameobject.name = "SceneObject";
+            MeshRenderer renderer = gameobject.GetComponent<MeshRenderer>();
+
+            renderer.material = new Material(Shader.Find("Diffuse"))
+            {
+                color = Color.gray
+            };
+
+            gameobject.transform.localScale = scale * 2;
+            gameobject.transform.position = position;
+        }
+        public void Update(Vector3 position, Vector3 rotation)//designer
+        {
+            gameobject.transform.position = position;
+            gameobject.transform.eulerAngles = rotation;
+            //gameobject.transform.localScale = size * 2;//*2 for scaling up to AgX size
+        }
+        public void Update(Vector3 position, Quaternion rotation)
+        {
+            gameobject.transform.position = position;
+            gameobject.transform.rotation = rotation;
+        }
+        public void Remove()
+        {
+            GameObject.Destroy(gameobject.gameObject);
+            //this.Dispose();
+        }
+    }
+
     public class ForceSensor_Vis
     {
         public System.Guid guid;
@@ -193,6 +236,7 @@ namespace Unity_Visualization
 
             renderer.material = new Material(Shader.Find("Diffuse"));
             renderer.material.SetTexture("_MainTex", texture);
+            renderer.material.mainTextureScale = new Vector2(0.1f,0.1f);
 
             terrain.GetComponent<MeshFilter>().sharedMesh = mesh;
             //mesh = terrain.GetComponent<MeshFilter>().mesh;

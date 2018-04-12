@@ -212,7 +212,7 @@ namespace AgX_Interface
 
         private agx.RigidBody agx_Object;
 
-        public AgX_Primitive(Guid guid, string shape, Vector3 pos, Quaternion rot, Vector3 size, double mass, string materialName)
+        public AgX_Primitive(Guid guid, string shape, Vector3 pos, Quaternion rot, Vector3 size, double mass, string materialName, bool isStatic)
         {
             this.guid = guid;
             this.shape = shape;
@@ -236,6 +236,9 @@ namespace AgX_Interface
             agx_Object.setLocalRotation(new agx.Quat(rot.x, rot.y, rot.z, rot.w));///AgX
 
             agx_Object.getMassProperties().setMass(mass);
+
+            if(isStatic)
+                agx_Object.setMotionControl(agx.RigidBody.MotionControl.STATIC);
 
             AddToSim();
         }
@@ -683,6 +686,28 @@ namespace AgX_Interface
             while (angle < 0)
                 angle += 360;
             return angle;
+        }
+
+        public static Quaternion FromEulerRad(Vector3 euler)
+        {
+            var yaw = euler.x;
+            var pitch = euler.y;
+            var roll = euler.z;
+            double rollOver2 = roll * 0.5;
+            double sinRollOver2 = System.Math.Sin(rollOver2);
+            double cosRollOver2 = System.Math.Cos(rollOver2);
+            double pitchOver2 = pitch * 0.5f;
+            double sinPitchOver2 = System.Math.Sin(pitchOver2);
+            double cosPitchOver2 = System.Math.Cos(pitchOver2);
+            double yawOver2 = yaw * 0.5f;
+            double sinYawOver2 = System.Math.Sin(yawOver2);
+            double cosYawOver2 = System.Math.Cos(yawOver2);
+            Quaternion result;
+            result.x = sinYawOver2 * cosPitchOver2 * cosRollOver2 + cosYawOver2 * sinPitchOver2 * sinRollOver2; // confirmed (scc+css)
+            result.y = cosYawOver2 * sinPitchOver2 * cosRollOver2 - sinYawOver2 * cosPitchOver2 * sinRollOver2; // confirmed (csc-scs)
+            result.z = cosYawOver2 * cosPitchOver2 * sinRollOver2 - sinYawOver2 * sinPitchOver2 * cosRollOver2; // confirmed (ccs-ssc)
+            result.w = cosYawOver2 * cosPitchOver2 * cosRollOver2 + sinYawOver2 * sinPitchOver2 * sinRollOver2; // confirmed (ccc+sss)
+            return result;
         }
 
         public Vector3 eulerAnglesD()

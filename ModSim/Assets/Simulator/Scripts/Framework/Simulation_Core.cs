@@ -21,6 +21,7 @@ namespace Simulation_Core
     {
         public Robot robot;
         public Scene scene;
+        public List<SceneObject> sceneObjects;
         public List<ContactFriction> contactFrictions;
     }
 
@@ -466,7 +467,6 @@ namespace Simulation_Core
         public int leftMod_Nr, rightMod_Nr;
         public ForceSensor forceSensor;
         public Joint sensorLock;public Vector3 lockPosition;
-
         public Vector3 position;
         public Vector3 rotation;
         public Vector3 size;
@@ -475,6 +475,18 @@ namespace Simulation_Core
         public string materialName;
 
         internal AgX_Primitive agxPrimitive;
+
+        
+
+        public void Initialize()
+        {
+            agxPrimitive = new AgX_Primitive(guid,"Box",position,quatRotation,size,mass,materialName, false);
+            if (forceSensor != null)
+            {
+                forceSensor.Initialize();
+                sensorLock.CreateForceSensorLock(this,forceSensor,lockPosition);
+            }
+        }
 
         public void ConnectSensor(ForceSensor fs)//Pre-initialize
         {
@@ -494,16 +506,6 @@ namespace Simulation_Core
         public Vector3 GetJointForce()
         {
             return sensorLock.agxJoint.GetJointForce(forceSensor.agxSensor);
-        }
-
-        public void Initialize()
-        {
-            agxPrimitive = new AgX_Primitive(guid,"Box",position,quatRotation,size,mass,materialName);
-            if (forceSensor != null)
-            {
-                forceSensor.Initialize();
-                sensorLock.CreateForceSensorLock(this,forceSensor,lockPosition);
-            }
         }
         public void Update()
         {
@@ -557,5 +559,29 @@ namespace Simulation_Core
         }
     }
 
+    public class SceneObject
+    {
+        public Guid guid;
+        public Vector3 size, position;
+        public Vector3 rotation;
+        public Quaternion quatRotation;
+        public string materialName, shape;
+        public double mass;
+        public bool isStatic;
 
+        internal AgX_Primitive agxPrimitive;
+
+        public void Initialize()
+        {
+            agxPrimitive = new AgX_Primitive(guid, shape, position, quatRotation, size, mass, materialName, isStatic);
+        }
+
+        public void Update()
+        {
+            position = agxPrimitive.Get_Position();
+            //rotation = agxPrimitive.Get_Rotation();
+            quatRotation = agxPrimitive.Get_QuatRotation();
+        }
+
+    }
 }

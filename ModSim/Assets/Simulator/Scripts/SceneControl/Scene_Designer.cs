@@ -94,6 +94,8 @@ public class Scene_Designer : MonoBehaviour {
                 {
                     right_planned.Remove(); right_planned = null;
                 }
+            if(tmpSceneObjVis != null)
+                tmpSceneObjVis.Remove();
 
             RemoveSceneVis();
 
@@ -101,6 +103,7 @@ public class Scene_Designer : MonoBehaviour {
             FinalizeCreation();
             SetAnalyticsPath();
             UpdateSimTime();
+            SIMULATOR.SendMessage("TerrainTexture", terrainTexture);
             SIMULATOR.SendMessage("Main_Initialization");
             CAMERA.SendMessage("Initialize");
             StartDesigner = true;
@@ -135,6 +138,7 @@ public class Scene_Designer : MonoBehaviour {
     }
 
     public GameObject robotConfigPanel;
+    List<SceneObject> sceneObjects = new List<SceneObject>();
     List<ContactFriction> contactMaterials = new List<Simulation_Core.ContactFriction>();
     public void FinalizeCreation()
     {
@@ -143,6 +147,7 @@ public class Scene_Designer : MonoBehaviour {
         {
             robot = robot_ForSerialization,
             scene = scene_serialize,
+            sceneObjects = sceneObjects,
             contactFrictions = contactMaterials
 
         };
@@ -150,7 +155,7 @@ public class Scene_Designer : MonoBehaviour {
         //Add to XML file (SERIALIZE):
         Serialize(scenario_serialize);
 
-        Interactable();
+        SetPosAndRotInteractable();
     }
     public GameObject FrictPanel;
     bool opened = false;
@@ -202,7 +207,7 @@ public class Scene_Designer : MonoBehaviour {
 
     }
 
-    void Interactable()
+    void SetPosAndRotInteractable()
     {
         robotConfigPanel.SetActive(false);
 
@@ -230,6 +235,9 @@ public class Scene_Designer : MonoBehaviour {
         Mesh leftMesh = import.ImportFile(dir + upperFrame_ObjName); leftBound = leftMesh.bounds;
         Mesh rightMesh = import.ImportFile(dir + bottomFrame_ObjName); rightBound = rightMesh.bounds;
     }
+
+    /**----------------------------------------------Creating robot objects-----------------------------------------------*/
+    /**--------------------------------------------------Adding module----------------------------------------------------*/
     public void AddModules(int count)
     {
         RefreshBounds();
@@ -643,7 +651,7 @@ public class Scene_Designer : MonoBehaviour {
 
     public class OpenTerrain : EditorWindow
     {
-        public static string terrainPath = "";
+        public static string terrainPath = "";// Application.streamingAssetsPath + @"\Terrain\Terrain2.png";
         //[MenuItem("Example/Overwrite Texture")]
         public static void LOADTerrain()
         {
@@ -660,11 +668,13 @@ public class Scene_Designer : MonoBehaviour {
     Unity_Visualization.Scene_Vis sceneVis;
     Scene sceneVals;
     public GameObject previewImage;
+    string terrainTexture = "sand";
     public void VisualizeScene()
     {
+        GetSceneValues();
         try
         {
-            Texture2D hMap = Resources.Load("terrain") as Texture2D;//Rename to terrain
+            Texture2D hMap = Resources.Load("Terrain") as Texture2D;//Rename to terrain
 
             if (OpenTerrain.terrainPath != "")//if path i set by file browser: upload png.
             {
@@ -684,12 +694,12 @@ public class Scene_Designer : MonoBehaviour {
 
             if (sceneVis == null)//first time scene is loaded
             {
-                sceneVis = new Unity_Visualization.Scene_Vis(sceneVals.guid, AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load("grass") as Texture);
+                sceneVis = new Unity_Visualization.Scene_Vis(sceneVals.guid, AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load(terrainTexture) as Texture);
             }
             else
             {
                 sceneVis.Remove();
-                sceneVis = new Unity_Visualization.Scene_Vis(sceneVals.guid, AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load("grass") as Texture);
+                sceneVis = new Unity_Visualization.Scene_Vis(sceneVals.guid, AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load(terrainTexture) as Texture);
             }
         }
         catch (NullReferenceException)
@@ -706,6 +716,100 @@ public class Scene_Designer : MonoBehaviour {
         }
     }
 
+    /*-----------------------------------------------Objects In the scene-------------------------------------------------*/
+    /*-----------------------------------------------Button create object-------------------------------------------------*/
+    public InputField ObjCount, ObjMat, ObjMass;
+    public Toggle ObjIsStatic;
+    public Dropdown ObjShape;
+    public InputField[] ObjPos = new InputField[3]; public InputField[] ObjRot = new InputField[3]; public InputField[] ObjSize = new InputField[3];
+    int objCount;double objMass;
+    bool objIsStatic;
+    string objShape, objMat;
+    AgX_Interface.Vector3 objPos, objSize;
+    AgX_Interface.Quaternion objRot;
+
+    //Unity_Visualization.SceneObject_Vis sceneObject;
+    bool ObjectCreationNext = false;
+    public void Button_CreateSceneObject()
+    {
+        //Get values:
+        ObjectUpdateValues();
+
+        //Create objects with selected values
+        var sceneObject = DefineSceneObject(objShape, objSize, objPos, objRot, objMat, objMass, objIsStatic);
+        sceneObjects.Add(sceneObject);
+
+        //visualize these values
+        var pos = new Vector3((float)sceneObject.position.x, (float)sceneObject.position.y, (float)sceneObject.position.z);
+        var size = new Vector3((float)sceneObject.size.x, (float)sceneObject.size.y, (float)sceneObject.size.z);
+
+        var sceneObjectVis = new Unity_Visualization.SceneObject_Vis(sceneObject.guid, pos, size, sceneObject.shape);
+
+        //Update object once:
+        var rot = new Quaternion((float)objRot.x, (float)objRot.y, (float)objRot.z, (float)objRot.w);
+        sceneObjectVis.Update(pos,rot);
+
+        ObjCount.text = (objCount++).ToString();
+    }
+    public GameObject SceneObjectPanel;
+    public void TmpVisObjButtonPressed()
+    {
+        if (ObjectCreationNext == false)
+        {
+            SceneObjectPanel.SetActive(true);
+            ObjectCreationNext = true;
+        }
+        else
+        {
+            Button_CreateSceneObject();
+            SceneObjectPanel.SetActive(false);
+            if(tmpSceneObjVis != null)
+                tmpSceneObjVis.Remove();
+            ObjectCreationNext = false;
+        }
+    }
+    Unity_Visualization.SceneObject_Vis tmpSceneObjVis;
+    public void TmpVisualizeSceneObject()
+    {
+        //Get values:
+        ObjectUpdateValues();
+
+        //delete tmp object
+        //object = new visualize tmp object
+        var pos = new Vector3((float)objPos.x, (float)objPos.y, (float)objPos.z);
+        var size = new Vector3((float)objSize.x, (float)objSize.y, (float)objSize.z);
+
+        if (tmpSceneObjVis == null)
+        {
+            tmpSceneObjVis = new Unity_Visualization.SceneObject_Vis(Guid.NewGuid(),pos,size,objShape);
+            
+        }else
+        {
+            tmpSceneObjVis.Remove();
+            tmpSceneObjVis = new Unity_Visualization.SceneObject_Vis(Guid.NewGuid(), pos, size, objShape);
+        }
+        var rot = new Quaternion((float)objRot.x, (float)objRot.y, (float)objRot.z, (float)objRot.w);
+        tmpSceneObjVis.Update(pos, rot);
+    }
+
+    //Retrieve scene object values
+    void ObjectUpdateValues()
+    {
+        int.TryParse(ObjCount.text, out objCount);
+        objMat = ObjMat.text;
+        double.TryParse(ObjMass.text, out objMass);
+        objIsStatic = ObjIsStatic.isOn ? true : false;
+        objShape = ObjShape.captionText.text;
+
+        double.TryParse(ObjPos[0].text, out objPos.x); double.TryParse(ObjPos[1].text, out objPos.y); double.TryParse(ObjPos[2].text, out objPos.z);
+        double.TryParse(ObjSize[0].text, out objSize.x); double.TryParse(ObjSize[1].text, out objSize.y); double.TryParse(ObjSize[2].text, out objSize.z);
+
+        var tmp = new AgX_Interface.Vector3();
+        double.TryParse(ObjRot[0].text, out tmp.x); double.TryParse(ObjRot[1].text, out tmp.y); double.TryParse(ObjRot[2].text, out tmp.z);
+        objRot = AgX_Interface.Quaternion.FromEulerRad(tmp);
+        
+    }
+
 
     /*-----------------------------------------------------Settings-------------------------------------------------------*/
     /*---------------------------------------------------Save Config:-----------------------------------------------------*/
@@ -720,7 +824,7 @@ public class Scene_Designer : MonoBehaviour {
     public void LoadConfig()//XML
     {
         loadPath = EditorUtility.OpenFilePanel("Load robot config", Application.streamingAssetsPath, "xml");
-        Interactable();
+        SetPosAndRotInteractable();
         RemoveSceneVis();
         SetAnalyticsPath();
         UpdateSimTime();
@@ -1011,6 +1115,20 @@ public class Scene_Designer : MonoBehaviour {
             mass = mass,
             size = size,
             rotation = smRot
+        };
+    }
+    SceneObject DefineSceneObject(string shape, AgX_Interface.Vector3 size, AgX_Interface.Vector3 pos, AgX_Interface.Quaternion rot, string mat, double mass, bool isStatic)
+    {
+        return new SceneObject()
+        {
+            guid = Guid.NewGuid(),
+            shape = shape,
+            size = size,
+            position = pos,
+            quatRotation = rot,
+            materialName = mat,
+            mass = mass,
+            isStatic = isStatic
         };
     }
 

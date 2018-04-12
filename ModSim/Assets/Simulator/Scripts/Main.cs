@@ -34,6 +34,7 @@ public class Main : MonoBehaviour {
     }
     
     Scenario scenario = new Scenario();
+    List<SceneObject> sceneObjects = new List<SceneObject>();
     //Robot OriginalRobot = new Robot();
     void Main_Initialization()
     {
@@ -43,46 +44,43 @@ public class Main : MonoBehaviour {
             Clear_Vis();
             Reset_Opti();
             Agx_Simulation.Start(dt);//Starts the sim.
-            
+
             simulation_Started = true;
             CancelInvoke();
             Dynamics.action = "Idle";
-        }
-        else
-        {
-           /* Clear_Vis();
-            Reset_Opti();
-            Agx_Simulation.Stop();
-            Agx_Simulation.Start(dt);
-            simulation_Started = true;
+
+
+            //Load:
+            scenario = Deserialize<Scenario>(Application.streamingAssetsPath + "/XML/Scenario.xml");
+
             SetContactFriction();
-            CancelInvoke();
-            Dynamics.action = "Idle";*/
-        }
-        //If I start with 3 modules. Then, each time user clicks "Add Module", it adds a new module to the simulation (sim will be started, but not timestep).
 
-        //LOAD:
-        scenario = Deserialize<Scenario>(Application.streamingAssetsPath + "/XML/Scenario.xml");
-        SetContactFriction();
-        /* Loading the directories for the object files */
-        Load_FrameDirectories(scenario.robot);
+            // Loading the directories for the object files 
+            Load_FrameDirectories(scenario.robot);
 
-        robot = Load_Robot(scenario.robot);
-        //OriginalRobot = scenario.robot;
+            robot = Load_Robot(scenario.robot);
 
-        scene = new Scene(); Load_Scene(scenario.scene);
+            sceneObjects = LoadSceneObjects(scenario.sceneObjects);
 
-        //SetMovementVariables();
+            scene = new Scene(); Load_Scene(scenario.scene);
 
-        
-        Visualization.enabled = true;
+            //SetMovementVariables();
 
-        if (Visualization.enabled)
-        {
-            Load_Vis();
-            Update_Vis(robot);
+
+            Visualization.enabled = true;
+
+            if (Visualization.enabled)
+            {
+                Load_Vis();
+                Update_Vis(robot);
+            }
         }
         
+    }
+    string terrainTexture = "dirt";
+    public void TerrainTexture(string tex)
+    {
+        terrainTexture = tex;
     }
 
     /*-----------------------------------------------Optimization variables-----------------------------------------------*/
@@ -301,6 +299,17 @@ public class Main : MonoBehaviour {
         
     }
 
+    List<SceneObject> LoadSceneObjects(List<SceneObject> s_obj)
+    {
+        foreach(SceneObject s in s_obj)
+        {
+            s.Initialize();
+        }
+
+        return s_obj;
+
+    }
+
     Scene scene;
     public void Load_Scene(Scene scene)
     {
@@ -315,10 +324,10 @@ public class Main : MonoBehaviour {
         //Frames:
         Load_RobotVis(robot);
         Load_SensorModuleVis(robot);
-        
+        Load_SceneObjectsVis();
 
         //Scene:
-        scene_vis = new Scene_Vis(scene.guid, AgxHelper(scene.vertices), scene.triangles, AgxHelper(scene.uvs), AgxHelper(scene.position), Resources.Load("grass") as Texture);
+        scene_vis = new Scene_Vis(scene.guid, AgxHelper(scene.vertices), scene.triangles, AgxHelper(scene.uvs), AgxHelper(scene.position), Resources.Load(terrainTexture) as Texture);
     }
 
     void Load_RobotVis(Robot robot)
@@ -346,6 +355,14 @@ public class Main : MonoBehaviour {
 
     }
 
+    void Load_SceneObjectsVis()
+    {
+        foreach(SceneObject o in sceneObjects)
+        {
+            sceneObjectVis.Add(new SceneObject_Vis(o.guid,AgxHelper(o.position),AgxHelper(o.size), o.shape));
+        }
+    }
+
     void Clear_Vis()
     {
         foreach (Frame_Vis vis in frameVis)
@@ -360,6 +377,10 @@ public class Main : MonoBehaviour {
             vis.Remove();
         forceSensorVis.Clear();
 
+        foreach (SceneObject_Vis vis in sceneObjectVis)
+            vis.Remove();
+        sceneObjectVis.Clear();
+
         if(scene_vis != null)
             scene_vis.Remove();
     }
@@ -367,6 +388,7 @@ public class Main : MonoBehaviour {
 
     List<SensorModule_Vis> sensorModuleVis = new List<SensorModule_Vis>();
     List<ForceSensor_Vis> forceSensorVis = new List<ForceSensor_Vis>();
+    List<SceneObject_Vis> sceneObjectVis = new List<SceneObject_Vis>();
     List<Frame_Vis> frameVis = new List<Frame_Vis>();
     Scene_Vis scene_vis;
 
@@ -386,6 +408,8 @@ public class Main : MonoBehaviour {
                     Debug.Log("wrong command");
 
             robot.Update();
+            foreach (SceneObject so in sceneObjects)
+                so.Update();
 
             if (Visualization.enabled)
                 Update_Vis(robot);
@@ -545,17 +569,20 @@ public class Main : MonoBehaviour {
             foreach (Frame frame in module.frames)
             {
                 //Retrieves Frameobject with GUID, and updates position,size,rotation:
-                try { frameVis.Find(x => x.guid == frame.guid).Update(AgxHelper(frame.position), AgxHelper(frame.quatRotation),module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid." + e); }
+                try { frameVis.Find(x => x.guid == frame.guid).Update(AgxHelper(frame.position), AgxHelper(frame.quatRotation),module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid. " + e); }
             }
-
-            //try { jointVis.Find(x => x.guid == module.joint.guid).Update(module.joint.Vis_ContactPoints()); } catch(NullReferenceException e) { Debug.Log("Could not find joint with Guid." + e ); }
         }
         foreach(Sensor_Module mod in robot.sensorModules)
         {
-            try { sensorModuleVis.Find(x => x.guid == mod.guid).Update(AgxHelper(mod.position), AgxHelper(mod.quatRotation)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid." + e); }
+            try { sensorModuleVis.Find(x => x.guid == mod.guid).Update(AgxHelper(mod.position), AgxHelper(mod.quatRotation)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid. " + e); }
 
             if (mod.forceSensor != null)
                 try { forceSensorVis.Find(x => x.guid == mod.forceSensor.guid).Update(AgxHelper(mod.forceSensor.position), AgxHelper(mod.forceSensor.rotation)); } catch (NullReferenceException e) { Debug.Log("Could not find Force Sensor with Guid." + e); }
+        }
+
+        foreach(SceneObject so in sceneObjects)
+        {
+            try { sceneObjectVis.Find(x => x.guid == so.guid).Update(AgxHelper(so.position), AgxHelper(so.quatRotation)); } catch (NullReferenceException e) { Debug.Log("Could not find Scene Object with Guid. " + e); }
         }
 
     }
