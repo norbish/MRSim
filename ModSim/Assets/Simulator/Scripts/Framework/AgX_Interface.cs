@@ -15,7 +15,7 @@ namespace AgX_Interface
     public static class AgX_Assembly
     {
         static agxSDK.Assembly robotAssembly = new agxSDK.Assembly();
-        
+
 
         public static void AddToAssembly(agx.RigidBody body)
         {
@@ -47,11 +47,11 @@ namespace AgX_Interface
 
         public static void AddToSim()
         {
-            Agx_Simulation.sim_Instance.add(robotAssembly,true);
+            Agx_Simulation.sim_Instance.add(robotAssembly, true);
         }
         public static void RemoveFromSim()
         {
-            Agx_Simulation.sim_Instance.remove(robotAssembly,true);
+            Agx_Simulation.sim_Instance.remove(robotAssembly, true);
             robotAssembly = new agxSDK.Assembly();
         }
     }
@@ -89,7 +89,7 @@ namespace AgX_Interface
             Joint.asHinge().getMotor1D().setEnable(true);
             Joint.asHinge().getRange1D().setEnable(true);
             //Might want to have this as a modifyable parameter:
-            Joint.asHinge().getRange1D().setRange(leftLimit,rightLimit/*-Math.PI / 2, Math.PI / 2*/);
+            Joint.asHinge().getRange1D().setRange(leftLimit, rightLimit/*-Math.PI / 2, Math.PI / 2*/);
 
             //Joint.asHinge().getMotor1D().setSpeed(0.2f);
         }
@@ -104,7 +104,7 @@ namespace AgX_Interface
         {
             //Creates a joint with a specified middle position for the lockframe.
             //THIS IS NOT THE MIDDLE OF THE LOCK FRAME (frames are longer than sensors)
-            Joint = new agx.LockJoint(right.GetAgxObject(),s_mod.GetAgxObject(),(right.GetAgxObject().getPosition() + s_mod.GetAgxObject().getPosition()).Divide(2));
+            Joint = new agx.LockJoint(right.GetAgxObject(), s_mod.GetAgxObject(), (right.GetAgxObject().getPosition() + s_mod.GetAgxObject().getPosition()).Divide(2));
         }
         public void Create_Lock(string type, AgX_Primitive s_mod, AgX_Frame left)
         {
@@ -126,7 +126,7 @@ namespace AgX_Interface
         {
             agx.Vec3 force = new agx.Vec3();
             agx.Vec3 torque = new agx.Vec3();
-            Joint.getLastForce(fs.GetAgxObject(),force,torque);
+            Joint.getLastForce(fs.GetAgxObject(), force, torque);
             return Operations.FromAgxVec3(force);
         }
         public void Set_Speed(double vel)
@@ -156,7 +156,7 @@ namespace AgX_Interface
         {
             this.guid = guid;
             this.scale = scale;
-            
+
             var dynamicRBGeometry = new agxCollide.Geometry();///AgX
 
             dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(scale)));
@@ -237,7 +237,7 @@ namespace AgX_Interface
 
             agx_Object.getMassProperties().setMass(mass);
 
-            if(isStatic)
+            if (isStatic)
                 agx_Object.setMotionControl(agx.RigidBody.MotionControl.STATIC);
 
             AddToSim();
@@ -289,13 +289,13 @@ namespace AgX_Interface
             this.materialName = materialName;
 
             //scale by 2, to fit unity.
-           /* Vector3[] tmp_verts = vertices;
-            for (int i = 0; i < tmp_verts.Length; i++)
-            {
-                tmp_verts[i].x *= 2;
-                tmp_verts[i].y *= 2;
-                tmp_verts[i].z *= 2;
-            }*/
+            /* Vector3[] tmp_verts = vertices;
+             for (int i = 0; i < tmp_verts.Length; i++)
+             {
+                 tmp_verts[i].x *= 2;
+                 tmp_verts[i].y *= 2;
+                 tmp_verts[i].z *= 2;
+             }*/
 
             var tri = new agxCollide.Trimesh(Operations.ToAgxVec3Vector(vertices), Operations.ToAgxIntVector(triangles), "stdFrame");
             ///Creates a geometry
@@ -321,7 +321,7 @@ namespace AgX_Interface
 
             //UnityEngine.Debug.Log("x: " + y.x + ", y: " + y.y + ", z: " + y.z);
 
-            agx_Object.setLocalRotation(new agx.Quat(rot.x,rot.y,rot.z,rot.w));///AgX
+            agx_Object.setLocalRotation(new agx.Quat(rot.x, rot.y, rot.z, rot.w));///AgX
 
             //agx_Object.setLocalRotation(new agx.EulerAngles(Operations.ToAgxVec3(rot)));///AgX
 
@@ -411,14 +411,15 @@ namespace AgX_Interface
             RemoveSimObjects();
             sim_Instance = null;
             agx.agxSWIG.shutdown();
-            
+
         }
         public static void RemoveSimObjects()
         {
             if (sim_Instance != null)
             {
                 sim_Instance.removeAllObjects();
-            }sim_Instance = null;
+            }
+            sim_Instance = null;
         }
         public static void AddContactMaterial(string a, string b, double restitution, double friction, double youngsModulus)
         {
@@ -434,10 +435,10 @@ namespace AgX_Interface
         }
         public static void Reset()
         {
-            
+
         }
     }
-    
+
     public class Agx_Scene
     {
 
@@ -447,7 +448,7 @@ namespace AgX_Interface
 
         /*--------------------------------------------------Creating terrain--------------------------------------------------*/
         //public void Create_Terrain(Guid guid, string heightmap, Vector3 position, string materialName, double restitution, double friction, double height)
-        public Agx_Scene(Guid guid, List<Vector3> vertices, List<int> triangles,Vector3 position, string materialName, double height)
+        public Agx_Scene(Guid guid, List<Vector3> vertices, List<int> triangles, Vector3 position, string materialName, double height)
         {
             this.guid = guid;
 
@@ -470,13 +471,13 @@ namespace AgX_Interface
             var geometry = new agxCollide.Geometry();
             geometry.add(terrain_trimesh);
             geometry.setMaterial(new agx.Material(materialName));
-            
+
             terrain.add(geometry);
             terrain.setMotionControl(agx.RigidBody.MotionControl.STATIC);
 
             //position.y -= height;
             terrain.setLocalPosition(Operations.ToAgxVec3(position));//move right and -height for global 0
-            
+
             ///Adds terrain to simulation
             //simulation.add(terrain);
             Agx_Simulation.sim_Instance.add(terrain);
@@ -510,7 +511,7 @@ namespace AgX_Interface
         }
         public static agx.Quat ToAgxQuat(Quaternion quat)
         {
-            return new agx.Quat(quat.x,quat.y,quat.z,quat.w);
+            return new agx.Quat(quat.x, quat.y, quat.z, quat.w);
         }
 
         public static agx.Vec3Vector ToAgxVec3Vector(Vector3[] vector3)
@@ -527,7 +528,7 @@ namespace AgX_Interface
         {
             agx.UInt32Vector intVec = integers.Count() > 0 ? new agx.UInt32Vector(integers.Count()) : new agx.UInt32Vector();
 
-            for(int i = 0; i<integers.Count();i++)
+            for (int i = 0; i < integers.Count(); i++)
             {
                 intVec.Add((uint)integers[i]);
             }
@@ -541,6 +542,9 @@ namespace AgX_Interface
     public struct Vector3
     {
         public double x, y, z;
+
+        const double Rad2Deg = (180 / Math.PI);
+        const double Deg2Rad = (Math.PI / 180);
 
         public static Vector3 forward = new Vector3(0, 0, 1);
         public static Vector3 zero = new Vector3(0f, 0f, 0f);
@@ -567,6 +571,17 @@ namespace AgX_Interface
                 a.z = a.z / length;
             }
             return a;
+        }
+
+        public Vector3 toRad()
+        {
+            var v3 = new Vector3();
+
+            v3.x = x * Deg2Rad;
+            v3.y = y * Deg2Rad;
+            v3.z = z * Deg2Rad;
+
+            return v3;
         }
 
         public static Vector3 Lerp(Vector3 a, Vector3 b, double amount)
@@ -743,6 +758,29 @@ namespace AgX_Interface
                 return vector;
             }
         }
+
+        public static Vector3 operator *(Quaternion quat, Vector3 vec)
+        {
+            double num = quat.x * 2f;
+            double num2 = quat.y * 2f;
+            double num3 = quat.z * 2f;
+            double num4 = quat.x * num;
+            double num5 = quat.y * num2;
+            double num6 = quat.z * num3;
+            double num7 = quat.x * num2;
+            double num8 = quat.x * num3;
+            double num9 = quat.y * num3;
+            double num10 = quat.w * num;
+            double num11 = quat.w * num2;
+            double num12 = quat.w * num3;
+            Vector3 result;
+            result.x = (1f - (num5 + num6)) * vec.x + (num7 - num12) * vec.y + (num8 + num11) * vec.z;
+            result.y = (num7 + num12) * vec.x + (1f - (num4 + num6)) * vec.y + (num9 - num10) * vec.z;
+            result.z = (num8 - num11) * vec.x + (num9 + num10) * vec.y + (1f - (num4 + num5)) * vec.z;
+            return result;
+        }
+
     }
+
 }
 

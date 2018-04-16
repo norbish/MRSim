@@ -563,15 +563,58 @@ namespace Simulation_Core
     public class DistanceSensor
     {
         public Guid guid;
-        public Vector3 distanceValue;//private?get?
         public int sensorPosition;//0 = below, 1 = left, 2 = top, 3 = right;
         public Vector3 position;
-        public Quaternion rotation;
-        public string materialName;
-        public double mass;
+        public Vector3 rotation;
+        public Quaternion quatRotation;
         public Vector3 size = new Vector3(0.1, 0.01, 0.04);//??
 
-        void Initialize()
+        public double max_rayDistance;
+        public double min_rayDistance;
+
+        private Vector3 ray_origin;
+        private Vector3 ray_direction;//Rotation?
+        private double hit_distance;
+
+        void Initialize()//will not be in agx
+        {
+
+        }
+
+        void CalculateDistance(List<SceneObject> sceneObjects)
+        {
+            //Initialize with the max value 
+            hit_distance = max_rayDistance;
+            double distance = 0;
+            bool objectHit = false;
+            //while distance < max_rayDistance
+
+            // shoot ray a certrain distance, the direction of ray_direction. 
+            while(distance < max_rayDistance || !objectHit)
+            {
+                distance++;
+                //Direction of the ray
+                var direction = quatRotation * Vector3.forward;
+
+                //New position of the ray
+                var RayPosition = position + direction * (float)distance;
+
+                //check if any objects intersect
+                foreach(SceneObject obj in sceneObjects)
+                {
+                    if(RayHitInside(RayPosition))
+                    {
+                        objectHit = true;
+                    }
+                }
+            }
+
+            
+
+
+        }
+
+        Boolean RayHitInside(Vector3 raypos)
         {
 
         }
