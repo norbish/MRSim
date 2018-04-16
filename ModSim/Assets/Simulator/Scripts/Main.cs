@@ -121,13 +121,15 @@ public class Main : MonoBehaviour {
 
 
     public void StartSim()
-    {
-        simulation_Running = true;
-        //Start either the optimization or the dynamics
-        if(Robot_Optimization.activated)
-            CreateOptimizations();
-        else
-            InvokeRepeating("Update_Sim", 0.01f, dt);
+    {  if (!simulation_Running)
+        {
+            simulation_Running = true;
+            //Start either the optimization or the dynamics
+            if (Robot_Optimization.activated)
+                CreateOptimizations();
+            else
+                InvokeRepeating("Update_Sim", 0.01f, dt);
+        }
     }
     AgX_Interface.Vector3 RobotStartPosition = new AgX_Interface.Vector3();
     public void ChangeInitPos(AgX_Interface.Vector3 pos)
@@ -261,7 +263,8 @@ public class Main : MonoBehaviour {
                 Load_Vis();
                 Update_Vis(robot);
             }
-            finalizeButton.SetActive(false);
+            if(finalizeButton != null)
+                finalizeButton.SetActive(false);
         }
         else
             UnityEditor.EditorUtility.DisplayDialog("Load/Save error!", "Must load before simulation is started", "Ok");
@@ -538,6 +541,9 @@ public class Main : MonoBehaviour {
     {
         if (simulation_Running && Robot_Optimization.activated)
         {
+            if (!Robot_Optimization.started)
+                Robot_Optimization.Load(robot);
+
             CancelInvoke();
             Visualization.enabled = false;
 

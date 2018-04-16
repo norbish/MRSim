@@ -314,6 +314,51 @@ public class Scene_Designer : MonoBehaviour {
 
     }
 
+    public void ButtonAddPitch()
+    {
+        GetFrameValues();
+        GetJointValues();
+
+        l_rot.x = r_rot.x = 0;
+        left_Rotation_X.text = right_Rotation_X.text = "0";
+
+        //Only once:
+        if (FirstModule)
+        {
+            currentModulePosition = r_pos = l_pos;
+            FirstModule = false;
+        }
+
+        AddModules(module_Count); module_Count++;
+
+        moduleCount.text = module_Count.ToString();
+
+        PrepareNextCurrentPosition();
+        Easy_SensorModuleButton.interactable = true;
+    }
+    public void ButtonAddYaw()
+    {
+        GetFrameValues();
+        GetJointValues();
+
+        l_rot.x = r_rot.x = 90;
+        left_Rotation_X.text = right_Rotation_X.text = "90";
+
+        //Only once:
+        if (FirstModule)
+        {
+            currentModulePosition = r_pos = l_pos;
+            FirstModule = false;
+        }
+
+        AddModules(module_Count); module_Count++;
+
+        moduleCount.text = module_Count.ToString();
+
+        PrepareNextCurrentPosition();
+        Easy_SensorModuleButton.interactable = true;
+    }
+
     void PrepareForNextModuleInput()
     {
         PrepareNextCurrentPosition();
@@ -331,7 +376,7 @@ public class Scene_Designer : MonoBehaviour {
         }
 
         ShowCurrentRobotConfig();
-        //Show the robot that will be created if current values are selected:(RUN ONCE)
+        //Show the robot that will be created if current values are selected:
         ShowPlannedModuleConfig();
     }
     void PrepareNextCurrentPosition()
@@ -363,6 +408,7 @@ public class Scene_Designer : MonoBehaviour {
 
     int SensoryModule_Count = 0;
     public Button SensorModuleButton;
+    public Button Easy_SensorModuleButton;
     public void ButtonAddSensoryModule()
     {
         //Opens and closes the sensory module panel when needed:
@@ -375,6 +421,7 @@ public class Scene_Designer : MonoBehaviour {
             sm_panelOpen = false;
             sensorModuleCount.text = SensoryModule_Count.ToString();
             SensorModuleButton.interactable = false;
+            Easy_SensorModuleButton.interactable = false;
         } else
         {//Opens panel
             PrepareSMPosition();
@@ -382,6 +429,18 @@ public class Scene_Designer : MonoBehaviour {
             addSensoryModuleText.text = "Create";
             sm_panelOpen = true;
         }
+    }
+
+    public void Easy_ButtonAddSensoryModule()
+    {
+        if (AddSensoryModule())
+            SensoryModule_Count++;
+        sensoryModulePanel.gameObject.SetActive(false);
+        addSensoryModuleText.text = "Add Sensor Module";
+        sm_panelOpen = false;
+        sensorModuleCount.text = SensoryModule_Count.ToString();
+        SensorModuleButton.interactable = false;
+        Easy_SensorModuleButton.interactable = false;
     }
 
     bool AddSensoryModule()
@@ -763,6 +822,7 @@ public class Scene_Designer : MonoBehaviour {
         ObjCount.text = (objCount++).ToString();
     }
     public GameObject SceneObjectPanel;
+    public GameObject EasySceneObjectPanel;
     public void TmpVisObjButtonPressed()
     {
         if (ObjectCreationNext == false)
@@ -775,6 +835,22 @@ public class Scene_Designer : MonoBehaviour {
             Button_CreateSceneObject();
             SceneObjectPanel.SetActive(false);
             if(tmpSceneObjVis != null)
+                tmpSceneObjVis.Remove();
+            ObjectCreationNext = false;
+        }
+    }
+    public void Easy_TmpVisObjButtonPressed()
+    {
+        if (ObjectCreationNext == false)
+        {
+            EasySceneObjectPanel.SetActive(true);
+            ObjectCreationNext = true;
+        }
+        else
+        {
+            Button_CreateSceneObject();
+            EasySceneObjectPanel.SetActive(false);
+            if (tmpSceneObjVis != null)
                 tmpSceneObjVis.Remove();
             ObjectCreationNext = false;
         }
