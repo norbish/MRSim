@@ -411,16 +411,36 @@ public class Main : MonoBehaviour {
                     Debug.Log("wrong command");
 
             robot.Update();
+            //Update scene objects
             foreach (SceneObject so in sceneObjects)
                 so.Update();
 
+            /*
+            //distancesensor
+            string distances = "";
+            foreach (DistanceSensor ds in robot.sensorModules[0].distanceSensors)
+            {
+                ds.CalculateDistance(sceneObjects);
+                distances += ds.GetSensorDistance().ToString()+",";Debug.Log("working");
+            }
+
+            if(distances !="")
+                Debug.Log(distances);
+                */
+
+            //Update visualization
             if (Visualization.enabled)
                 Update_Vis(robot);
 
-            //Debug.Log(robot.sensorModules[0].GetJointForce().x +","+ robot.sensorModules[0].GetJointForce().y+","+ robot.sensorModules[0].GetJointForce().z);
+            //Debug.Log(robot.sensorModules[0].forceSensor.forceValue);
 
             simulationTime += Time.deltaTime;
         }
+
+        //calculate distances 
+        foreach (Sensor_Module mod in robot.sensorModules)
+            foreach (DistanceSensor ds in mod.distanceSensors)
+                ds.CalculateDistance(sceneObjects);
 
         //IF Analytics checked, saveData.(if count = 10, count = 0 and saveData?)
         int result = Analytics_Visualization.SaveData(robot, Time.time);
@@ -432,7 +452,7 @@ public class Main : MonoBehaviour {
             case 3: break;
             case 4: break;
             case 5: break;
-            case 6: Debug.Log("Read/Write error"); break;
+            case 6: Debug.Log("Read/Write error(folder not existing)"); break;
             case 7: Debug.Log("No Filename"); break;
             default:Debug.Log("Unspecified Error");break;
         }

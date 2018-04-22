@@ -6,7 +6,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine.UI;
 using Simulation_Core;
 
 public static class Analytics_Visualization {
@@ -23,9 +22,13 @@ public static class Analytics_Visualization {
     static Dictionary<string, bool> checklist = new Dictionary<string, bool>()
     {
         {"position",true},
-        {"angle",true}
+        {"angle",true},
+        {"distance",true },
+        {"force",true },
     };
     static double updatedTime = 0;
+
+    /*-------------------------------------Initial setup---------------------*/
     public static int SaveData(Robot robot,double sim_Time/*Seconds*/)
     {
         //check which checkboxes in the analytics popup window are selected, and for(i=0-20?) save the data needed: UpdateCheckboxesChecked()
@@ -33,10 +36,10 @@ public static class Analytics_Visualization {
             return 0;//abort
 
         string data = sim_Time.ToString();
-        int mods = robot.modules.Count;
 
-        foreach (Module mod in robot.modules)
-            foreach (KeyValuePair<string, bool> field in checklist)//each check item
+        //Modules:
+        foreach (Module mod in robot.modules)//one module at a time.
+            foreach (KeyValuePair<string, bool> field in checklist)//each vis item checked.
             {
                 if (field.Value == true)//if checked
                 {
@@ -47,12 +50,33 @@ public static class Analytics_Visualization {
                     }
                 }
             }
+        //Sensory modules:
+        foreach(Sensor_Module mod in robot.sensorModules)
+        {
+            foreach (KeyValuePair<string, bool> field in checklist)//each vis item checked.
+            {
+                if (field.Value == true)//if checked
+                {
+                    switch (field.Key)
+                    {
+                        case "distance":
+                            {
+                                foreach(DistanceSensor ds in mod.distanceSensors)
+                                    data += ";" + ds.GetSensorDistance();
+
+                                break;
+                            }
+                        case "force": if (mod.forceSensor != null) { data += ";" + mod.forceSensor.forceValue; } break;//joint angle + break: ";"
+                    }
+                }
+            }
+        }
         //for each checkarray item:
         //if item.checked
         //datastring += datavalue[i]+";"
 
 
-        int result = SaveToFile(data,mods);
+        int result = SaveToFile(data,robot);
         if (result == 1)
         {
             updatedTime = sim_Time;//Last update time
@@ -67,7 +91,7 @@ public static class Analytics_Visualization {
 
     }
     public static string Input_Filename = @"";
-    public static int SaveToFile(string data,int mod_nr)
+    public static int SaveToFile(string data,Robot robot)
     {
         if (Input_Filename != "")
         {
@@ -76,30 +100,53 @@ public static class Analytics_Visualization {
             //StreamWriter writer = new StreamWriter(path);
             try
             {
-                if (!File.Exists(path))
+                if (!File.Exists(path))//FIRST TIME
                 {
                     File.Create(path).Dispose();
                     var tw = new StreamWriter(path);
 
                     string headers = "Time";
-
-                    for (int i = 0; i < mod_nr; i++)
+                    //Module headers
+                    for (int i = 0; i < robot.modules.Count; i++)
                         foreach (KeyValuePair<string, bool> field in checklist)//each check item
                         {
                             if (field.Value == true)//if checked
                             {
                                 switch (field.Key)
                                 {
-                                    case "position": headers += ";Pos.x;Pos.y;Pos.z"; break;//position value + break: ";"
-                                    case "angle": headers += ";Angle"; break;//joint angle + break: ";"
+                                    case "position": headers += ";mod" + i + " Pos.x"+ ";mod" + i + " Pos.y"+ ";mod" + i + " Pos.z"; break;//position value + break: ";"
+                                    case "angle": headers += ";mod" + i + " Angle"; break;//joint angle + break: ";"
                                 }
                             }
                         }
+                    //sensor module headers
+                    for (int i = 0; i < robot.sensorModules.Count; i++)
+                    {
+                        foreach (KeyValuePair<string, bool> field in checklist)//each check item
+                        {
+                            if (field.Value == true)//if checked
+                            {
+                                switch (field.Key)
+                                {
+                                    case "distance":
+                                        {
+                                            foreach (DistanceSensor ds in robot.sensorModules[i].distanceSensors)
+                                                headers += ";" + "sMod"+i + " distanceSensor" + ds.sensorPosition;
+
+                                            break;
+                                        }
+                                    case "force": if (robot.sensorModules[i].forceSensor != null) { headers += ";" + "sMod" + i + " forceSensor"; } break;//joint angle + break: ";"
+                                }
+                            }
+                        }
+                    }
+                   
+
                     tw.WriteLine(headers);
                     tw.WriteLine(data);
                     tw.Close();
                 }
-                else if (File.Exists(path))
+                else if (File.Exists(path))//nTH TIME
                 {
                     using (var tw = new StreamWriter(path, true))
                     {
@@ -107,7 +154,7 @@ public static class Analytics_Visualization {
                         tw.Close();
                     }
                 }
-            }catch(IOException)
+            }catch(IOException)//Folder not created?
             {
                 return 6;
             }

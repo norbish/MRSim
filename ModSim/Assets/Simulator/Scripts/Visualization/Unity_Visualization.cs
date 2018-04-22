@@ -25,7 +25,7 @@ namespace Unity_Visualization
             this.guid = guid;
             switch(shape)
             {
-                case "Cube": gameobject = GameObject.CreatePrimitive(PrimitiveType.Cube);break;
+                case "Box": gameobject = GameObject.CreatePrimitive(PrimitiveType.Cube);break;
                 case "Sphere": gameobject = GameObject.CreatePrimitive(PrimitiveType.Sphere); break;
             }
             

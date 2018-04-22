@@ -322,7 +322,13 @@ namespace Simulation_Core
         public void CreateForceSensorLock(Sensor_Module sm, ForceSensor fs, Vector3 lockPosition)
         {
             agxJoint = new AgX_Joint(guid);
-            agxJoint.SensorLock(sm.agxPrimitive,fs.agxSensor,lockPosition);
+            agxJoint.ForceSensorLock(sm.agxPrimitive,fs.agxSensor,lockPosition);
+            agxJoint.AddToSim();
+        }
+        public void CreateDistanceSensorLock(Sensor_Module sm, DistanceSensor ds, Vector3 lockPosition)
+        {
+            agxJoint = new AgX_Joint(guid);
+            agxJoint.DistanceSensorLock(sm.agxPrimitive, ds.agxPrimitive, lockPosition);
             agxJoint.AddToSim();
         }
 
@@ -467,9 +473,14 @@ namespace Simulation_Core
         //Force sensor:
         public ForceSensor forceSensor;
         //Distance sensor:
-        public DistanceSensor distanceSensor;
-        //Sensor locks:
-        public Joint sensorLock;public Vector3 lockPosition;
+        //public DistanceSensor distanceSensor;
+
+        /*public Joint distanceSensorLock;*/  public Vector3 distanceLockPosition;
+        //Distance sensor lists:
+        public List<DistanceSensor> distanceSensors = new List<DistanceSensor>();
+        public List<Joint> distanceSensorLocks = new List<Joint>();
+        //ForceSensor locks:
+        public Joint forceSensorLock;public Vector3 forceLockPosition;
 
         public Vector3 position;
         public Vector3 rotation;
@@ -484,45 +495,120 @@ namespace Simulation_Core
 
         public void Initialize()
         {
-            agxPrimitive = new AgX_Primitive(guid,"Box",position,quatRotation,size,mass,materialName, false);
+            agxPrimitive = new AgX_Primitive(guid,"Box",position,quatRotation,size,mass,materialName, false,true);
             if (forceSensor != null)
             {
                 forceSensor.Initialize();
-                sensorLock.CreateForceSensorLock(this,forceSensor,lockPosition);
+                forceSensorLock.CreateForceSensorLock(this,forceSensor,forceLockPosition);
+                forceSensor.fs_Joint = forceSensorLock.agxJoint;//Sets the sensor's lock (need for calculating forces)
+            }
+
+            //distance
+            int count = 0;
+            foreach (DistanceSensor ds in distanceSensors)
+            {
+                ds.Initialize();
+
+                distanceSensorLocks[count].CreateDistanceSensorLock(this, ds, distanceLockPosition);
+                count++;
             }
         }
 
-        public void ConnectSensor(ForceSensor fs)//Pre-initialize
+        public void ConnectForceSensor(ForceSensor fs)//Pre-initialize
         {
             forceSensor = fs;
-            sensorLock = new Joint();
+            forceSensorLock = new Joint();
             switch(fs.sensorPosition)
             {
                 case 0:
                     {
-                        fs.position = position; fs.position.y = position.y - size.y  - fs.size.y / 2 - 0.001;
-                        lockPosition = fs.position; lockPosition.y = fs.position.y + fs.size.y/2 + 0.0005;//position of the point where they are locked together.
+                        fs.position = position; fs.position.y = position.y - size.y  - fs.size.y / 2 - 0.001;//bot position
+                        forceLockPosition = fs.position; forceLockPosition.y = fs.position.y + fs.size.y/2 + 0.0005;//position of the point where they are locked together.
                         break;//
                     }
                 case 1:
                     {
-
+                        fs.position = position; fs.position.x = position.x - size.x - fs.size.x / 2 - 0.001;//left position
+                        forceLockPosition = fs.position; forceLockPosition.x = fs.position.x + fs.size.x / 2 + 0.0005;//position of the point where they are locked together.
+                        break;
+                    }
+                case 2:
+                    {
+                        fs.position = position; fs.position.y = position.y + size.y + fs.size.y / 2 + 0.001;//top position
+                        forceLockPosition = fs.position; forceLockPosition.y = fs.position.y - fs.size.y / 2 - 0.0005;//position of the point where they are locked together.
+                        break;
+                    }
+                case 3:
+                    {
+                        fs.position = position; fs.position.x = position.x + size.x + fs.size.x / 2 + 0.001;//right position
+                        forceLockPosition = fs.position; forceLockPosition.x = fs.position.x - fs.size.x / 2 - 0.0005;//position of the point where they are locked together.
                         break;
                     }
             }
         }
-
-        public Vector3 GetJointForce()
+        public void ConnectDistanceSensors(List<DistanceSensor> distSensors)
         {
-            return sensorLock.agxJoint.GetJointForce(forceSensor.agxSensor);
+            distanceSensors = new List<DistanceSensor>();
+            distanceSensorLocks = new List<Joint>();
+            foreach (DistanceSensor ds in distSensors)
+            {
+                
+                distanceSensorLocks.Add(new Joint());
+                distanceSensors.Add(ds);
+                ds.position = distanceLockPosition = position;UnityEngine.Debug.Log("Working");
+                switch (ds.sensorPosition)
+                {
+                    case 0:
+                        {
+                            ds.ray_direction = new Vector3(0, -1, 0);
+                            break;
+                        }
+                    case 1:
+                        {
+                            ds.ray_direction = new Vector3(-1, 0, 0);
+                            break;
+                        }
+                    case 2:
+                        {
+                            ds.ray_direction = new Vector3(0, 1, 0);
+                            break;
+                        }
+                    case 3:
+                        {
+                            ds.ray_direction = new Vector3(1, 0, 0);
+                            break;
+                        }
+                    case 4:
+                        {
+                            ds.ray_direction = new Vector3(0, 0, 1);
+                            break;
+                        }
+                    case 5:
+                        {
+                            ds.ray_direction = new Vector3(0, 0, -1);
+                            break;
+                        }
+                }
+                
+            }
         }
+
+        /*public Vector3 GetJointForce()
+        {
+            return forceSensorLock.agxJoint.GetJointForce(forceSensor.agxSensor);
+        }*/
         public void Update()
         {
             position = agxPrimitive.Get_Position();
             //rotation = agxPrimitive.Get_Rotation();
             quatRotation = agxPrimitive.Get_QuatRotation();
             if (forceSensor != null)
+            {
                 forceSensor.Update();
+            }
+            if (distanceSensors != null)
+                foreach(DistanceSensor ds in distanceSensors)
+                    ds.Update();
         }
 
         public Vector3 QuatToRot()
@@ -536,7 +622,7 @@ namespace Simulation_Core
     public class ForceSensor
     {
         public Guid guid;
-        public Vector3 forceValue;//private?get?
+        public double forceValue;//private?get?
         public int sensorPosition;//0 = below, 1 = left, 2 = top, 3 = right;
         public Vector3 position;
         public Quaternion rotation;
@@ -544,6 +630,7 @@ namespace Simulation_Core
         public double mass;
         public Vector3 size = new Vector3(0.1,0.01,0.04);//??
 
+        internal AgX_Joint fs_Joint;
         internal AgX_ForceSensor agxSensor;
 
         public void Initialize()
@@ -556,7 +643,7 @@ namespace Simulation_Core
         {
             position = agxSensor.GetPosition();
             rotation = agxSensor.GetRotation();
-            forceValue = agxSensor.GetForce();
+            forceValue = fs_Joint.GetForce();
         }
     }
 
@@ -567,21 +654,35 @@ namespace Simulation_Core
         public Vector3 position;
         public Vector3 rotation;
         public Quaternion quatRotation;
-        public Vector3 size = new Vector3(0.1, 0.01, 0.04);//??
+        public double mass;
+        public Vector3 size = new Vector3(0.01, 0.01, 0.01);//??
 
-        public double max_rayDistance;
-        public double min_rayDistance;
+        public double max_rayDistance = 10;
 
-        private Vector3 ray_origin;
-        private Vector3 ray_direction;//Rotation?
         private double hit_distance;
 
-        void Initialize()//will not be in agx
+        public Vector3 ray_direction;//Rotation?
+        public double ray_Resolution = 0.5;
+
+        internal AgX_Primitive agxPrimitive;
+
+        public void Initialize()
         {
+            agxPrimitive = new AgX_Primitive(guid, "Box", position, quatRotation, size, mass,"Plastic",false,true);
 
         }
 
-        void CalculateDistance(List<SceneObject> sceneObjects)
+        public void Update()
+        {
+            position = agxPrimitive.Get_Position();
+            quatRotation = agxPrimitive.Get_QuatRotation();
+        }
+        public double GetSensorDistance()
+        {
+            return hit_distance;
+        }
+
+        public void CalculateDistance(List<SceneObject> sceneObjects)
         {
             //Initialize with the max value 
             hit_distance = max_rayDistance;
@@ -590,11 +691,15 @@ namespace Simulation_Core
             //while distance < max_rayDistance
 
             // shoot ray a certrain distance, the direction of ray_direction. 
-            while(distance < max_rayDistance || !objectHit)
+            //Direction
+            var direction = quatRotation * ray_direction;//UnityEngine.Debug.Log(direction.x + "," + direction.y + "," + direction.z);
+
+           // List<SceneObject> objectsHit = new List<SceneObject>();
+
+            while (distance < max_rayDistance && objectHit == false)
             {
-                distance++;
-                //Direction of the ray
-                var direction = quatRotation * Vector3.forward;
+                //iterate
+                distance+= ray_Resolution;
 
                 //New position of the ray
                 var RayPosition = position + direction * (float)distance;
@@ -602,21 +707,53 @@ namespace Simulation_Core
                 //check if any objects intersect
                 foreach(SceneObject obj in sceneObjects)
                 {
-                    if(RayHitInside(RayPosition))
+                    if(RayHitInside(obj, RayPosition))
                     {
-                        objectHit = true;
+                        hit_distance = distance;
+                        objectHit = true;//We do not need to check if its the closest object, because the distance variable ensures it is.
                     }
                 }
+               /* if (distance >= 9)
+                    UnityEngine.Debug.Log(distance);*/
             }
-
-            
 
 
         }
 
-        Boolean RayHitInside(Vector3 raypos)
+        Boolean RayHitInside(SceneObject obj, Vector3 raypos)
         {
+            
+            if (obj.shape == "Box")//check boxes
+            {
+                double xmin = obj.position.x - obj.size.x;
+                double xmax = obj.position.x + obj.size.x;
+                double ymin = obj.position.y - obj.size.y;
+                double ymax = obj.position.y + obj.size.y;
+                double zmin = obj.position.z - obj.size.z;
+                double zmax = obj.position.z + obj.size.z;
 
+
+                if (raypos.x < xmin || raypos.y < ymin || raypos.z < zmin || raypos.x > xmax || raypos.y > ymax || raypos.z > zmax)//if point is outside
+                {
+                    return false;
+                }
+            }
+            if (obj.shape == "Sphere")//check spheres
+            {
+                var x = Math.Pow((raypos.x - obj.position.x), 2);
+                var y = Math.Pow((raypos.y - obj.position.y), 2);
+                var z = Math.Pow((raypos.z - obj.position.z), 2);
+                var radius = Math.Pow(((obj.size.x + obj.size.y + obj.size.z) / 3),2);
+
+
+                if (x+y+z > radius)//if point is outside
+                {
+                    return false;
+                }
+            }
+
+            //if it is not outside
+            return true;
         }
     }
 
@@ -634,7 +771,7 @@ namespace Simulation_Core
 
         public void Initialize()
         {
-            agxPrimitive = new AgX_Primitive(guid, shape, position, quatRotation, size, mass, materialName, isStatic);
+            agxPrimitive = new AgX_Primitive(guid, shape, position, quatRotation, size, mass, materialName, isStatic,false);
         }
 
         public void Update()

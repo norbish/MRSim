@@ -112,23 +112,31 @@ namespace AgX_Interface
             Joint = new agx.LockJoint(s_mod.GetAgxObject(), left.GetAgxObject(), (left.GetAgxObject().getPosition() + s_mod.GetAgxObject().getPosition()).Divide(2));
         }
 
-        public void SensorLock(AgX_Primitive sm, AgX_ForceSensor fs, Vector3 lockPosition)
+        public void ForceSensorLock(AgX_Primitive sm, AgX_ForceSensor fs, Vector3 lockPosition)
         {
             Joint = new agx.LockJoint(sm.GetAgxObject(), fs.GetAgxObject(), Operations.ToAgxVec3(lockPosition));
             Joint.setEnableComputeForces(true);
         }
-
+        public void DistanceSensorLock(AgX_Primitive sm, AgX_Primitive ds, Vector3 lockPosition)
+        {
+            Joint = new agx.LockJoint(sm.GetAgxObject(), ds.GetAgxObject(), Operations.ToAgxVec3(lockPosition));
+            Joint.setEnableComputeForces(true);
+        }
+        public double GetForce()
+        {
+            return Joint.getCurrentForce(0);
+        }
         public double Get_Angle()
         {
             return Joint.asHinge().getAngle();
         }
-        public Vector3 GetJointForce(AgX_ForceSensor fs)
+        /*public Vector3 GetJointForce(AgX_ForceSensor fs)
         {
             agx.Vec3 force = new agx.Vec3();
             agx.Vec3 torque = new agx.Vec3();
             Joint.getLastForce(fs.GetAgxObject(), force, torque);
             return Operations.FromAgxVec3(force);
-        }
+        }*/
         public void Set_Speed(double vel)
         {
             Joint.asHinge().getMotor1D().setSpeed(vel);
@@ -176,10 +184,10 @@ namespace AgX_Interface
             Agx_Simulation.sim_Instance.add(agx_Object);
         }
 
-        public Vector3 GetForce()
+       /* public Vector3 GetForce()
         {
             return Operations.FromAgxVec3(agx_Object.getForce());
-        }
+        }*/
 
         public agx.RigidBody GetAgxObject()
         {
@@ -212,7 +220,7 @@ namespace AgX_Interface
 
         private agx.RigidBody agx_Object;
 
-        public AgX_Primitive(Guid guid, string shape, Vector3 pos, Quaternion rot, Vector3 size, double mass, string materialName, bool isStatic)
+        public AgX_Primitive(Guid guid, string shape, Vector3 pos, Quaternion rot, Vector3 size, double mass, string materialName, bool isStatic, bool AddToRobot)
         {
             this.guid = guid;
             this.shape = shape;
@@ -225,6 +233,7 @@ namespace AgX_Interface
             {
                 case "Box": dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(this.size))); break;
                 case "Sphere": dynamicRBGeometry.add(new agxCollide.Sphere((this.size.x + this.size.y + this.size.z) / 3)); break;
+                default: dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(this.size))); break; 
             }
 
             dynamicRBGeometry.setMaterial(new agx.Material(this.materialName));
@@ -240,7 +249,10 @@ namespace AgX_Interface
             if (isStatic)
                 agx_Object.setMotionControl(agx.RigidBody.MotionControl.STATIC);
 
-            AddToSim();
+            if (AddToRobot)
+                AddToSim();
+            else
+                Agx_Simulation.sim_Instance.add(agx_Object);
         }
 
         public Vector3 Get_Position()

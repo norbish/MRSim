@@ -43,6 +43,8 @@ public class Scene_Designer : MonoBehaviour {
         upperFrame_ObjName = leftFrame_name.text;
         bottomFrame_ObjName = rightFrame_name.text;
 
+        SetFileStartPath();
+
         AddRobot();
         VisualizeScene();
     }
@@ -475,12 +477,26 @@ public class Scene_Designer : MonoBehaviour {
             ForceSensorInputChanged();
 
             for (int i = 0; i < 4; i++)
+            {
                 if (bltr[i].isOn)
                 {
                     var fs = DefineForceSensor(i, fs_mat, fs_mass, fs_size, mod.quatRotation);
-                    mod.ConnectSensor(fs);
+                    mod.ConnectForceSensor(fs);
                 }
+            }
 
+            List<DistanceSensor> distSensors = new List<DistanceSensor>();
+
+            for(int i = 0; i<6; i++)
+            {
+                if((bltrfb[i]).isOn)
+                {
+                    distSensors.Add(DefineDistanceSensor(i,10,0.5, "Plastic", 1, new AgX_Interface.Vector3(0.01, 0.01, 0.01) ) );
+                    Debug.Log("Added dist sensor at: " + i);
+                }
+            }
+            //var ds = DefineDistanceSensor(4,"Plastic",1,new AgX_Interface.Vector3(0.01,0.01,0.01));
+            mod.ConnectDistanceSensors(distSensors);
             
 
             //Debug.Log("Left: " + (module_Count - 1) + ", Right: " + module_Count);
@@ -1019,8 +1035,12 @@ public class Scene_Designer : MonoBehaviour {
     public InputField analyticsPathName, analyticsFileName, Interval;
     void SetAnalyticsPath()
     {
-        Analytics_Visualization.Input_Filename = analyticsPathName.text + @"\" + analyticsFileName.text;
+        Analytics_Visualization.Input_Filename = analyticsPathName.text + @"/" + analyticsFileName.text;
         double.TryParse(Interval.text, out Analytics_Visualization.Interval);
+    }
+    void SetFileStartPath()
+    {
+        analyticsPathName.text = Application.streamingAssetsPath+@"/Analytics";
     }
 
     public void ClearFileButton()
@@ -1043,10 +1063,16 @@ public class Scene_Designer : MonoBehaviour {
 
     }
     /*--------------------------------------------Buttons for Sensor Placement--------------------------------------------*/
+    public Toggle[] bltrfb = new Toggle[6];//bottom, left, top, right, front, back
+    /*public void DistanceSensoryPlacement()
+    {
+
+    }*/
+
     public Toggle[] bltr = new Toggle[4];//bottom, left, top, right
     bool[] savedToggles = new bool[4];
     bool[] newToggles = new bool[4];
-    public void SensoryPlacement()
+    public void ForceSensoryPlacement()
     {
         for(int i = 0; i<4; i++)
         {
@@ -1202,6 +1228,18 @@ public class Scene_Designer : MonoBehaviour {
             mass = mass,
             size = size,
             rotation = smRot
+        };
+    }
+    DistanceSensor DefineDistanceSensor(int sensorPosition,double maxDistance, double resolution, string materialName, double mass, AgX_Interface.Vector3 size)
+    {
+        return new DistanceSensor()
+        {
+            guid = Guid.NewGuid(),
+            sensorPosition = sensorPosition,
+            max_rayDistance = maxDistance,
+            ray_Resolution =resolution,
+            mass = mass,
+            size = size
         };
     }
     SceneObject DefineSceneObject(string shape, AgX_Interface.Vector3 size, AgX_Interface.Vector3 pos, AgX_Interface.Quaternion rot, string mat, double mass, bool isStatic)
