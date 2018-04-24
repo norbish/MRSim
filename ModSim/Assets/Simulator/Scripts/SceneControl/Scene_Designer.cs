@@ -11,7 +11,7 @@ using Simulation_Core;
 using System;
 using System.Xml.Serialization;
 using System.IO;
-using UnityEditor;
+//using UnityEditor;
 
 public class Scene_Designer : MonoBehaviour {
     public GameObject SIMULATOR, CAMERA;
@@ -212,7 +212,8 @@ public class Scene_Designer : MonoBehaviour {
 
         } catch (Exception)
         {
-            EditorUtility.DisplayDialog("Input error!", "Text for materials. \nDecimals for coefficients with period, not comma.", "Ok");
+            Debug.Log("Use period instead of comma for decimals.");
+            //EditorUtility.DisplayDialog("Input error!", "Text for materials. \nDecimals for coefficients with period, not comma.", "Ok");
         }
 
 
@@ -733,20 +734,10 @@ public class Scene_Designer : MonoBehaviour {
         scene_serialize = DefineScene(bytes, new AgX_Interface.Vector3(-125, 0, -125), s_mat, s_height);
     }
 
-    public class OpenTerrain : EditorWindow
-    {
-        public static string terrainPath = "";// Application.streamingAssetsPath + @"\Terrain\Terrain2.png";
-        //[MenuItem("Example/Overwrite Texture")]
-        public static void LOADTerrain()
-        {
-            terrainPath = EditorUtility.OpenFilePanel("Upload a PNG file", Application.streamingAssetsPath, "png");
-            Debug.Log(terrainPath);
-
-        }
-    }
+    string terrainPath = "";// Application.streamingAssetsPath + @"\Terrain\Terrain2.png";
+    
     public void LoadTerrainButton()
     {
-        OpenTerrain.LOADTerrain();
         VisualizeScene();
     }
     Unity_Visualization.Scene_Vis sceneVis;
@@ -758,13 +749,16 @@ public class Scene_Designer : MonoBehaviour {
         GetSceneValues();
         try
         {
+            terrainPath = Application.streamingAssetsPath + @"\Terrain\" + HeightMapSelection.text;
+            Debug.Log(terrainPath);
+
             Texture2D hMap = Resources.Load("Terrain") as Texture2D;//Rename to terrain
 
-            if (OpenTerrain.terrainPath != "")//if path i set by file browser: upload png.
+            if (terrainPath != "")//if path i set by file browser: upload png.
             {
-                var fileContent = File.ReadAllBytes(OpenTerrain.terrainPath);
+                var fileContent = File.ReadAllBytes(terrainPath);
                 hMap.LoadImage(fileContent);
-                HeightMapSelection.text = OpenTerrain.terrainPath;
+                //HeightMapSelection.text = terrainPath;
             }
 
             RawImage img = previewImage.GetComponent<RawImage>();
@@ -916,22 +910,25 @@ public class Scene_Designer : MonoBehaviour {
 
     /*-----------------------------------------------------Settings-------------------------------------------------------*/
     /*---------------------------------------------------Save Config:-----------------------------------------------------*/
+    public InputField SavePath;
     string savePath;
     public void SaveConfig()//XML
     {
-        savePath = EditorUtility.SaveFilePanel("Save robot config", Application.streamingAssetsPath, "saved_robot", "xml");
+        savePath = Application.streamingAssetsPath + @"\"+ SavePath.text; //EditorUtility.SaveFilePanel("Save robot config", Application.streamingAssetsPath, "saved_robot", "xml");
         SIMULATOR.SendMessage("SaveToXml", savePath);
 
     }
+    public InputField LoadPath;
     string loadPath;
     public void LoadConfig()//XML
     {
-        loadPath = EditorUtility.OpenFilePanel("Load robot config", Application.streamingAssetsPath, "xml");
+        loadPath = Application.streamingAssetsPath + @"\" + LoadPath.text; //EditorUtility.OpenFilePanel("Load robot config", Application.streamingAssetsPath, "xml");
         SetPosAndRotInteractable();
         RemoveSceneVis();
         SetAnalyticsPath();
         UpdateSimTime();
         SIMULATOR.SendMessage("LoadFromXml", loadPath);
+        CAMERA.SendMessage("Initialize");
     }
 
     /*-------------------------------------------------Buttons and Inputs-------------------------------------------------*/
@@ -947,8 +944,9 @@ public class Scene_Designer : MonoBehaviour {
         if (d_vars[4] <= 0)
         {
             d_vars[4] = 1;
-            EditorUtility.DisplayDialog("Movement variable error",
-                "Period must be larger than 0", "Ok");
+            Debug.Log("Period must be larger than 0");
+            //EditorUtility.DisplayDialog("Movement variable error",
+                //"Period must be larger than 0", "Ok");
             SIMULATOR.SendMessage("Pause");
         }
         SIMULATOR.SendMessage("SetMovementVariables", d_vars);//forward

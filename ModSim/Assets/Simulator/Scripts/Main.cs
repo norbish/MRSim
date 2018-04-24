@@ -220,10 +220,10 @@ public class Main : MonoBehaviour {
     }
     public void SaveToXml(string path)
     {
-        if(simulation_Started)
-            Serialize(scenario,path);
+        if (simulation_Started)
+            Serialize(scenario, path);
         else
-            UnityEditor.EditorUtility.DisplayDialog("Load/Save error!","Robot must be finalized.", "Ok");
+            Debug.Log("Robot must be finalized!");
     }
     public GameObject finalizeButton;
     public void LoadFromXml(string path)
@@ -240,13 +240,23 @@ public class Main : MonoBehaviour {
 
             simulation_Started = true;
 
+            try { scenario = Deserialize<Scenario>(path); }
+            catch (FileNotFoundException e)
+            {
+                Debug.Log("Scenario not found! " + e);
+                AgX_Interface.AgX_Assembly.RemoveFromSim();
+                AgX_Interface.Agx_Simulation.Stop();
+                UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+            }
+
+
             SetContactFriction();//if custom contact points: move to MainInitialization().
             CancelInvoke();
             Dynamics.action = "Idle";
 
             //scenario = Deserialize<Scenario>(Application.streamingAssetsPath + "/XML/Scenario.xml");
 
-            try { scenario = Deserialize<Scenario>(path); }catch(Exception e) { Debug.Log("Path Error! " + e); }
+            
 
             robot = Load_Robot(scenario.robot);
 
@@ -263,11 +273,11 @@ public class Main : MonoBehaviour {
                 Load_Vis();
                 Update_Vis(robot);
             }
-            if(finalizeButton != null)
+            if (finalizeButton != null)
                 finalizeButton.SetActive(false);
         }
         else
-            UnityEditor.EditorUtility.DisplayDialog("Load/Save error!", "Must load before simulation is started", "Ok");
+            Debug.Log("Must load before simulation is started");//UnityEditor.EditorUtility.DisplayDialog("Load/Save error!", "Must load before simulation is started", "Ok");
 
 
     }

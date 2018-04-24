@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657868, g: 0.49641263, b: 0.57481706, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -861,11 +861,11 @@ RectTransform:
   m_Children:
   - {fileID: 1682827293}
   m_Father: {fileID: 1789621219}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 102.69994}
+  m_AnchoredPosition: {x: 0, y: 95.5}
   m_SizeDelta: {x: 100, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &27028148
@@ -5684,7 +5684,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Browse
+  m_Text: Update
 --- !u!222 &170793755
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -12080,6 +12080,8 @@ MonoBehaviour:
   - {fileID: 1728029958}
   SceneObjectPanel: {fileID: 78157621}
   EasySceneObjectPanel: {fileID: 632945192}
+  SavePath: {fileID: 1685190056}
+  LoadPath: {fileID: 891412884}
   dynVars:
   - {fileID: 595456757}
   - {fileID: 1357605651}
@@ -17362,7 +17364,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Terrain
+  m_Text: Terrain.png
 --- !u!1 &577550751
 GameObject:
   m_ObjectHideFlags: 0
@@ -26456,7 +26458,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Browse
+  m_Text: Update
 --- !u!222 &859273350
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -27519,7 +27521,7 @@ GameObject:
   - component: {fileID: 891412885}
   - component: {fileID: 891412884}
   m_Layer: 5
-  m_Name: rightFrame
+  m_Name: LoadLocation
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -27542,7 +27544,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -132}
+  m_AnchoredPosition: {x: 0, y: -147.23}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &891412884
@@ -27579,7 +27581,7 @@ MonoBehaviour:
     m_HighlightedTrigger: Highlighted
     m_PressedTrigger: Pressed
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 891412885}
   m_TextComponent: {fileID: 1941638400}
   m_Placeholder: {fileID: 680930721}
@@ -27604,7 +27606,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: bottom.obj
+  m_Text: Scenario1.xml
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 1
@@ -29051,7 +29053,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: Terrain
+  m_Text: Terrain.png
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -35183,7 +35185,7 @@ MonoBehaviour:
   m_Interactable: 1
   m_TargetGraphic: {fileID: 660568243}
   m_HandleRect: {fileID: 660568242}
-  m_Direction: 0
+  m_Direction: 1
   m_Value: 0.501
   m_Size: 0.2
   m_NumberOfSteps: 0
@@ -35861,7 +35863,7 @@ RectTransform:
   m_LocalScale: {x: 3.9999435, y: 1.9999717, z: 1}
   m_Children: []
   m_Father: {fileID: 1789621219}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -35893,7 +35895,7 @@ MonoBehaviour:
     m_FontSize: 24
     m_FontStyle: 1
     m_BestFit: 1
-    m_MinSize: 10
+    m_MinSize: 0
     m_MaxSize: 40
     m_Alignment: 1
     m_AlignByGeometry: 0
@@ -35901,7 +35903,9 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "Save \n(after design finished)"
+  m_Text: 'Save to StreamAssets
+
+    (after design finished)'
 --- !u!222 &1130915686
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -40527,11 +40531,11 @@ RectTransform:
   m_Children:
   - {fileID: 1428049283}
   m_Father: {fileID: 1789621219}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -70.90004}
+  m_AnchoredPosition: {x: 0, y: -85.5}
   m_SizeDelta: {x: 100, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1283291245
@@ -44766,7 +44770,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Browse
+  m_Text: Load
 --- !u!222 &1428049285
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -52631,7 +52635,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Browse
+  m_Text: Save
 --- !u!222 &1682827295
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -52651,7 +52655,7 @@ GameObject:
   - component: {fileID: 1685190057}
   - component: {fileID: 1685190056}
   m_Layer: 5
-  m_Name: leftFrame
+  m_Name: SaveLocation
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -52674,7 +52678,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 40.599937}
+  m_AnchoredPosition: {x: 0, y: 36.3}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1685190056
@@ -52697,7 +52701,7 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_HighlightedColor: {r: 1, g: 1, b: 1, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
@@ -52711,7 +52715,7 @@ MonoBehaviour:
     m_HighlightedTrigger: Highlighted
     m_PressedTrigger: Pressed
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 1685190057}
   m_TextComponent: {fileID: 1995058441}
   m_Placeholder: {fileID: 1126486559}
@@ -52736,7 +52740,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 0.65882355, g: 0.80784315, b: 1, a: 0.7529412}
-  m_Text: upper.obj
+  m_Text: Scenario1.xml
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 1
@@ -56336,11 +56340,11 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 27028147}
   - {fileID: 1130915684}
+  - {fileID: 27028147}
   - {fileID: 1685190055}
-  - {fileID: 1283291244}
   - {fileID: 2129228382}
+  - {fileID: 1283291244}
   - {fileID: 891412883}
   m_Father: {fileID: 1823032380}
   m_RootOrder: 4
@@ -60739,7 +60743,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: bottom.obj
+  m_Text: Scenario1.xml
 --- !u!222 &1941638401
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -61765,7 +61769,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: upper.obj
+  m_Text: Scenario1.xml
 --- !u!222 &1995058442
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -65956,12 +65960,12 @@ RectTransform:
   m_LocalScale: {x: 3.9999435, y: 1.9999717, z: 1}
   m_Children: []
   m_Father: {fileID: 1789621219}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -18.6}
-  m_SizeDelta: {x: 158.3, y: 29.1}
+  m_AnchoredPosition: {x: 0, y: -25.5}
+  m_SizeDelta: {x: 162.4, y: 29.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2129228383
 MonoBehaviour:
@@ -65996,7 +66000,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Load
+  m_Text: 'Load from StreamAssets
 
     (before design finished)'
 --- !u!222 &2129228384

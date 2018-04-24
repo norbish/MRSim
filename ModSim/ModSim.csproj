@@ -305,7 +305,7 @@
   <ItemGroup>
     <None Include="Assets\StreamingAssets\XML\Scenario.xml" />
     <None Include="Assets\StreamingAssets\saved_robot.xml" />
-    <None Include="Assets\StreamingAssets\saved_robot2.xml" />
+    <None Include="Assets\StreamingAssetsScenario1.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
