@@ -302,7 +302,7 @@ public class Main : MonoBehaviour {
         //SET MESH 
         foreach (Module mod in robot.modules)
         {
-            mod.frames[0].setMesh(AgxHelper(leftMesh.vertices),AgxHelper(leftMesh.uv),leftMesh.triangles); mod.frames[1].setMesh(AgxHelper(rightMesh.vertices),AgxHelper(rightMesh.uv),rightMesh.triangles);
+            mod.frames[0].SetMesh(AgxHelper(leftMesh.vertices),AgxHelper(leftMesh.uv),leftMesh.triangles); mod.frames[1].SetMesh(AgxHelper(rightMesh.vertices),AgxHelper(rightMesh.uv),rightMesh.triangles);
             
         }
         //Creates AgX objects and joint connections:
@@ -605,7 +605,7 @@ public class Main : MonoBehaviour {
             foreach (Frame frame in module.frames)
             {
                 //Retrieves Frameobject with GUID, and updates position,size,rotation:
-                try { frameVis.Find(x => x.guid == frame.guid).Update(AgxHelper(frame.position), AgxHelper(frame.quatRotation),module.Axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid. " + e); }
+                try { frameVis.Find(x => x.guid == frame.guid).Update(AgxHelper(frame.position), AgxHelper(frame.quatRotation),module.axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid. " + e); }
             }
         }
         foreach(Sensor_Module mod in robot.sensorModules)

@@ -278,7 +278,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
             {
                 period[i] = _period;
 
-                if (robot.modules[i].Axis == "Pitch")
+                if (robot.modules[i].axis == "Pitch")
                 {
                     amplitudes[i] = _ampPitch;
                     phaseDiff[i] = 0;// _phaseDiffPitch;
@@ -297,7 +297,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
                 {
                     if (j > 1)//Not taking into account the first pitch and first yaw which should be 0
                     {
-                        if (robot.modules[j].Axis == "Pitch")
+                        if (robot.modules[j].axis == "Pitch")
                             phaseDiff[j] = phaseDiff[j - 2] + _phaseOffsetPitch;
                         else
                             phaseDiff[j] = phaseDiff[j - 2] + _phaseOffsetYaw;
@@ -322,18 +322,18 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
 
             for (int i = 0; i < robot.modules.Count; i++)
             {
-                if (robot.modules[i].Axis == "Pitch")
+                if (robot.modules[i].axis == "Pitch")
                 {
 
                     angle = amplitudes[i] * Math.Sin(2 * Math.PI * t / period[i] + phaseDiff[i]) + offset[i]; //Angle = amplitude + sin(2pi * t / period + phase diff) + offset
-                    robot.modules[i].joint.MOVE(angle);
+                    robot.modules[i].joint.SetAngle(angle);
                 }
                 //Reduntant, dont need the IFs
-                if (robot.modules[i].Axis == "Yaw")
+                if (robot.modules[i].axis == "Yaw")
                 {
 
                     angle = amplitudes[i] * Math.Sin(2 * Math.PI * t / period[i] + phaseDiff[i]) + offset[i]; //Angle = amplitude + sin(2pi * t / period + phase diff) + offset
-                    robot.modules[i].joint.MOVE(angle);
+                    robot.modules[i].joint.SetAngle(angle);
                 }
             }
         }

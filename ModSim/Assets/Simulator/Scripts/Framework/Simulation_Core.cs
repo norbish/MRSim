@@ -24,11 +24,7 @@ namespace Simulation_Core
         public List<ContactFriction> contactFrictions;
     }
 
-    public class ContactFriction
-    {
-        public string material1, material2;
-        public double restitution, friction, youngsModulus;
-    }
+   
 
 
     [XmlRoot("Robot", Namespace = "Assembly")]
@@ -46,14 +42,14 @@ namespace Simulation_Core
         {
             modules.Add(module);
 
-            module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
+            module.axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
         }
         public void Add_Module(Module module, Joint lockjoint)
         {
             modules.Add(module);
             locks.Add(lockjoint);
 
-            module.Axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
+            module.axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
         }
 
         public void Add_SensorModule(Sensor_Module module, Joint r_lockjoint)
@@ -171,11 +167,11 @@ namespace Simulation_Core
     {
         public int mod_Nr;
         public Vector3 position;
-        public string Axis;
+        public string axis;
         public Frame[] frames = new Frame[2];
         public Joint joint;
 
-        public double z_leftEdge, z_rightEdge, top, bot;
+        //public double z_leftEdge, z_rightEdge, top, bot;
 
         public void Create(Frame left, Joint joint, Frame right)//Creates are for Scene designer, Initialize is for simulator
         {
@@ -221,7 +217,7 @@ namespace Simulation_Core
         public Vector3 rotation;
         public Quaternion quatRotation;
         public double mass;
-        public Boolean isStatic;
+        public bool isStatic;
         public string materialName;
 
         public Vector3[] meshVertices; public Vector2[] meshUvs; public int[] meshTriangles;
@@ -257,7 +253,7 @@ namespace Simulation_Core
         {
             return quatRotation;
         }
-        public void setMesh(Vector3[] vertices, Vector2[] uvs, int[] triangles)
+        public void SetMesh(Vector3[] vertices, Vector2[] uvs, int[] triangles)
         {
             meshVertices = vertices;
             meshUvs = uvs;
@@ -275,8 +271,7 @@ namespace Simulation_Core
     {
         public Guid guid, leftFrameGuid, rightFrameGuid;
         public string type;
-        public Vector3 mid_Position;
-        public double leftRangeLimit, rightRangeLimit;
+        public double lowerRangeLimit, upperRangeLimit;
 
         /*Alternative:*/
         public double Kp = 3;
@@ -292,7 +287,7 @@ namespace Simulation_Core
             agxJoint = new AgX_Joint(guid);
 
             //Add joint between top and bottom frame
-            agxJoint.Create_Hinge("Hinge", left.agxFrame, right.agxFrame, leftRangeLimit, rightRangeLimit);
+            agxJoint.Create_Hinge("Hinge", left.agxFrame, right.agxFrame, lowerRangeLimit, upperRangeLimit);
             agxJoint.AddToSim();
         }
         public void Create_Lock(Frame left, Frame right)
@@ -319,20 +314,20 @@ namespace Simulation_Core
         }
 
         /*-------------------------------------------------Force Sensors:-------------------------------------------------*/
-        public void CreateForceSensorLock(Sensor_Module sm, ForceSensor fs, Vector3 lockPosition)
+        public void Create_ForceSensorLock(Sensor_Module sm, ForceSensor fs, Vector3 lockPosition)
         {
             agxJoint = new AgX_Joint(guid);
             agxJoint.ForceSensorLock(sm.agxPrimitive,fs.agxSensor,lockPosition);
             agxJoint.AddToSim();
         }
-        public void CreateDistanceSensorLock(Sensor_Module sm, DistanceSensor ds, Vector3 lockPosition)
+        public void Create_DistanceSensorLock(Sensor_Module sm, DistanceSensor ds, Vector3 lockPosition)
         {
             agxJoint = new AgX_Joint(guid);
             agxJoint.DistanceSensorLock(sm.agxPrimitive, ds.agxPrimitive, lockPosition);
             agxJoint.AddToSim();
         }
 
-        public void MOVE(double requested_angle)
+        public void SetAngle(double requested_angle)
         {
             double error = requested_angle - agxJoint.Get_Angle();//Expand to pid if required later?
 
@@ -355,10 +350,6 @@ namespace Simulation_Core
             else
                 agxJoint.Set_Speed(Kp * error);
         }
-        public void Reset_Angle()
-        {
-
-        }
 
         public double GetAngle()
         {
@@ -369,118 +360,29 @@ namespace Simulation_Core
         {
             //mid_Position = left.position - left.GetQuatRot() * Vector3.forward;// * left.scale.z;
         }
-
-        public Vector3[] Vis_ContactPoints()
-        {
-            Vector3 p_left = left.position; //left.position.x + Math.Sign((left.position - this.position).magnitude) * left.size;
-
-            //mid_Position = left.position - left.GetQuatRot() * Vector3.forward;// *left.scale.z ;//Returns the position of lock
-            //Vector3 p_right = new Vector3(right.position.x, right.position.y, right.position.z + right.size.z / 2);
-            Vector3 p_right = right.position;//insert angle insteadd of 45
-
-            return new Vector3[3]{p_left,mid_Position,p_right};
-        }
     }
 
 
-    public class Scene
-    {
-        public Guid guid;
-        public string height_Image;
-
-        public List<Vector3> vertices = new List<Vector3>();
-        public List<int> triangles = new List<int>();
-        public Vector2[] uvs;
-
-        public Vector3 position;
-        public string materialName;
-        public double height;
-        //Water
-        //Air
-
-        Agx_Scene scene;
-        public void Create()
-        {
-            //position.y += height/2;
-            TerrainFromImage();//Loads the heightmap
-
-            scene = new Agx_Scene(guid, vertices, triangles, position, materialName, height);
-
-        }
-
-        private void TerrainFromImage()
-
-        {
-            // Modified from: https://answers.unity.com/questions/1033085/heightmap-to-mesh.html
-            //Unity:
-            /*Texture2D heightMap = new Texture2D(250, 250);
-            heightMap.LoadImage(Convert.FromBase64String(height_Image));*/
-
-            //C#,Visual Studio
-            Bitmap heightMap = new Bitmap(250, 250);//What will this be..?
-            using (var ms = new MemoryStream(Convert.FromBase64String(height_Image)))//C#/Visual Studio
-            {
-                heightMap = new Bitmap(ms);
-            }
-
-            //Bottom left section of the map, other sections are similar
-            for (int i = 0; i < 250; i++)
-            {
-                for (int j = 0; j < 250; j++) //OUTER PIXELS MUST BE 0, fix
-                {
-                    //Add each new vertex in the plane
-                    if (i < heightMap.Width && j < heightMap.Height)
-                    {
-                        vertices.Add(new Vector3(i, heightMap.GetPixel(i, j).R * height / 255.0f, j));// dibide by 255 to get the normalized size, and multiply by height
-                    }
-                    else
-                        vertices.Add(new Vector3(i, 0, j));// dibide by 255 to get the normalized size, and multiply by height
-
-                        //Skip if a new square on the plane hasn't been formed
-                        if (i == 0 || j == 0||i==249||j==249) continue;
-                        //Adds the index of the three vertices in order to make up each of the two tris
-                        triangles.Add(250 * i + j); //Top right
-                        triangles.Add(250 * i + j - 1); //Bottom right
-                        triangles.Add(250 * (i - 1) + j - 1); //Bottom left - First triangle
-                        triangles.Add(250 * (i - 1) + j - 1); //Bottom left 
-                        triangles.Add(250 * (i - 1) + j); //Top left
-                        triangles.Add(250 * i + j); //Top right - Second triangle
-
-                }
-            }
-
-            uvs = new Vector2[vertices.Count];
-            for (var i = 0; i < uvs.Length; i++) //Give UV coords X,Z world coords
-                uvs[i] = new Vector2(vertices[i].x, vertices[i].z);
-
-        }
-
-        public void CreateMesh()
-        {
-            TerrainFromImage();
-        }
-
-        void Add()
-        {
-            //scenario.Add_Rb();
-        }
-    }
+    
 
     public class Sensor_Module //Square
     {
         public Guid guid;
         public int leftMod_Nr, rightMod_Nr;
+        
         //Force sensor:
         public ForceSensor forceSensor;
-        //Distance sensor:
-        //public DistanceSensor distanceSensor;
-
-        /*public Joint distanceSensorLock;*/  public Vector3 distanceLockPosition;
+        //ForceSensor locks:
+        public Joint forceSensorLock;
+        //Force sensor position:
+        public Vector3 forceLockPosition;
+        
         //Distance sensor lists:
         public List<DistanceSensor> distanceSensors = new List<DistanceSensor>();
+        //Distance sensor positions:
+        public Vector3 distanceLockPosition;
+        //Distance sensor locks:
         public List<Joint> distanceSensorLocks = new List<Joint>();
-        //ForceSensor locks:
-        public Joint forceSensorLock;public Vector3 forceLockPosition;
 
         public Vector3 position;
         public Vector3 rotation;
@@ -491,15 +393,13 @@ namespace Simulation_Core
 
         internal AgX_Primitive agxPrimitive;
 
-        
-
         public void Initialize()
         {
             agxPrimitive = new AgX_Primitive(guid,"Box",position,quatRotation,size,mass,materialName, false,true);
             if (forceSensor != null)
             {
                 forceSensor.Initialize();
-                forceSensorLock.CreateForceSensorLock(this,forceSensor,forceLockPosition);
+                forceSensorLock.Create_ForceSensorLock(this,forceSensor,forceLockPosition);
                 forceSensor.fs_Joint = forceSensorLock.agxJoint;//Sets the sensor's lock (need for calculating forces)
             }
 
@@ -509,7 +409,7 @@ namespace Simulation_Core
             {
                 ds.Initialize();
 
-                distanceSensorLocks[count].CreateDistanceSensorLock(this, ds, distanceLockPosition);
+                distanceSensorLocks[count].Create_DistanceSensorLock(this, ds, distanceLockPosition);
                 count++;
             }
         }
@@ -560,32 +460,32 @@ namespace Simulation_Core
                 {
                     case 0:
                         {
-                            ds.ray_direction = new Vector3(0, -1, 0);
+                            ds.ray_Direction = new Vector3(0, -1, 0);
                             break;
                         }
                     case 1:
                         {
-                            ds.ray_direction = new Vector3(-1, 0, 0);
+                            ds.ray_Direction = new Vector3(-1, 0, 0);
                             break;
                         }
                     case 2:
                         {
-                            ds.ray_direction = new Vector3(0, 1, 0);
+                            ds.ray_Direction = new Vector3(0, 1, 0);
                             break;
                         }
                     case 3:
                         {
-                            ds.ray_direction = new Vector3(1, 0, 0);
+                            ds.ray_Direction = new Vector3(1, 0, 0);
                             break;
                         }
                     case 4:
                         {
-                            ds.ray_direction = new Vector3(0, 0, 1);
+                            ds.ray_Direction = new Vector3(0, 0, 1);
                             break;
                         }
                     case 5:
                         {
-                            ds.ray_direction = new Vector3(0, 0, -1);
+                            ds.ray_Direction = new Vector3(0, 0, -1);
                             break;
                         }
                 }
@@ -593,10 +493,6 @@ namespace Simulation_Core
             }
         }
 
-        /*public Vector3 GetJointForce()
-        {
-            return forceSensorLock.agxJoint.GetJointForce(forceSensor.agxSensor);
-        }*/
         public void Update()
         {
             position = agxPrimitive.Get_Position();
@@ -661,7 +557,7 @@ namespace Simulation_Core
 
         private double hit_distance;
 
-        public Vector3 ray_direction;//Rotation?
+        public Vector3 ray_Direction;//Rotation?
         public double ray_Resolution = 0.5;
 
         internal AgX_Primitive agxPrimitive;
@@ -688,13 +584,10 @@ namespace Simulation_Core
             hit_distance = max_rayDistance;
             double distance = 0;
             bool objectHit = false;
-            //while distance < max_rayDistance
 
             // shoot ray a certrain distance, the direction of ray_direction. 
             //Direction
-            var direction = quatRotation * ray_direction;//UnityEngine.Debug.Log(direction.x + "," + direction.y + "," + direction.z);
-
-           // List<SceneObject> objectsHit = new List<SceneObject>();
+            var direction = quatRotation * ray_Direction;//UnityEngine.Debug.Log(direction.x + "," + direction.y + "," + direction.z);
 
             while (distance < max_rayDistance && objectHit == false)
             {
@@ -713,8 +606,6 @@ namespace Simulation_Core
                         objectHit = true;//We do not need to check if its the closest object, because the distance variable ensures it is.
                     }
                 }
-               /* if (distance >= 9)
-                    UnityEngine.Debug.Log(distance);*/
             }
 
 
@@ -760,8 +651,7 @@ namespace Simulation_Core
     public class SceneObject
     {
         public Guid guid;
-        public Vector3 size, position;
-        public Vector3 rotation;
+        public Vector3 size, position, rotation;
         public Quaternion quatRotation;
         public string materialName, shape;
         public double mass;
@@ -781,5 +671,95 @@ namespace Simulation_Core
             quatRotation = agxPrimitive.Get_QuatRotation();
         }
 
+    }
+
+    public class Scene
+    {
+        public Guid guid;
+        public string height_Image;
+
+        public List<Vector3> vertices = new List<Vector3>();
+        public List<int> triangles = new List<int>();
+        public Vector2[] uvs;
+
+        public Vector3 position;
+        public string materialName;
+        public double height;
+        //Water
+        //Air
+
+        Agx_Scene scene;
+        public void Create()
+        {
+            //position.y += height/2;
+            TerrainFromImage();//Loads the heightmap
+
+            scene = new Agx_Scene(guid, vertices, triangles, position, materialName, height);
+
+        }
+
+        private void TerrainFromImage()
+
+        {
+            // Modified from: https://answers.unity.com/questions/1033085/heightmap-to-mesh.html
+            //Unity:
+            /*Texture2D heightMap = new Texture2D(250, 250);
+            heightMap.LoadImage(Convert.FromBase64String(height_Image));*/
+
+            //C#,Visual Studio
+            Bitmap heightMap = new Bitmap(250, 250);
+            using (var ms = new MemoryStream(Convert.FromBase64String(height_Image)))//C#/Visual Studio
+            {
+                heightMap = new Bitmap(ms);
+            }
+
+            //Bottom left section of the map, other sections are similar
+            for (int i = 0; i < 250; i++)
+            {
+                for (int j = 0; j < 250; j++) //OUTER PIXELS MUST BE 0, fix
+                {
+                    //Add each new vertex in the plane
+                    if (i < heightMap.Width && j < heightMap.Height)
+                    {
+                        vertices.Add(new Vector3(i, heightMap.GetPixel(i, j).R * height / 255.0f, j));// dibide by 255 to get the normalized size, and multiply by height
+                    }
+                    else
+                        vertices.Add(new Vector3(i, 0, j));// dibide by 255 to get the normalized size, and multiply by height
+
+                        //Skip if a new square on the plane hasn't been formed
+                        if (i == 0 || j == 0||i==249||j==249) continue;
+                        //Adds the index of the three vertices in order to make up each of the two tris
+                        triangles.Add(250 * i + j); //Top right
+                        triangles.Add(250 * i + j - 1); //Bottom right
+                        triangles.Add(250 * (i - 1) + j - 1); //Bottom left - First triangle
+                        triangles.Add(250 * (i - 1) + j - 1); //Bottom left 
+                        triangles.Add(250 * (i - 1) + j); //Top left
+                        triangles.Add(250 * i + j); //Top right - Second triangle
+
+                }
+            }
+
+            uvs = new Vector2[vertices.Count];
+            for (var i = 0; i < uvs.Length; i++) //Give UV coords X,Z world coords
+                uvs[i] = new Vector2(vertices[i].x, vertices[i].z);
+
+        }
+
+        public void CreateMesh()
+        {
+            TerrainFromImage();
+        }
+
+        void Add()
+        {
+            //scenario.Add_Rb();
+        }
+    }
+
+
+    public class ContactFriction
+    {
+        public string material1, material2;
+        public double restitution, friction, youngsModulus;
     }
 }

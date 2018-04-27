@@ -70,7 +70,7 @@ namespace AgX_Interface
             this.guid = guid;
         }
 
-        public void Create_Hinge(string type, AgX_Frame left, AgX_Frame right, double leftLimit, double rightLimit)
+        public void Create_Hinge(string type, AgX_Frame left, AgX_Frame right, double lowerLimit, double upperLimit)
         {
             this.type = type;
 
@@ -89,7 +89,7 @@ namespace AgX_Interface
             Joint.asHinge().getMotor1D().setEnable(true);
             Joint.asHinge().getRange1D().setEnable(true);
             //Might want to have this as a modifyable parameter:
-            Joint.asHinge().getRange1D().setRange(leftLimit, rightLimit/*-Math.PI / 2, Math.PI / 2*/);
+            Joint.asHinge().getRange1D().setRange(lowerLimit, upperLimit/*-Math.PI / 2, Math.PI / 2*/);
 
             //Joint.asHinge().getMotor1D().setSpeed(0.2f);
         }

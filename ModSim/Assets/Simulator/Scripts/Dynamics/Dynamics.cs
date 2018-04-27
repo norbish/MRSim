@@ -38,7 +38,7 @@ public static class Dynamics
         {
             Dynamics.period[i] = _period;
 
-            if (robot.modules[i].Axis == "Pitch")
+            if (robot.modules[i].axis == "Pitch")
             {
                 Dynamics.amplitudes[i] = _ampPitch;
                 Dynamics.phaseDiff[i] = 0;// _phaseDiffPitch;
@@ -62,7 +62,7 @@ public static class Dynamics
                     {
                         if (i > 1)//Not taking into account the first pitch and first yaw which should be 0
                         {
-                            if (robot.modules[i].Axis == "Pitch")
+                            if (robot.modules[i].axis == "Pitch")
                                 Dynamics.phaseDiff[i] = Dynamics.phaseDiff[i - 2] + _phaseOffsetPitch;
                             else
                                 Dynamics.phaseDiff[i] = Dynamics.phaseDiff[i - 2] + _phaseOffsetYaw;
@@ -87,7 +87,7 @@ public static class Dynamics
                     {
                         if (i > 1)//Not taking into account the first pitch and first yaw which should be 0
                         {
-                            if (robot.modules[i].Axis == "Pitch")
+                            if (robot.modules[i].axis == "Pitch")
                                 Dynamics.phaseDiff[i] = Dynamics.phaseDiff[i - 2] + _phaseOffsetPitch;
                             else
                                 Dynamics.phaseDiff[i] = Dynamics.phaseDiff[i - 2] + _phaseOffsetYaw;
@@ -171,15 +171,15 @@ public static class Dynamics
         //Pitches:
         for (int i = 0; i<robot.modules.Count; i++)
         {
-            if (robot.modules[i].Axis == "Pitch")
+            if (robot.modules[i].axis == "Pitch")
             {
 
                 angle = amplitudes[i] * (double)Math.Sin(2 * Math.PI * t / period[i] + phaseDiff[i]) + offset[i]; //Angle = amplitude + sin(2pi * t / period + phase diff) + offset
-                robot.modules[i].joint.MOVE(angle);
+                robot.modules[i].joint.SetAngle(angle);
             }
             else
             {
-                robot.modules[i].joint.MOVE(0);
+                robot.modules[i].joint.SetAngle(0);
             }
         }
     }
@@ -190,18 +190,18 @@ public static class Dynamics
 
         for (int i = 0; i < robot.modules.Count; i++)
         {
-            if (robot.modules[i].Axis == "Pitch")
+            if (robot.modules[i].axis == "Pitch")
             {
 
                 angle = amplitudes[i] * (double)Math.Sin(2 * Math.PI * t / period[i] + phaseDiff[i]) + offset[i]; //Angle = amplitude + sin(2pi * t / period + phase diff) + offset
-                robot.modules[i].joint.MOVE(angle);
+                robot.modules[i].joint.SetAngle(angle);
             }
             //Reduntant, dont need the IFs
-            if (robot.modules[i].Axis == "Yaw")
+            if (robot.modules[i].axis == "Yaw")
             {
 
                 angle = amplitudes[i] *(double) Math.Sin(2 * Math.PI * t / period[i] + phaseDiff[i]) + offset[i]; //Angle = amplitude + sin(2pi * t / period + phase diff) + offset
-                robot.modules[i].joint.MOVE(angle);
+                robot.modules[i].joint.SetAngle(angle);
             }
         }
     }

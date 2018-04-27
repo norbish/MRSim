@@ -644,7 +644,7 @@ public class Scene_Designer : MonoBehaviour {
                 try { current_frameVis.Find(x => x.guid == frame.guid).Update(
                     new Vector3((float)frame.position.x, (float)frame.position.y, (float)frame.position.z),
                     new Quaternion((float)frame.quatRotation.x, (float)frame.quatRotation.y, (float)frame.quatRotation.z, (float)frame.quatRotation.w), //needs to be in degrees for vis
-                    mod.Axis);
+                    mod.axis);
                 }
                 catch (NullReferenceException) { Debug.Log("Could not create frame gameobject."); }
         }
@@ -1168,7 +1168,7 @@ public class Scene_Designer : MonoBehaviour {
             materialName = materialName
         };
     }
-    Simulation_Core.Joint DefineJoint(Guid f1_guid, Guid f2_guid, string type, double l_rangeLimit, double r_rangeLimit, double max_vel, double pValue)
+    Simulation_Core.Joint DefineJoint(Guid f1_guid, Guid f2_guid, string type, double lower_rangeLimit, double upper_rangeLimit, double max_vel, double pValue)
     {
         return new Simulation_Core.Joint()
         {
@@ -1176,8 +1176,8 @@ public class Scene_Designer : MonoBehaviour {
             leftFrameGuid = f1_guid,
             rightFrameGuid = f2_guid,
             type = type,
-            leftRangeLimit = l_rangeLimit,
-            rightRangeLimit = r_rangeLimit,
+            lowerRangeLimit = lower_rangeLimit,
+            upperRangeLimit = upper_rangeLimit,
             max_vel = max_vel,
             Kp = pValue
 
