@@ -29,7 +29,6 @@ namespace AgX_Interface
         public static Vector3 GetPosition()
         {
             return Operations.FromAgxVec3(robotAssembly.getPosition());
-            //return Operations.FromAgxVec3(robotAssembly.getFrame().getTranslate());
         }
         public static Quaternion GetRotation()
         {
@@ -55,233 +54,6 @@ namespace AgX_Interface
             robotAssembly = new agxSDK.Assembly();
         }
     }
-
-    public class AgX_Joint
-    {
-        private Guid guid;
-        private string type;
-
-        private agx.Constraint Joint;
-
-        private agx.HingeFrame hinge_Frame = new agx.HingeFrame();//Might not need to be global
-
-        public AgX_Joint(Guid guid)
-        {
-            this.guid = guid;
-        }
-
-        public void Create_Hinge(string type, AgX_Frame left, AgX_Frame right, double lowerLimit, double upperLimit)
-        {
-            this.type = type;
-
-            //Hinge is locked between the two objects.
-            hinge_Frame.setCenter((left.GetAgxObject().getPosition() + right.GetAgxObject().getPosition()).Divide(2));
-            if (left.Get_Rotation().x == 0)//pitch or yaw module
-            {
-                hinge_Frame.setAxis(new agx.Vec3(1, 0, 0)); //axis along the x direction
-                //UnityEngine.Debug.Log("z in agxint: " + left.Get_Rotation().x);
-            }
-            else
-                hinge_Frame.setAxis(new agx.Vec3(0, 1, 0)); //axis along the x direction
-
-            Joint = new agx.Hinge(hinge_Frame, left.GetAgxObject(), right.GetAgxObject());
-            //Joint.asHinge().getLock1D().setEnable(true);
-            Joint.asHinge().getMotor1D().setEnable(true);
-            Joint.asHinge().getRange1D().setEnable(true);
-            //Might want to have this as a modifyable parameter:
-            Joint.asHinge().getRange1D().setRange(lowerLimit, upperLimit/*-Math.PI / 2, Math.PI / 2*/);
-
-            //Joint.asHinge().getMotor1D().setSpeed(0.2f);
-        }
-        public void Create_Lock(string type, AgX_Frame left, AgX_Frame right)
-        {
-            //connects right frame of left robot (LEFT) to left frame of right robot (RIGHT)
-            Joint = new agx.LockJoint(left.GetAgxObject(), right.GetAgxObject(), (left.GetAgxObject().getPosition() + right.GetAgxObject().getPosition()).Divide(2));
-        }
-
-        //Sensory module locks:
-        public void Create_Lock(string type, AgX_Frame right, AgX_Primitive s_mod)
-        {
-            //Creates a joint with a specified middle position for the lockframe.
-            //THIS IS NOT THE MIDDLE OF THE LOCK FRAME (frames are longer than sensors)
-            Joint = new agx.LockJoint(right.GetAgxObject(), s_mod.GetAgxObject(), (right.GetAgxObject().getPosition() + s_mod.GetAgxObject().getPosition()).Divide(2));
-        }
-        public void Create_Lock(string type, AgX_Primitive s_mod, AgX_Frame left)
-        {
-            //THIS IS NOT THE MIDDLE OF THE LOCK FRAME (frames are longer than sensors)
-            Joint = new agx.LockJoint(s_mod.GetAgxObject(), left.GetAgxObject(), (left.GetAgxObject().getPosition() + s_mod.GetAgxObject().getPosition()).Divide(2));
-        }
-
-        public void ForceSensorLock(AgX_Primitive sm, AgX_ForceSensor fs, Vector3 lockPosition)
-        {
-            Joint = new agx.LockJoint(sm.GetAgxObject(), fs.GetAgxObject(), Operations.ToAgxVec3(lockPosition));
-            Joint.setEnableComputeForces(true);
-        }
-        public void DistanceSensorLock(AgX_Primitive sm, AgX_Primitive ds, Vector3 lockPosition)
-        {
-            Joint = new agx.LockJoint(sm.GetAgxObject(), ds.GetAgxObject(), Operations.ToAgxVec3(lockPosition));
-            Joint.setEnableComputeForces(true);
-        }
-        public double GetForce()
-        {
-            return Joint.getCurrentForce(0);
-        }
-        public double Get_Angle()
-        {
-            return Joint.asHinge().getAngle();
-        }
-        /*public Vector3 GetJointForce(AgX_ForceSensor fs)
-        {
-            agx.Vec3 force = new agx.Vec3();
-            agx.Vec3 torque = new agx.Vec3();
-            Joint.getLastForce(fs.GetAgxObject(), force, torque);
-            return Operations.FromAgxVec3(force);
-        }*/
-        public void Set_Speed(double vel)
-        {
-            Joint.asHinge().getMotor1D().setSpeed(vel);
-        }
-
-        public void AddToSim()
-        {
-            AgX_Assembly.AddToAssembly(Joint);
-            //Agx_Simulation.sim_Instance.add(Joint);
-        }
-        public void Remove()
-        {
-            Agx_Simulation.sim_Instance.remove(Joint);
-        }
-
-    }
-
-    public class AgX_ForceSensor
-    {
-        private Guid guid;
-        private Vector3 scale;
-        private agx.RigidBody agx_Object;
-
-        public AgX_ForceSensor(Guid guid, string materialName, Vector3 pos, Quaternion rot, Vector3 scale, double mass)
-        {
-            this.guid = guid;
-            this.scale = scale;
-
-            var dynamicRBGeometry = new agxCollide.Geometry();///AgX
-
-            dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(scale)));
-
-            dynamicRBGeometry.setMaterial(new agx.Material(materialName));
-
-            agx_Object = new agx.RigidBody();
-
-            agx_Object.add(dynamicRBGeometry);
-
-            agx_Object.setPosition(Operations.ToAgxVec3(pos));
-
-            agx_Object.setRotation(Operations.ToAgxQuat(rot));
-
-            agx_Object.getMassProperties().setMass(mass);
-
-            Agx_Simulation.sim_Instance.add(agx_Object);
-        }
-
-       /* public Vector3 GetForce()
-        {
-            return Operations.FromAgxVec3(agx_Object.getForce());
-        }*/
-
-        public agx.RigidBody GetAgxObject()
-        {
-            return agx_Object;
-        }
-        public Vector3 GetPosition()
-        {
-            return Operations.FromAgxVec3(agx_Object.getPosition());
-        }
-        public Quaternion GetRotation()
-        {
-            return Operations.FromAgxQuat(agx_Object.getRotation());
-        }
-        public void AddToSim()
-        {
-            AgX_Assembly.AddToAssembly(agx_Object);
-        }
-        public void Remove()
-        {
-            Agx_Simulation.sim_Instance.remove(agx_Object);
-        }
-    }
-
-    public class AgX_Primitive
-    {
-        private Guid guid;
-        private string shape;
-        private Vector3 size;
-        private string materialName;
-
-        private agx.RigidBody agx_Object;
-
-        public AgX_Primitive(Guid guid, string shape, Vector3 pos, Quaternion rot, Vector3 size, double mass, string materialName, bool isStatic, bool AddToRobot)
-        {
-            this.guid = guid;
-            this.shape = shape;
-            this.size = size;
-            this.materialName = materialName;
-
-            var dynamicRBGeometry = new agxCollide.Geometry();
-
-            switch (this.shape)
-            {
-                case "Box": dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(this.size))); break;
-                case "Sphere": dynamicRBGeometry.add(new agxCollide.Sphere((this.size.x + this.size.y + this.size.z) / 3)); break;
-                default: dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(this.size))); break; 
-            }
-
-            dynamicRBGeometry.setMaterial(new agx.Material(this.materialName));
-
-            agx_Object = new agx.RigidBody();
-            agx_Object.add(dynamicRBGeometry);
-            agx_Object.setLocalPosition(Operations.ToAgxVec3(pos));///AgX
-
-            agx_Object.setLocalRotation(new agx.Quat(rot.x, rot.y, rot.z, rot.w));///AgX
-
-            agx_Object.getMassProperties().setMass(mass);
-
-            if (isStatic)
-                agx_Object.setMotionControl(agx.RigidBody.MotionControl.STATIC);
-
-            if (AddToRobot)
-                AddToSim();
-            else
-                Agx_Simulation.sim_Instance.add(agx_Object);
-        }
-
-        public Vector3 Get_Position()
-        {
-            return Operations.FromAgxVec3(agx_Object.getPosition());
-        }
-        /*public Vector3 Get_Rotation()
-        {
-            return Operations.FromAgxQuat(agx_Object.GetRotation()).ToEulerRad();
-        }*/
-        public Quaternion Get_QuatRotation()
-        {
-            return Operations.FromAgxQuat(agx_Object.getRotation());
-        }
-        public void AddToSim()
-        {
-            AgX_Assembly.AddToAssembly(agx_Object);
-            //Agx_Simulation.sim_Instance.add(agx_Object);
-        }
-        public agx.RigidBody GetAgxObject()
-        {
-            return agx_Object;
-        }
-        public void Remove()
-        {
-            Agx_Simulation.sim_Instance.remove(agx_Object);
-        }
-    }
-
 
     public class AgX_Frame
     {
@@ -403,6 +175,277 @@ namespace AgX_Interface
 
     }
 
+    public class AgX_Joint
+    {
+        private Guid guid;
+        private string type;
+
+        private agx.Constraint joint;
+
+        private agx.HingeFrame hinge_Frame = new agx.HingeFrame();//Might not need to be global
+
+        public AgX_Joint(Guid guid)
+        {
+            this.guid = guid;
+        }
+
+        public void Create_Hinge(string type, AgX_Frame left, AgX_Frame right, double lowerLimit, double upperLimit)
+        {
+            this.type = type;
+
+            //Hinge is locked between the two objects.
+            hinge_Frame.setCenter((left.GetAgxObject().getPosition() + right.GetAgxObject().getPosition()).Divide(2));
+            if (left.Get_Rotation().x == 0)//pitch or yaw module
+            {
+                hinge_Frame.setAxis(new agx.Vec3(1, 0, 0)); //axis along the x direction
+                //UnityEngine.Debug.Log("z in agxint: " + left.Get_Rotation().x);
+            }
+            else
+                hinge_Frame.setAxis(new agx.Vec3(0, 1, 0)); //axis along the x direction
+
+            joint = new agx.Hinge(hinge_Frame, left.GetAgxObject(), right.GetAgxObject());
+            //Joint.asHinge().getLock1D().setEnable(true);
+            joint.asHinge().getMotor1D().setEnable(true);
+            joint.asHinge().getRange1D().setEnable(true);
+            //Might want to have this as a modifyable parameter:
+            joint.asHinge().getRange1D().setRange(lowerLimit, upperLimit/*-Math.PI / 2, Math.PI / 2*/);
+
+            //Joint.asHinge().getMotor1D().setSpeed(0.2f);
+        }
+        public void Create_Lock(string type, AgX_Frame left, AgX_Frame right)
+        {
+            //connects right frame of left robot (LEFT) to left frame of right robot (RIGHT)
+            joint = new agx.LockJoint(left.GetAgxObject(), right.GetAgxObject(), (left.GetAgxObject().getPosition() + right.GetAgxObject().getPosition()).Divide(2));
+        }
+
+        //Sensory module locks:
+        public void Create_Lock(string type, AgX_Frame right, AgX_Primitive s_mod)
+        {
+            //Creates a joint with a specified middle position for the lockframe.
+            //THIS IS NOT THE MIDDLE OF THE LOCK FRAME (frames are longer than sensors)
+            joint = new agx.LockJoint(right.GetAgxObject(), s_mod.GetAgxObject(), (right.GetAgxObject().getPosition() + s_mod.GetAgxObject().getPosition()).Divide(2));
+        }
+        public void Create_Lock(string type, AgX_Primitive s_mod, AgX_Frame left)
+        {
+            //THIS IS NOT THE MIDDLE OF THE LOCK FRAME (frames are longer than sensors)
+            joint = new agx.LockJoint(s_mod.GetAgxObject(), left.GetAgxObject(), (left.GetAgxObject().getPosition() + s_mod.GetAgxObject().getPosition()).Divide(2));
+        }
+
+        public void ForceSensorLock(AgX_Primitive sm, AgX_ForceSensor fs, Vector3 lockPosition)
+        {
+            joint = new agx.LockJoint(sm.GetAgxObject(), fs.GetAgxObject(), Operations.ToAgxVec3(lockPosition));
+            joint.setEnableComputeForces(true);
+        }
+        public void DistanceSensorLock(AgX_Primitive sm, AgX_Primitive ds, Vector3 lockPosition)
+        {
+            joint = new agx.LockJoint(sm.GetAgxObject(), ds.GetAgxObject(), Operations.ToAgxVec3(lockPosition));
+            joint.setEnableComputeForces(true);
+        }
+        public double GetForce()
+        {
+            return joint.getCurrentForce(0);
+        }
+        public double Get_Angle()
+        {
+            return joint.asHinge().getAngle();
+        }
+        /*public Vector3 GetJointForce(AgX_ForceSensor fs)
+        {
+            agx.Vec3 force = new agx.Vec3();
+            agx.Vec3 torque = new agx.Vec3();
+            Joint.getLastForce(fs.GetAgxObject(), force, torque);
+            return Operations.FromAgxVec3(force);
+        }*/
+        public void Set_Speed(double vel)
+        {
+            joint.asHinge().getMotor1D().setSpeed(vel);
+        }
+
+        public void AddToSim()
+        {
+            AgX_Assembly.AddToAssembly(joint);
+            //Agx_Simulation.sim_Instance.add(Joint);
+        }
+        public void Remove()
+        {
+            Agx_Simulation.sim_Instance.remove(joint);
+        }
+
+    }
+
+    public class AgX_Primitive
+    {
+        private Guid guid;
+        private string shape;
+        private Vector3 size;
+        private string materialName;
+
+        private agx.RigidBody agx_Object;
+
+        public AgX_Primitive(Guid guid, string shape, Vector3 pos, Quaternion rot, Vector3 size, double mass, string materialName, bool isStatic, bool AddToRobot)
+        {
+            this.guid = guid;
+            this.shape = shape;
+            this.size = size;
+            this.materialName = materialName;
+
+            var dynamicRBGeometry = new agxCollide.Geometry();
+
+            switch (this.shape)
+            {
+                case "Box": dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(this.size))); break;
+                case "Sphere": dynamicRBGeometry.add(new agxCollide.Sphere((this.size.x + this.size.y + this.size.z) / 3)); break;
+                default: dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(this.size))); break;
+            }
+
+            dynamicRBGeometry.setMaterial(new agx.Material(this.materialName));
+
+            agx_Object = new agx.RigidBody();
+            agx_Object.add(dynamicRBGeometry);
+            agx_Object.setLocalPosition(Operations.ToAgxVec3(pos));///AgX
+
+            agx_Object.setLocalRotation(new agx.Quat(rot.x, rot.y, rot.z, rot.w));///AgX
+
+            agx_Object.getMassProperties().setMass(mass);
+
+            if (isStatic)
+                agx_Object.setMotionControl(agx.RigidBody.MotionControl.STATIC);
+
+            if (AddToRobot)
+                AddToSim();
+            else
+                Agx_Simulation.sim_Instance.add(agx_Object);
+        }
+
+        public Vector3 Get_Position()
+        {
+            return Operations.FromAgxVec3(agx_Object.getPosition());
+        }
+        /*public Vector3 Get_Rotation()
+        {
+            return Operations.FromAgxQuat(agx_Object.GetRotation()).ToEulerRad();
+        }*/
+        public Quaternion Get_QuatRotation()
+        {
+            return Operations.FromAgxQuat(agx_Object.getRotation());
+        }
+        public void AddToSim()
+        {
+            AgX_Assembly.AddToAssembly(agx_Object);
+            //Agx_Simulation.sim_Instance.add(agx_Object);
+        }
+        public agx.RigidBody GetAgxObject()
+        {
+            return agx_Object;
+        }
+        public void Remove()
+        {
+            Agx_Simulation.sim_Instance.remove(agx_Object);
+        }
+    }
+
+    public class AgX_ForceSensor
+    {
+        private Guid guid;
+        private Vector3 scale;
+        private agx.RigidBody agx_Object;
+
+        public AgX_ForceSensor(Guid guid, string materialName, Vector3 pos, Quaternion rot, Vector3 scale, double mass)
+        {
+            this.guid = guid;
+            this.scale = scale;
+
+            var dynamicRBGeometry = new agxCollide.Geometry();///AgX
+
+            dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(scale)));
+
+            dynamicRBGeometry.setMaterial(new agx.Material(materialName));
+
+            agx_Object = new agx.RigidBody();
+
+            agx_Object.add(dynamicRBGeometry);
+
+            agx_Object.setPosition(Operations.ToAgxVec3(pos));
+
+            agx_Object.setRotation(Operations.ToAgxQuat(rot));
+
+            agx_Object.getMassProperties().setMass(mass);
+
+            Agx_Simulation.sim_Instance.add(agx_Object);
+        }
+
+        public agx.RigidBody GetAgxObject()
+        {
+            return agx_Object;
+        }
+        public Vector3 GetPosition()
+        {
+            return Operations.FromAgxVec3(agx_Object.getPosition());
+        }
+        public Quaternion GetRotation()
+        {
+            return Operations.FromAgxQuat(agx_Object.getRotation());
+        }
+        public void AddToSim()
+        {
+            AgX_Assembly.AddToAssembly(agx_Object);
+        }
+        public void Remove()
+        {
+            Agx_Simulation.sim_Instance.remove(agx_Object);
+        }
+    }
+
+    public class AgX_Scene
+    {
+
+        Guid guid;
+        agx.RigidBody terrain;
+
+
+        /*--------------------------------------------------Creating terrain--------------------------------------------------*/
+        //public void Create_Terrain(Guid guid, string heightmap, Vector3 position, string materialName, double restitution, double friction, double height)
+        public AgX_Scene(Guid guid, List<Vector3> vertices, List<int> triangles, Vector3 position, string materialName, double height)
+        {
+            this.guid = guid;
+
+            //AgX:
+            agx.Vec3Vector agx_vertices = new agx.Vec3Vector();
+            agx.UInt32Vector agx_indices = new agx.UInt32Vector();
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                agx_vertices.Add(Operations.ToAgxVec3(vertices[i]));
+            }
+            for (int i = 0; i < triangles.Count; i++)
+            {
+                agx_indices.Add((uint)triangles[i]);
+            }
+            terrain = new agx.RigidBody();
+
+            //uint optionsMask = (uint)agxCollide.Trimesh.TrimeshOptionsFlags.TERRAIN;
+            var terrain_trimesh = new agxCollide.Trimesh(agx_vertices, agx_indices, "handmade terrain");//, optionsMask, height);
+
+            var geometry = new agxCollide.Geometry();
+            geometry.add(terrain_trimesh);
+            geometry.setMaterial(new agx.Material(materialName));
+
+            terrain.add(geometry);
+            terrain.setMotionControl(agx.RigidBody.MotionControl.STATIC);
+
+            //position.y -= height;
+            terrain.setLocalPosition(Operations.ToAgxVec3(position));//move right and -height for global 0
+
+            ///Adds terrain to simulation
+            //simulation.add(terrain);
+            Agx_Simulation.sim_Instance.add(terrain);
+
+        }
+        public void Remove()
+        {
+            Agx_Simulation.sim_Instance.remove(terrain);
+        }
+    }
+
     public static class Agx_Simulation
     {
         public static agxSDK.Simulation sim_Instance;
@@ -448,56 +491,6 @@ namespace AgX_Interface
         public static void Reset()
         {
 
-        }
-    }
-
-    public class Agx_Scene
-    {
-
-        Guid guid;
-        agx.RigidBody terrain;
-
-
-        /*--------------------------------------------------Creating terrain--------------------------------------------------*/
-        //public void Create_Terrain(Guid guid, string heightmap, Vector3 position, string materialName, double restitution, double friction, double height)
-        public Agx_Scene(Guid guid, List<Vector3> vertices, List<int> triangles, Vector3 position, string materialName, double height)
-        {
-            this.guid = guid;
-
-            //AgX:
-            agx.Vec3Vector agx_vertices = new agx.Vec3Vector();
-            agx.UInt32Vector agx_indices = new agx.UInt32Vector();
-            for (int i = 0; i < vertices.Count; i++)
-            {
-                agx_vertices.Add(Operations.ToAgxVec3(vertices[i]));
-            }
-            for (int i = 0; i < triangles.Count; i++)
-            {
-                agx_indices.Add((uint)triangles[i]);
-            }
-            terrain = new agx.RigidBody();
-
-            //uint optionsMask = (uint)agxCollide.Trimesh.TrimeshOptionsFlags.TERRAIN;
-            var terrain_trimesh = new agxCollide.Trimesh(agx_vertices, agx_indices, "handmade terrain");//, optionsMask, height);
-
-            var geometry = new agxCollide.Geometry();
-            geometry.add(terrain_trimesh);
-            geometry.setMaterial(new agx.Material(materialName));
-
-            terrain.add(geometry);
-            terrain.setMotionControl(agx.RigidBody.MotionControl.STATIC);
-
-            //position.y -= height;
-            terrain.setLocalPosition(Operations.ToAgxVec3(position));//move right and -height for global 0
-
-            ///Adds terrain to simulation
-            //simulation.add(terrain);
-            Agx_Simulation.sim_Instance.add(terrain);
-
-        }
-        public void Remove()
-        {
-            Agx_Simulation.sim_Instance.remove(terrain);
         }
     }
 

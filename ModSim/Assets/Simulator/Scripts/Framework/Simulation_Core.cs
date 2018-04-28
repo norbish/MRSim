@@ -688,17 +688,17 @@ namespace Simulation_Core
         //Water
         //Air
 
-        Agx_Scene scene;
+        AgX_Scene scene;
         public void Create()
         {
             //position.y += height/2;
-            TerrainFromImage();//Loads the heightmap
+            LoadTerrainFromImage();//Loads the heightmap
 
-            scene = new Agx_Scene(guid, vertices, triangles, position, materialName, height);
+            scene = new AgX_Scene(guid, vertices, triangles, position, materialName, height);
 
         }
 
-        private void TerrainFromImage()
+        private void LoadTerrainFromImage()
 
         {
             // Modified from: https://answers.unity.com/questions/1033085/heightmap-to-mesh.html
@@ -747,13 +747,9 @@ namespace Simulation_Core
 
         public void CreateMesh()
         {
-            TerrainFromImage();
+            LoadTerrainFromImage();
         }
 
-        void Add()
-        {
-            //scenario.Add_Rb();
-        }
     }
 
 
