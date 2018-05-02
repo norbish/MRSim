@@ -578,7 +578,7 @@ namespace AgX_Interface
             return a;
         }
 
-        public Vector3 toRad()
+        public Vector3 ToRad()
         {
             var v3 = new Vector3();
 
@@ -728,40 +728,6 @@ namespace AgX_Interface
             result.z = cosYawOver2 * cosPitchOver2 * sinRollOver2 - sinYawOver2 * sinPitchOver2 * cosRollOver2; // confirmed (ccs-ssc)
             result.w = cosYawOver2 * cosPitchOver2 * cosRollOver2 + sinYawOver2 * sinPitchOver2 * sinRollOver2; // confirmed (ccc+sss)
             return result;
-        }
-
-        public Vector3 eulerAnglesD()
-        {
-            Vector3 vector;
-
-            double unit = x * x + y * y + z * z + w * w;
-            double test = x * y + z * w;
-
-            if (test > 0.4999f * unit)                              // 0.4999f OR 0.5f - EPSILON
-            {
-                // Singularity at north pole
-                vector.y = 2f * (double)Math.Atan2(x, w);  // Yaw
-                vector.x = Math.PI * 0.5f;                         // Pitch
-                vector.z = 0f;                                // Roll
-                return vector;
-            }
-            else if (test < -0.4999f * unit)                        // -0.4999f OR -0.5f + EPSILON
-            {
-                // Singularity at south pole
-                vector.y = -2f * (double)Math.Atan2(x, w); // Yaw
-                vector.x = -Math.PI * 0.5f;                        // Pitch
-                vector.z = 0f;                                // Roll
-                return vector;
-            }
-            else
-            {
-
-                vector.y = (double)Math.Atan2(2f * x * w + 2f * y * z, 1 - 2f * (z * z + w * w));// * Math.PI/180;     // Yaw to degrees
-                vector.x = (double)Math.Asin(2f * (x * z - w * y));// * Math.PI / 180; ;                             // Pitch 
-                vector.z = (double)Math.Atan2(2f * x * y + 2f * z * w, 1 - 2f * (y * y + z * z));// * Math.PI / 180; ;      // Roll 
-
-                return vector;
-            }
         }
 
         public static Vector3 operator *(Quaternion quat, Vector3 vec)
