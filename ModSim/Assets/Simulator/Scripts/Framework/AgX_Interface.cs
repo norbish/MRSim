@@ -57,7 +57,7 @@ namespace AgX_Interface
 
     public class AgX_Frame
     {
-        private Guid guid;
+        public Guid guid;
         public string shape;
         private double size;
         private string materialName;
@@ -72,15 +72,6 @@ namespace AgX_Interface
             this.size = size;
             this.materialName = materialName;
 
-            //scale by 2, to fit unity.
-            /* Vector3[] tmp_verts = vertices;
-             for (int i = 0; i < tmp_verts.Length; i++)
-             {
-                 tmp_verts[i].x *= 2;
-                 tmp_verts[i].y *= 2;
-                 tmp_verts[i].z *= 2;
-             }*/
-
             var tri = new agxCollide.Trimesh(Operations.ToAgxVec3Vector(vertices), Operations.ToAgxIntVector(triangles), "stdFrame");
             ///Creates a geometry
             var dynamicRBGeometry = new agxCollide.Geometry();
@@ -88,85 +79,41 @@ namespace AgX_Interface
 
             dynamicRBGeometry.setMaterial(new agx.Material(materialName));
 
-            ///Creates the selected shape
-            /*switch (shape)
-            {
-                case "Box": dynamicRBGeometry.add(new agxCollide.Box(Operations.ToAgxVec3(size))); break;
-                case "Sphere": dynamicRBGeometry.add(new agxCollide.Sphere((size.x + size.y + size.z) / 3)); break;
-            }*/
-
             agx_Object = new agx.RigidBody();
             ///Adds selected geometry to the rigidbody
             agx_Object.add(dynamicRBGeometry);
 
             agx_Object.setLocalPosition(Operations.ToAgxVec3(pos));///AgX
 
-            //var y = new agx.EulerAngles(Operations.ToAgxVec3(rot));
-
-            //UnityEngine.Debug.Log("x: " + y.x + ", y: " + y.y + ", z: " + y.z);
-
             agx_Object.setLocalRotation(new agx.Quat(rot.x, rot.y, rot.z, rot.w));///AgX
-
-            //agx_Object.setLocalRotation(new agx.EulerAngles(Operations.ToAgxVec3(rot)));///AgX
-
-            //UnityEngine.Debug.Log("x: " +agx_Object.GetPosition().x + ", y: " + agx_Object.GetPosition().y + ", z: " + agx_Object.GetPosition().z);
 
             agx_Object.getMassProperties().setMass(mass);
 
             if (isStatic)
                 agx_Object.setMotionControl(agx.RigidBody.MotionControl.STATIC);
 
-            AddToSim();
+            AddToAssembly();
         }
 
-        /*--------------------------------------------------Object handling---------------------------------------------------*/
-        /**-----------------------------------------------Return Algoryx object-----------------------------------------------*/
         public agx.RigidBody GetAgxObject()
         {
             return agx_Object;
         }
-
-        public Guid Get_Guid()
-        {
-            return guid;
-        }
-        public string Get_Shape()
-        {
-            return shape;
-        }
-        public Vector3 Get_Position()
+        public Vector3 GetPosition()
         {
             return Operations.FromAgxVec3(agx_Object.getPosition());
         }
-        public double Get_Size()
+        public agx.Vec3 GetRotation()
         {
-            return size * 2;//Size in unity is 2 times bigger.
-        }
-        public agx.Vec3 Get_Rotation()
-        {
-            //UnityEngine.Debug.Log(agx_Object.GetRotation().asVec3().x+","+agx_Object.GetRotation().asVec3().y+","+agx_Object.GetRotation().asVec3().z);
             return agx_Object.getRotation().asVec3();
         }
-        public Quaternion Get_QuatRotation()
+        public Quaternion GetQuatRotation()
         {
             return Operations.FromAgxQuat(agx_Object.getRotation());
         }
-        public double Get_Mass()
-        {
-            return (double)agx_Object.getMassProperties().getMass();
-        }
-
-        /// Material:
-        public string Get_MateriaName()
-        {
-            return materialName;
-        }
-
-        ///Simulation:
-        public void AddToSim()
+        public void AddToAssembly()
         {
             AgX_Assembly.AddToAssembly(agx_Object);
-            //Agx_Simulation.sim_Instance.add(agx_Object);
         }
         public void Remove()
         {
@@ -195,22 +142,20 @@ namespace AgX_Interface
 
             //Hinge is locked between the two objects.
             hinge_Frame.setCenter((left.GetAgxObject().getPosition() + right.GetAgxObject().getPosition()).Divide(2));
-            if (left.Get_Rotation().x == 0)//pitch or yaw module
+            if (left.GetRotation().x == 0)//pitch or yaw module
             {
                 hinge_Frame.setAxis(new agx.Vec3(1, 0, 0)); //axis along the x direction
-                //UnityEngine.Debug.Log("z in agxint: " + left.Get_Rotation().x);
             }
             else
                 hinge_Frame.setAxis(new agx.Vec3(0, 1, 0)); //axis along the x direction
 
             joint = new agx.Hinge(hinge_Frame, left.GetAgxObject(), right.GetAgxObject());
-            //Joint.asHinge().getLock1D().setEnable(true);
+
             joint.asHinge().getMotor1D().setEnable(true);
             joint.asHinge().getRange1D().setEnable(true);
-            //Might want to have this as a modifyable parameter:
-            joint.asHinge().getRange1D().setRange(lowerLimit, upperLimit/*-Math.PI / 2, Math.PI / 2*/);
 
-            //Joint.asHinge().getMotor1D().setSpeed(0.2f);
+            joint.asHinge().getRange1D().setRange(lowerLimit, upperLimit);
+
         }
         public void Create_Lock(string type, AgX_Frame left, AgX_Frame right)
         {
@@ -245,26 +190,18 @@ namespace AgX_Interface
         {
             return joint.getCurrentForce(0);
         }
-        public double Get_Angle()
+        public double GetAngle()
         {
             return joint.asHinge().getAngle();
         }
-        /*public Vector3 GetJointForce(AgX_ForceSensor fs)
-        {
-            agx.Vec3 force = new agx.Vec3();
-            agx.Vec3 torque = new agx.Vec3();
-            Joint.getLastForce(fs.GetAgxObject(), force, torque);
-            return Operations.FromAgxVec3(force);
-        }*/
-        public void Set_Speed(double vel)
+        public void SetSpeed(double vel)
         {
             joint.asHinge().getMotor1D().setSpeed(vel);
         }
 
-        public void AddToSim()
+        public void AddtoAssembly()
         {
             AgX_Assembly.AddToAssembly(joint);
-            //Agx_Simulation.sim_Instance.add(Joint);
         }
         public void Remove()
         {
@@ -312,12 +249,12 @@ namespace AgX_Interface
                 agx_Object.setMotionControl(agx.RigidBody.MotionControl.STATIC);
 
             if (AddToRobot)
-                AddToSim();
+                AddToAssembly();
             else
                 Agx_Simulation.sim_Instance.add(agx_Object);
         }
 
-        public Vector3 Get_Position()
+        public Vector3 GetPosition()
         {
             return Operations.FromAgxVec3(agx_Object.getPosition());
         }
@@ -325,11 +262,11 @@ namespace AgX_Interface
         {
             return Operations.FromAgxQuat(agx_Object.GetRotation()).ToEulerRad();
         }*/
-        public Quaternion Get_QuatRotation()
+        public Quaternion GetRotation()
         {
             return Operations.FromAgxQuat(agx_Object.getRotation());
         }
-        public void AddToSim()
+        public void AddToAssembly()
         {
             AgX_Assembly.AddToAssembly(agx_Object);
             //Agx_Simulation.sim_Instance.add(agx_Object);
@@ -386,7 +323,7 @@ namespace AgX_Interface
         {
             return Operations.FromAgxQuat(agx_Object.getRotation());
         }
-        public void AddToSim()
+        public void AddToAssembly()
         {
             AgX_Assembly.AddToAssembly(agx_Object);
         }
@@ -405,7 +342,7 @@ namespace AgX_Interface
 
         /*--------------------------------------------------Creating terrain--------------------------------------------------*/
         //public void Create_Terrain(Guid guid, string heightmap, Vector3 position, string materialName, double restitution, double friction, double height)
-        public AgX_Scene(Guid guid, List<Vector3> vertices, List<int> triangles, Vector3 position, string materialName, double height)
+        public AgX_Scene(Guid guid, List<Vector3> vertices, List<int> triangles, Vector3 position, string materialName)
         {
             this.guid = guid;
 

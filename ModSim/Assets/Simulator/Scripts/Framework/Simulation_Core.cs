@@ -31,7 +31,7 @@ namespace Simulation_Core
     public class Robot
     {
         public List<Module> modules = new List<Module>();
-        public List<Sensor_Module> sensorModules = new List<Sensor_Module>();
+        public List<SensorModule> sensorModules = new List<SensorModule>();
         public List<Joint> locks = new List<Joint>();
 
         public string leftFrameDir, rightFrameDir;
@@ -52,12 +52,12 @@ namespace Simulation_Core
             module.axis = module.frames[0].QuatToRot().x == 0 ? "Pitch" : "Yaw";
         }
 
-        public void Add_SensorModule(Sensor_Module module, Joint r_lockjoint)
+        public void Add_SensorModule(SensorModule module, Joint r_lockjoint)
         {//This just creates the locks, doesnt need more info.
             sensorModules.Add(module);
             locks.Add(r_lockjoint);
         }
-        public void Add_SensorModule(Joint l_lockjoint, Sensor_Module module, Joint r_lockjoint)
+        public void Add_SensorModule(Joint l_lockjoint, SensorModule module, Joint r_lockjoint)
         {
             sensorModules.Add(module);
             locks.Add(l_lockjoint);
@@ -71,7 +71,7 @@ namespace Simulation_Core
             {
                 mod.Initialize();
             }
-            foreach(Sensor_Module mod in sensorModules)
+            foreach(SensorModule mod in sensorModules)
             {
                 mod.Initialize();
             }
@@ -124,7 +124,7 @@ namespace Simulation_Core
                 position += mod.position;
             }
             position /= modules.Count;
-            foreach(Sensor_Module mod in sensorModules)
+            foreach(SensorModule mod in sensorModules)
             {
                 mod.Update();
                 if(mod.forceSensor != null)
@@ -153,7 +153,7 @@ namespace Simulation_Core
             }
             modules.Clear();
 
-            foreach(Sensor_Module mod in sensorModules)
+            foreach(SensorModule mod in sensorModules)
             {
                 mod.agxPrimitive.Remove();mod.agxPrimitive = null;
             }
@@ -245,9 +245,9 @@ namespace Simulation_Core
         public void Update()//Update variables
         {
             //scale = frame.Get_Size();
-            position = agxFrame.Get_Position();
+            position = agxFrame.GetPosition();
             //rotation = agxFrame.Get_Rotation();
-            quatRotation = agxFrame.Get_QuatRotation();
+            quatRotation = agxFrame.GetQuatRotation();
         }
         public Quaternion GetQuatRot()
         {
@@ -288,7 +288,7 @@ namespace Simulation_Core
 
             //Add joint between top and bottom frame
             agxJoint.Create_Hinge("Hinge", left.agxFrame, right.agxFrame, lowerRangeLimit, upperRangeLimit);
-            agxJoint.AddToSim();
+            agxJoint.AddtoAssembly();
         }
         public void Create_Lock(Frame left, Frame right)
         {
@@ -296,64 +296,64 @@ namespace Simulation_Core
             type = "Lock";
             agxJoint = new AgX_Joint(guid);
             agxJoint.Create_Lock("Lock", left.agxFrame, right.agxFrame);
-            agxJoint.AddToSim();
+            agxJoint.AddtoAssembly();
         }
 
         /*------------------------------------------------Sensory Modules:------------------------------------------------*/
-        public void Create_SensorModuleLock(Frame right, Sensor_Module s_mod)//sensor placed last, right frame of left module 
+        public void Create_SensorModuleLock(Frame right, SensorModule s_mod)//sensor placed last, right frame of left module 
         {
             agxJoint = new AgX_Joint(guid);
             agxJoint.Create_Lock("Lock",right.agxFrame,s_mod.agxPrimitive);//FIX IN AGX INTERFACE
-            agxJoint.AddToSim();
+            agxJoint.AddtoAssembly();
         }
-        public void Create_SensorModuleLock(Sensor_Module s_mod, Frame left)//sensor placed first, left frame of right module
+        public void Create_SensorModuleLock(SensorModule s_mod, Frame left)//sensor placed first, left frame of right module
         {
             agxJoint = new AgX_Joint(guid);
             agxJoint.Create_Lock("Lock", s_mod.agxPrimitive, left.agxFrame);//FIX IN AGX INTERFACE
-            agxJoint.AddToSim();
+            agxJoint.AddtoAssembly();
         }
 
         /*-------------------------------------------------Force Sensors:-------------------------------------------------*/
-        public void Create_ForceSensorLock(Sensor_Module sm, ForceSensor fs, Vector3 lockPosition)
+        public void Create_ForceSensorLock(SensorModule sm, ForceSensor fs, Vector3 lockPosition)
         {
             agxJoint = new AgX_Joint(guid);
             agxJoint.ForceSensorLock(sm.agxPrimitive,fs.agxSensor,lockPosition);
-            agxJoint.AddToSim();
+            agxJoint.AddtoAssembly();
         }
-        public void Create_DistanceSensorLock(Sensor_Module sm, DistanceSensor ds, Vector3 lockPosition)
+        public void Create_DistanceSensorLock(SensorModule sm, DistanceSensor ds, Vector3 lockPosition)
         {
             agxJoint = new AgX_Joint(guid);
             agxJoint.DistanceSensorLock(sm.agxPrimitive, ds.agxPrimitive, lockPosition);
-            agxJoint.AddToSim();
+            agxJoint.AddtoAssembly();
         }
 
         public void SetAngle(double requested_angle)
         {
-            double error = requested_angle - agxJoint.Get_Angle();//Expand to pid if required later?
+            double error = requested_angle - agxJoint.GetAngle();//Expand to pid if required later?
 
             if (Kp * error > max_vel)
-                agxJoint.Set_Speed(max_vel);
+                agxJoint.SetSpeed(max_vel);
             else if (Kp * error < -max_vel)
-                agxJoint.Set_Speed(-max_vel);
+                agxJoint.SetSpeed(-max_vel);
             else
-                agxJoint.Set_Speed(Kp * error);
+                agxJoint.SetSpeed(Kp * error);
         }
 
         public void Stabilize_Angle()//Resets the joint movement
         {
-            double error = 0 - agxJoint.Get_Angle();
+            double error = 0 - agxJoint.GetAngle();
 
             if (Kp * error > 0.5f)
-                agxJoint.Set_Speed(0.5f);
+                agxJoint.SetSpeed(0.5f);
             else if (Kp * error < -0.5f)
-                agxJoint.Set_Speed(-0.5f);
+                agxJoint.SetSpeed(-0.5f);
             else
-                agxJoint.Set_Speed(Kp * error);
+                agxJoint.SetSpeed(Kp * error);
         }
 
         public double GetAngle()
         {
-            return agxJoint.Get_Angle();
+            return agxJoint.GetAngle();
         }
 
         public void Update()
@@ -365,7 +365,7 @@ namespace Simulation_Core
 
     
 
-    public class Sensor_Module //Square
+    public class SensorModule //Square
     {
         public Guid guid;
         public int leftMod_Nr, rightMod_Nr;
@@ -495,9 +495,9 @@ namespace Simulation_Core
 
         public void Update()
         {
-            position = agxPrimitive.Get_Position();
+            position = agxPrimitive.GetPosition();
             //rotation = agxPrimitive.Get_Rotation();
-            quatRotation = agxPrimitive.Get_QuatRotation();
+            quatRotation = agxPrimitive.GetRotation();
             if (forceSensor != null)
             {
                 forceSensor.Update();
@@ -570,8 +570,8 @@ namespace Simulation_Core
 
         public void Update()
         {
-            position = agxPrimitive.Get_Position();
-            quatRotation = agxPrimitive.Get_QuatRotation();
+            position = agxPrimitive.GetPosition();
+            quatRotation = agxPrimitive.GetRotation();
         }
         public double GetSensorDistance()
         {
@@ -666,9 +666,9 @@ namespace Simulation_Core
 
         public void Update()
         {
-            position = agxPrimitive.Get_Position();
+            position = agxPrimitive.GetPosition();
             //rotation = agxPrimitive.Get_Rotation();
-            quatRotation = agxPrimitive.Get_QuatRotation();
+            quatRotation = agxPrimitive.GetRotation();
         }
 
     }
@@ -694,7 +694,7 @@ namespace Simulation_Core
             //position.y += height/2;
             LoadTerrainFromImage();//Loads the heightmap
 
-            scene = new AgX_Scene(guid, vertices, triangles, position, materialName, height);
+            scene = new AgX_Scene(guid, vertices, triangles, position, materialName);
 
         }
 

@@ -359,7 +359,7 @@ public class Main : MonoBehaviour {
     }
     void Load_SensorModuleVis(Robot robot)
     {
-        foreach (Sensor_Module mod in robot.sensorModules)
+        foreach (SensorModule mod in robot.sensorModules)
         {
             sensorModuleVis.Add(new SensorModule_Vis(mod.guid, AgxHelper(mod.position), AgxHelper(mod.size)));
             if (mod.forceSensor != null)
@@ -448,7 +448,7 @@ public class Main : MonoBehaviour {
         }
 
         //calculate distances 
-        foreach (Sensor_Module mod in robot.sensorModules)
+        foreach (SensorModule mod in robot.sensorModules)
             foreach (DistanceSensor ds in mod.distanceSensors)
                 ds.CalculateDistance(sceneObjects);
 
@@ -608,7 +608,7 @@ public class Main : MonoBehaviour {
                 try { frameVis.Find(x => x.guid == frame.guid).Update(AgxHelper(frame.position), AgxHelper(frame.quatRotation),module.axis); } catch (NullReferenceException e) { Debug.Log("Could not find frame with Guid. " + e); }
             }
         }
-        foreach(Sensor_Module mod in robot.sensorModules)
+        foreach(SensorModule mod in robot.sensorModules)
         {
             try { sensorModuleVis.Find(x => x.guid == mod.guid).Update(AgxHelper(mod.position), AgxHelper(mod.quatRotation)); } catch(NullReferenceException e) { Debug.Log("Could not find Sensor Module with Guid. " + e); }
 

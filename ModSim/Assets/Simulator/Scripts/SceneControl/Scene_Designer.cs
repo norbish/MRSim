@@ -650,7 +650,7 @@ public class Scene_Designer : MonoBehaviour {
         }
 
         //SensoryModules:
-        foreach (Sensor_Module mod in robot_ForSerialization.sensorModules)
+        foreach (SensorModule mod in robot_ForSerialization.sensorModules)
         {
             current_SMVis.Add(new Unity_Visualization.SensorModule_Vis(mod.guid, new Vector3((float)mod.position.x, (float)mod.position.y, (float)mod.position.z), new Vector3((float)mod.size.x, (float)mod.size.y, (float)mod.size.z)));
 
@@ -1202,9 +1202,9 @@ public class Scene_Designer : MonoBehaviour {
             height = height
         };
     }
-    Sensor_Module DefineSensoryModule(int leftModNr, int rightModNr, AgX_Interface.Vector3 pos, AgX_Interface.Vector3 size, double mass, AgX_Interface.Quaternion rot, string materialName )
+    SensorModule DefineSensoryModule(int leftModNr, int rightModNr, AgX_Interface.Vector3 pos, AgX_Interface.Vector3 size, double mass, AgX_Interface.Quaternion rot, string materialName )
     {
-        return new Sensor_Module()
+        return new SensorModule()
         {
             guid = Guid.NewGuid(),
             leftMod_Nr = leftModNr,

@@ -51,7 +51,7 @@ public static class Analytics_Visualization {
                 }
             }
         //Sensory modules:
-        foreach(Sensor_Module mod in robot.sensorModules)
+        foreach(SensorModule mod in robot.sensorModules)
         {
             foreach (KeyValuePair<string, bool> field in checklist)//each vis item checked.
             {
