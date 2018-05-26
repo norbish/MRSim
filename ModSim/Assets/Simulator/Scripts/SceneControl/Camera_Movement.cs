@@ -69,13 +69,18 @@ public class Camera_Movement : MonoBehaviour {
 
     public void R_left()
     {
-        this.transform.RotateAround(robot.transform.position, Vector3.up, 30);
+        if(robot!= null)
+            this.transform.RotateAround(robot.transform.position, Vector3.up, 30);
+        else
+            this.transform.RotateAround(Vector3.zero, Vector3.up, 30);
 
     }
     public void R_right()
     {
-        this.transform.RotateAround(robot.transform.position, Vector3.up, -30);
-
+        if(robot != null)
+            this.transform.RotateAround(robot.transform.position, Vector3.up, -30);
+        else
+            this.transform.RotateAround(Vector3.zero, Vector3.up, -30);
     }
 
 

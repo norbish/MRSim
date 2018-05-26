@@ -108,7 +108,7 @@ public class Main : MonoBehaviour {
             if (i < 7)
                 upper[i] = limits[i];
             else
-                lower[i] = limits[i];
+                lower[i-7] = limits[i];
         }
 
         Robot_Optimization.UpperLimit = upper;
@@ -126,7 +126,9 @@ public class Main : MonoBehaviour {
             simulation_Running = true;
             //Start either the optimization or the dynamics
             if (Robot_Optimization.activated)
+            {
                 CreateOptimizations();
+            }
             else
                 InvokeRepeating("Update_Sim", 0.01f, dt);
         }
@@ -189,6 +191,7 @@ public class Main : MonoBehaviour {
     void Reset_Opti()
     {
         Robot_Optimization.Reset();
+        Robot_Optimization.currentGeneration = 0;
     }
 
     void SetContactFriction()
@@ -470,6 +473,7 @@ public class Main : MonoBehaviour {
 
     //List<Robot> robots;
     int Opti_Iterator = 0;
+    double[] genom = new double[7];
     void OptimizationUpdate_Sim()
     {
         if (simulation_Running)//Check if simulation is paused
@@ -488,6 +492,7 @@ public class Main : MonoBehaviour {
                 Opti_Iterator++;
                 if(!Robot_Optimization.quickOpti)
                 Debug.Log("Generation: " + Robot_Optimization.currentGeneration + "| Entity: "+ Opti_Iterator);
+                
 
                 if (Opti_Iterator >= Robot_Optimization.population)//If all iterations have ran
                 {
@@ -496,6 +501,10 @@ public class Main : MonoBehaviour {
 
                     ResetRobot();
                     Opti_Iterator = 0;
+
+                    genom = Robot_Optimization.currentBestGenome;
+                    currDynamics.text = genom[0].ToString("0.###") + "," + genom[1].ToString("0.###") + "," + genom[2].ToString("0.###") + "," + genom[3].ToString("0.###")
+                        + "," + genom[4].ToString("0.###") + "," + genom[5].ToString("0.###") + "," + genom[6].ToString("0.###");
                 }
             }
 
@@ -505,11 +514,14 @@ public class Main : MonoBehaviour {
                 Update_Vis(robot);
             }
 
+
+
             //this should be the Physics time
             simulationTime += Robot_Optimization.deltaTime;//timestep = dt = each step time. 
         }
     }
-    void ResetRobot()//Cannot reset robot while sim is running. why?
+    public UnityEngine.UI.InputField currDynamics;
+    void ResetRobot()//Cannot reset robot while sim is running. 
     {
 
         /* 1.attempt: */
@@ -560,7 +572,7 @@ public class Main : MonoBehaviour {
 
         Robot_Optimization.deltaTime = dt;
 
-        Robot_Optimization.IterTime = 10;
+        //Robot_Optimization.IterTime = 10;
         //Robot_Optimization.timeStep = 0.01f ;// dt;
 
         InvokeRepeating("OptimizationUpdate_Sim", 0.01f, Robot_Optimization.deltaTime);

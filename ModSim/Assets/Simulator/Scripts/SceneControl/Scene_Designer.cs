@@ -136,6 +136,7 @@ public class Scene_Designer : MonoBehaviour {
     {
         //SIMULATOR.SendMessage("Stop");
         SIMULATOR.SendMessage("CancelRepeats");
+        SIMULATOR.SendMessage("Reset_Opti");
         AgX_Interface.AgX_Assembly.RemoveFromSim();
         AgX_Interface.Agx_Simulation.Stop();
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
@@ -999,7 +1000,7 @@ public class Scene_Designer : MonoBehaviour {
         }
         for (int i = 7; i < 14; i++)
         {
-            Double.TryParse(LowerLimits[i].text, out limits[i]);
+            Double.TryParse(LowerLimits[i-7].text, out limits[i]);
         }
         SIMULATOR.SendMessage("SetOptimizationLimits", limits);
     }
@@ -1165,6 +1166,24 @@ public class Scene_Designer : MonoBehaviour {
         else
             Robot_Optimization.activated = false;
     }
+    public InputField crossPerc;
+    public void ChangeCrossSlider(float crossp)
+    {
+        Robot_Optimization.crossoverPercentage = crossp;
+        crossPerc.text = crossp.ToString();
+    }
+
+    public InputField optiIterTime;
+    public void ChangeIterTime()
+    {
+        int.TryParse(optiIterTime.text, out Robot_Optimization.IterTime);
+    }
+    public void ChangeOptiPopulation(string pop)
+    {
+        int.TryParse(pop, out Robot_Optimization.population);
+    }
+
+
        
 
     /*-------------------------------------------------Helper Functions:--------------------------------------------------*/

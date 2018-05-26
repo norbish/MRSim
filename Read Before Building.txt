@@ -1,0 +1,3 @@
+Copy the unity generated "system.dll" found in the unity mono installation folder: Unity\Editor\Data\Mono\lib\mono\2.0
+
+replace with file found in the finished build folder: MRSim_Data\Managed\System.dll

@@ -12,7 +12,10 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
     public static float deltaTime = 0.01f;//physics sim time
     public static int population = 10;
     public static bool quickOpti = false;
-    public static int IterTime = 30;
+    public static int IterTime = 15;
+    public static double crossoverPercentage = 0.5;
+
+    public static double[] currentBestGenome = new double[7];
 
     public static int currentGeneration = 0;
 
@@ -75,9 +78,11 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
             AgX_Interface.Agx_Simulation.StepForward();
 
             //Update robot with dynamics[0] until time is reached. Then, check position/goal(fitness), and run next one
-
+            
             if (time > 2)
+            {
                 dynamics_List[patternNumber].Run(robot, time);
+            }
 
             robot.Update();
             return false;//not ended
@@ -112,7 +117,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
 
         return Math.Abs(Euclid_Distance);//Target is to get as close as possible to 0-vector
     }
-
+    
     public static void UpdatePopulation(Robot robot)//This one should mutate from the best survivors after time target is reached. 
     {
         //Change to a genome (random) will be + or - (random), 0.1%-99% (random), to the specified value. 
@@ -122,9 +127,12 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
         //Sort the list, ascending order, to get the best ones (smallest value) first
         dynamics_List = dynamics_List.OrderBy(o => o.fitnessValue).ToList();
 
+        //Save movement variables:
+        currentBestGenome = dynamics_List[0].genome;
+
         //CHECK
-        for(int i = 0; i<dynamics_List.Count; i++)
-            UnityEngine.Debug.Log(dynamics_List[i].fitnessValue);
+        /*for(int i = 0; i<dynamics_List.Count; i++)
+            UnityEngine.Debug.Log(dynamics_List[i].fitnessValue);*/
 
         //Save length of dynamics list (could use population from r_opti, but this is a precaution for errors.
         int populationCount = dynamics_List.Count;
@@ -136,7 +144,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
         }
 
         //Crossover 50% best solutions
-        double percentile_50 = populationCount * 0.5;
+        double percentile_50 = populationCount * crossoverPercentage;// 0.5;
         Random rnd = new Random();
         for (int i = 0; i < (int)percentile_50; i++)
         {
@@ -156,7 +164,7 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
 
 
         //Crossover rest from random existing solutions: 
-        double percentile_70 = populationCount * 0.7;
+        double percentile_70 = populationCount;// * 0.7;
         rnd = new Random();
         for(int i = 0; i< populationCount;i++)
         {
