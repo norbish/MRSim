@@ -32,10 +32,12 @@ namespace Unity_Visualization
             gameobject.name = "SceneObject";
             MeshRenderer renderer = gameobject.GetComponent<MeshRenderer>();
 
-            renderer.material = new Material(Shader.Find("Diffuse"))
-            {
-                color = Color.gray
-            };
+            if (guid == new System.Guid())
+                renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
+            else
+                renderer.material = new Material(Shader.Find("Diffuse"));
+
+            renderer.material.color = Color.gray;
 
             gameobject.transform.localScale = scale * 2;
             gameobject.transform.position = position;
@@ -70,7 +72,7 @@ namespace Unity_Visualization
             gameobject.name = "ForceSensor";
             MeshRenderer renderer = gameobject.GetComponent<MeshRenderer>();
 
-            renderer.material = new Material(Shader.Find("Transparent/Diffuse"))
+            renderer.material = new Material(Shader.Find("Diffuse"))
             {
                 color = Color.red
             };
@@ -102,10 +104,12 @@ namespace Unity_Visualization
             gameobject.name = "SensorModule";
             MeshRenderer renderer = gameobject.GetComponent<MeshRenderer>();
 
-            renderer.material = new Material(Shader.Find("Transparent/Diffuse"))
-            {
-                color = Color.white
-            };
+            if (guid == new System.Guid())
+                renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
+            else
+                renderer.material = new Material(Shader.Find("Diffuse"));
+
+            renderer.material.color = Color.white;
 
             gameobject.transform.localScale = scale*2;
             gameobject.transform.position = position;
@@ -158,7 +162,11 @@ namespace Unity_Visualization
             tmpMesh.RecalculateBounds();
 
             filter.mesh = tmpMesh;
-            renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
+            if(guid == new System.Guid())
+                renderer.material = new Material(Shader.Find("Transparent/Diffuse"));
+            else
+                renderer.material = new Material(Shader.Find("Diffuse"));
+
             renderer.material.color =  Color.blue;
 
             gameobject.transform.position = initialpos;//gameobject.AddComponent<Renderer>();

@@ -53,6 +53,10 @@ namespace AgX_Interface
             Agx_Simulation.sim_Instance.remove(robotAssembly, true);
             robotAssembly = new agxSDK.Assembly();
         }
+        public static void SetToNull()
+        {
+            robotAssembly = new agxSDK.Assembly();
+        }
     }
 
     public class AgX_Frame

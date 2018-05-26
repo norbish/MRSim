@@ -121,7 +121,8 @@ public class Main : MonoBehaviour {
 
 
     public void StartSim()
-    {  if (!simulation_Running)
+    {
+        if (!simulation_Running)
         {
             simulation_Running = true;
             //Start either the optimization or the dynamics
@@ -132,6 +133,11 @@ public class Main : MonoBehaviour {
             else
                 InvokeRepeating("Update_Sim", 0.01f, dt);
         }
+    }
+    public void ResetAll()
+    {
+        simulation_Running = false;
+        simulation_Started = false;
     }
     AgX_Interface.Vector3 RobotStartPosition = new AgX_Interface.Vector3();
     public void ChangeInitPos(AgX_Interface.Vector3 pos)
@@ -241,8 +247,8 @@ public class Main : MonoBehaviour {
             Reset_Opti();
             Agx_Simulation.Start(dt);//Starts the sim.
 
-            simulation_Started = true;
-
+            simulation_Started = true;// true;
+            simulation_Running = false;
             try { scenario = Deserialize<Scenario>(path); }
             catch (FileNotFoundException e)
             {
@@ -265,6 +271,8 @@ public class Main : MonoBehaviour {
 
             /* Loading the directories for the object files */
             Load_FrameDirectories(robot);
+
+            sceneObjects = LoadSceneObjects(scenario.sceneObjects);
 
             //possibly remove this
             scene = new Scene(); Load_Scene(scenario.scene);
@@ -659,6 +667,10 @@ public class Main : MonoBehaviour {
         if(Input.GetButtonUp("Idle"))
         {
             Dynamics.SetMovement("Idle", 0, 0);
+        }
+        if(Input.GetButtonUp("Custom"))
+        {
+            Dynamics.SetMovement("Custom", 0, 0);
         }
         if(Input.GetButtonUp("Speed"))
         {

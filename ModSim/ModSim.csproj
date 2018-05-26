@@ -303,6 +303,7 @@
     <Compile Include="Assets\Simulator\Scripts\Visualization\Unity_Visualization.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\StreamingAssets\Scenario1.xml" />
     <None Include="Assets\StreamingAssets\XML\Scenario.xml" />
     <None Include="Assets\StreamingAssets\saved_robot.xml" />
   </ItemGroup>

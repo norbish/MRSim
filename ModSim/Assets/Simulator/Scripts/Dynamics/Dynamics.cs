@@ -19,7 +19,7 @@ public static class Dynamics
     public static double[] phaseDiff;
     public static double[] offset;
 
-    public static double[] f_movementVars = new double[7] { 2 * (double)(Math.PI / 9.0), 0, (double)Math.PI * 2.0 / 3.0f, 0, 4.0f, 0, 0 };
+    public static double[] f_movementVars = new double[7] { 2 * (double)(Math.PI / 9.0), 0, (double)Math.PI * 2.0 / 3.0f, 0, 4.0f, 0, 20 * (double)Math.PI / 180 };
     public static double[] t_movementVars = new double[7] { 2 * (double)(Math.PI / 9.0), 0, (double)Math.PI * 2.0 / 3.0f, 0, 4.0f, 0, 20 * (double)Math.PI / 180 };
 
     static double angle; //rads
@@ -141,6 +141,15 @@ public static class Dynamics
                 {
                     if (NewAction)
                         Initialize(nextAction, robot, t_movementVars[0], t_movementVars[1], move_direction * t_movementVars[2], t_movementVars[3], t_movementVars[4], t_movementVars[5], turn_direction * t_movementVars[6]);
+                    //Initialize(action, robot, (double)dyn_vars[0], 0, move_direction * (double)dyn_vars[2], 0, (double)dyn_vars[4], 0, turn_direction * (double)dyn_vars[6]);
+
+                    All_Movements(robot, t);
+                    return true;
+                }
+            case "Custom":
+                {
+                    if (NewAction)
+                        Initialize(nextAction, robot, f_movementVars[0], f_movementVars[1], f_movementVars[2], f_movementVars[3], f_movementVars[4], f_movementVars[5], f_movementVars[6]);
                     //Initialize(action, robot, (double)dyn_vars[0], 0, move_direction * (double)dyn_vars[2], 0, (double)dyn_vars[4], 0, turn_direction * (double)dyn_vars[6]);
 
                     All_Movements(robot, t);

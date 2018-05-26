@@ -137,7 +137,8 @@ public class Scene_Designer : MonoBehaviour {
         //SIMULATOR.SendMessage("Stop");
         SIMULATOR.SendMessage("CancelRepeats");
         SIMULATOR.SendMessage("Reset_Opti");
-        AgX_Interface.AgX_Assembly.RemoveFromSim();
+        SIMULATOR.SendMessage("ResetAll");
+        AgX_Interface.AgX_Assembly.SetToNull();
         AgX_Interface.Agx_Simulation.Stop();
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
         //StartDesigner = false;
@@ -696,8 +697,8 @@ public class Scene_Designer : MonoBehaviour {
         Mesh rightMesh = import.ImportFile(dir + robot_ForSerialization.rightFrameDir);
         if (left_planned == null && right_planned == null)
         {
-            left_planned = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), leftMesh, new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), l_scale);
-            right_planned = new Unity_Visualization.Frame_Vis(Guid.NewGuid(), rightMesh, new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), r_scale);
+            left_planned = new Unity_Visualization.Frame_Vis(new Guid(), leftMesh, new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), l_scale);
+            right_planned = new Unity_Visualization.Frame_Vis(new Guid(), rightMesh, new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), r_scale);
 
             left_planned.Update(new Vector3((float)l_pos.x, (float)l_pos.y, (float)l_pos.z), new Vector3((float)l_rot.x, (float)l_rot.y, (float)l_rot.z), l_rot.x == 0 ? "Pitch" : "Yaw");
             right_planned.Update(new Vector3((float)r_pos.x, (float)r_pos.y, (float)r_pos.z), new Vector3((float)r_rot.x, (float)r_rot.y, (float)r_rot.z), r_rot.x == 0 ? "Pitch" : "Yaw");
@@ -728,7 +729,7 @@ public class Scene_Designer : MonoBehaviour {
 
         if (SM_planned == null)
         {
-            SM_planned = new Unity_Visualization.SensorModule_Vis(Guid.NewGuid(), new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
+            SM_planned = new Unity_Visualization.SensorModule_Vis(new Guid(), new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
             SM_planned.Update(new Vector3((float)sm_pos.x, (float)sm_pos.y, (float)sm_pos.z), Vector3.zero, new Vector3((float)sm_size.x, (float)sm_size.y, (float)sm_size.z));
         } else
         {
@@ -789,12 +790,12 @@ public class Scene_Designer : MonoBehaviour {
 
             if (sceneVis == null)//first time scene is loaded
             {
-                sceneVis = new Unity_Visualization.Scene_Vis(sceneVals.guid, AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load(terrainTexture) as Texture);
+                sceneVis = new Unity_Visualization.Scene_Vis(new Guid(), AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load(terrainTexture) as Texture);
             }
             else
             {
                 sceneVis.Remove();
-                sceneVis = new Unity_Visualization.Scene_Vis(sceneVals.guid, AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load(terrainTexture) as Texture);
+                sceneVis = new Unity_Visualization.Scene_Vis(new Guid(), AgxHelper(sceneVals.vertices), sceneVals.triangles, AgxHelper(sceneVals.uvs), new UnityEngine.Vector3((float)sceneVals.position.x, (float)sceneVals.position.y, (float)sceneVals.position.z), Resources.Load(terrainTexture) as Texture);
             }
         }
         catch (NullReferenceException)
@@ -895,12 +896,12 @@ public class Scene_Designer : MonoBehaviour {
 
         if (tmpSceneObjVis == null)
         {
-            tmpSceneObjVis = new Unity_Visualization.SceneObject_Vis(Guid.NewGuid(),pos,size,objShape);
+            tmpSceneObjVis = new Unity_Visualization.SceneObject_Vis(new Guid(), pos,size,objShape);
             
         }else
         {
             tmpSceneObjVis.Remove();
-            tmpSceneObjVis = new Unity_Visualization.SceneObject_Vis(Guid.NewGuid(), pos, size, objShape);
+            tmpSceneObjVis = new Unity_Visualization.SceneObject_Vis(new Guid(), pos, size, objShape);
         }
         var rot = new Quaternion((float)objRot.x, (float)objRot.y, (float)objRot.z, (float)objRot.w);
         tmpSceneObjVis.Update(pos, rot);
