@@ -24,9 +24,6 @@ namespace Simulation_Core
         public List<ContactFriction> contactFrictions;
     }
 
-   
-
-
     [XmlRoot("Robot", Namespace = "Assembly")]
     public class Robot
     {
@@ -75,9 +72,8 @@ namespace Simulation_Core
             {
                 mod.Initialize();
             }
-            //if sensormodule on 0, attach to first module. 
 
-            int lockNrCount = 0;//USE THIS
+            int lockNrCount = 0;
             //Sets locks between modules:(ITERATES CURRENT MODULE)-> 
             for(int i = 0; i<modules.Count; i++)
             {
@@ -106,11 +102,6 @@ namespace Simulation_Core
                     lockNrCount++;
                 }
             }
-
-            //find agx module height, pos, etc. depending on this, and where the sensor is 
-            //supposed to be placed, place the sensor.
-            
-            //AgX_Assembly.SetPosition(new Vector3(2,15,5));
 
             AgX_Assembly.AddToSim();            
         }

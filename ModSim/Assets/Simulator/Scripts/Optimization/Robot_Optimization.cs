@@ -31,11 +31,10 @@ public static class Robot_Optimization//IF we call the general class for Optimiz
     //static int Xcompare = 1, Ycompare = 0, Zcompare = 1;
     public static AgX_Interface.Vector3 AxisWeight = new AgX_Interface.Vector3(1, 0, 1);
     
-
+    //Populates genome:
     public static void Load(Robot robot)//run this only once
     {
-        //ASSIGN UPPER AND BOTTOM LIMIT
-        //Create N dynamics scripts for this robot. (WHAT IS THE GENOME? maybe this variables)
+
         Random random = new Random();
         for(int i = 0; i<population; i++)
         {

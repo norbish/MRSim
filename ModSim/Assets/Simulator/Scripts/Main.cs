@@ -47,7 +47,7 @@ public class Main : MonoBehaviour {
 
             simulation_Started = true;
             CancelInvoke();
-            Dynamics.action = "Idle";
+            Dynamics.nextAction = "Idle";
 
 
             //Load:
@@ -252,7 +252,7 @@ public class Main : MonoBehaviour {
 
             SetContactFriction();//if custom contact points: move to MainInitialization().
             CancelInvoke();
-            Dynamics.action = "Idle";
+            Dynamics.nextAction = "Idle";
 
             //scenario = Deserialize<Scenario>(Application.streamingAssetsPath + "/XML/Scenario.xml");
 

@@ -148,7 +148,7 @@ public class Scene_Designer : MonoBehaviour {
         SIMULATOR.SendMessage("Pause");
     }
 
-    public GameObject robotConfigPanel;
+    public GameObject robotConfigPanel;public GameObject easyConfigPanel;
     List<SceneObject> sceneObjects = new List<SceneObject>();
     List<ContactFriction> contactMaterials = new List<Simulation_Core.ContactFriction>();
     public void FinalizeCreation()
@@ -219,9 +219,25 @@ public class Scene_Designer : MonoBehaviour {
 
     }
 
+    public void advancedMode(bool advanced)
+    {
+        if(advanced == true)
+        {
+            easyConfigPanel.SetActive(false);
+            robotConfigPanel.SetActive(true);
+        }
+        else
+        {
+            robotConfigPanel.SetActive(false);
+            easyConfigPanel.SetActive(true);
+        }
+    }
+
+
     void SetPosAndRotInteractable()
     {
         robotConfigPanel.SetActive(false);
+        easyConfigPanel.SetActive(false);
 
         start_Position_X.interactable = true;
         start_Position_Y.interactable = true;
@@ -866,7 +882,7 @@ public class Scene_Designer : MonoBehaviour {
         }
     }
     Unity_Visualization.SceneObject_Vis tmpSceneObjVis;
-    public void TmpVisualizeSceneObject()
+    public void ShowObjectsInScene()
     {
         //Get values:
         ObjectUpdateValues();

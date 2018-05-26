@@ -12,7 +12,7 @@ public static class Dynamics
 {
     public static int mode = 1; //Must be changed if the script is customized. 
     public static string currentAction = "Idle";//check this string to see if have to initialize
-    public static string action = "Idle";// = "Turn";
+    public static string nextAction = "Idle";// = "Turn";
     public static double[] angles;
     public static double[] amplitudes;
     public static double[] period;
@@ -26,7 +26,7 @@ public static class Dynamics
 
     public static void Initialize(string newAction, Simulation_Core.Robot robot, double _ampPitch,double _ampYaw, double _phaseOffsetPitch, double _phaseOffsetYaw, double _period, double _offsetPitch, double _offsetYaw)
     {
-        Dynamics.action = newAction;
+        Dynamics.nextAction = newAction;
         int mod_n = robot.modules.Count;
         amplitudes = new double[mod_n];
         period = new double[mod_n];
@@ -75,7 +75,7 @@ public static class Dynamics
                     {
                         if (i >= 1)//Not taking into account the first phase which should be 0
                         {
-                                Dynamics.phaseDiff[i] = Dynamics.phaseDiff[i - 1] + _phaseOffsetPitch;
+                                Dynamics.phaseDiff[i] = Dynamics.phaseDiff[i - 1] + _phaseOffsetPitch/2;
                             
                         }
                     }
@@ -101,7 +101,7 @@ public static class Dynamics
     }
     public static void SetMovement(string command, double move_dir, double turn_dir)
     {
-        action = command;
+        nextAction = command;
         if(move_dir != 0)
             move_direction = move_dir;
         if(turn_dir != 0)
@@ -126,13 +126,13 @@ public static class Dynamics
     static bool NewAction = false;
     public static bool Control(Simulation_Core.Robot robot, double t, double[] dyn_vars)
     {
-        switch(action)
+        switch(nextAction)
         {
             
             case "Forward":
                 {
                     if (NewAction)
-                        Initialize(action, robot, f_movementVars[0], f_movementVars[1], move_direction * f_movementVars[2], f_movementVars[3], f_movementVars[4], f_movementVars[5], f_movementVars[6]);
+                        Initialize(nextAction, robot, f_movementVars[0], f_movementVars[1], move_direction * f_movementVars[2], f_movementVars[3], f_movementVars[4], f_movementVars[5], f_movementVars[6]);
                     //Initialize(action, robot, (double)dyn_vars[0], 0, move_direction * (double)dyn_vars[2], 0, (double)dyn_vars[4], 0, 0);
                     Forward(robot, t);
                     return true;
@@ -140,10 +140,10 @@ public static class Dynamics
             case "Turn":
                 {
                     if (NewAction)
-                        Initialize(action, robot, t_movementVars[0], t_movementVars[1], move_direction * t_movementVars[2], t_movementVars[3], t_movementVars[4], t_movementVars[5], turn_direction * t_movementVars[6]);
+                        Initialize(nextAction, robot, t_movementVars[0], t_movementVars[1], move_direction * t_movementVars[2], t_movementVars[3], t_movementVars[4], t_movementVars[5], turn_direction * t_movementVars[6]);
                     //Initialize(action, robot, (double)dyn_vars[0], 0, move_direction * (double)dyn_vars[2], 0, (double)dyn_vars[4], 0, turn_direction * (double)dyn_vars[6]);
 
-                    Turn(robot, t);
+                    All_Movements(robot, t);
                     return true;
                 }
             case "Idle": Idle();return true;
@@ -185,7 +185,7 @@ public static class Dynamics
     }
     
 
-    public static void Turn(Simulation_Core.Robot robot, double t)//Sideways rolling movement
+    public static void All_Movements(Simulation_Core.Robot robot, double t)//Sideways rolling movement
     {
 
         for (int i = 0; i < robot.modules.Count; i++)
