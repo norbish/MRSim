@@ -423,6 +423,8 @@ public class Main : MonoBehaviour {
     {
         if (simulation_Running)//Check if simulation is paused
         {
+            //Debug.Log(robot.modules[0].position.x+","+robot.modules[0].position.y+","+robot.modules[0].position.z);
+
             Agx_Simulation.StepForward();
             //Check if a button has been pressed
             //CheckInputs();
