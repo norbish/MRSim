@@ -549,7 +549,7 @@ namespace Simulation_Core
         private double hit_distance;
 
         public Vector3 ray_Direction;//Rotation?
-        public double ray_Resolution = 0.5;
+        public double ray_Resolution = 0.1;
 
         internal AgX_Primitive agxPrimitive;
 

@@ -176,8 +176,8 @@ public class Main : MonoBehaviour {
     {
         Visualization.enabled = false;
         simulation_Running = false;
-        
-        Agx_Simulation.Stop();
+
+        Agx_Simulation.RemoveSimObjects();
         simulation_Started = false;
 
         Clear_Vis();
@@ -466,18 +466,21 @@ public class Main : MonoBehaviour {
                 ds.CalculateDistance(sceneObjects);
 
         //IF Analytics checked, saveData.(if count = 10, count = 0 and saveData?)
-        int result = Analytics_Visualization.SaveData(robot, Time.time);
-        switch(result)
+        if (Analytics_Visualization.Enabled)
         {
-            case 0: break;
-            case 1: break;
-            case 2: break;
-            case 3: break;
-            case 4: break;
-            case 5: break;
-            case 6: Debug.Log("Read/Write error(folder not existing)"); break;
-            case 7: Debug.Log("No Filename"); break;
-            default:Debug.Log("Unspecified Error");break;
+            int result = Analytics_Visualization.SaveData(robot, Time.time);
+            switch (result)
+            {
+                case 0: break;
+                case 1: break;
+                case 2: break;
+                case 3: break;
+                case 4: break;
+                case 5: break;
+                case 6: Debug.Log("Read/Write error(folder not existing)"); break;
+                case 7: Debug.Log("No Filename"); break;
+                default: Debug.Log("Unspecified Error"); break;
+            }
         }
     }
 
@@ -681,12 +684,12 @@ public class Main : MonoBehaviour {
     }
 
 
-    void OnApplicationQuit()///When Unity closes, shutdown AgX.
+    /*void OnApplicationQuit()///When Unity closes, shutdown AgX.
     {
-        Agx_Simulation.Stop();
+        Agx_Simulation.RemoveSimObjects();
         Debug.Log("Application ending after " + Time.time + " seconds");
 
-    }
+    }*/
 
     //.dll Helper Functions
     AgX_Interface.Vector3 AgxHelper(UnityEngine.Vector3 vec)

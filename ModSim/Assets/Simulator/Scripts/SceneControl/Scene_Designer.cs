@@ -36,6 +36,71 @@ public class Scene_Designer : MonoBehaviour {
     string upperFrame_ObjName = "upper.obj";
     string bottomFrame_ObjName = "bottom.obj";
 
+
+    /// <summary>
+    /// ////////////////
+    /// </summary>
+
+    List<agx.RigidBody> m_bodies;
+    static agxSDK.Assembly m_assembly;
+    static agxSDK.Simulation sim;
+    int count = 0;
+    public void testit()
+    {
+        agx.agxSWIG.init();
+
+        for (int i = 0; i < 10; i++)
+        {
+            sim = new agxSDK.Simulation();
+            m_bodies = new List<agx.RigidBody>();
+            m_assembly = new agxSDK.Assembly();
+            sim.add(m_assembly);
+
+            runSimulation(1 / 100.0, sim);
+
+            //removeBodies(sim);
+            sim.remove(m_assembly);
+
+            m_assembly = null;
+            m_bodies.Clear();
+            m_bodies = null;
+        }
+        Debug.Log("yah" + count++);
+
+    }
+
+    private void runSimulation(double dt, agxSDK.Simulation sim)
+    {
+        //Console.WriteLine("Run Simulation");
+
+        sim.setUniformGravity(new agx.Vec3(0, -9.80665f, 0));
+
+        sim.getDynamicsSystem().getTimeGovernor().setTimeStep(dt);
+
+        for (int x = 0; x < 10; x++)
+        {
+            var b = new agx.RigidBody();
+            m_assembly.add(b);
+            sim.add(b);
+        }
+
+        sim.stepTo(4);
+    }
+
+    private void removeBodies(agxSDK.Simulation sim)
+    {
+        foreach (var b in m_bodies)
+        {
+            sim.remove(b);
+        }
+    }
+
+
+
+
+
+
+
     // Use this for initialization
     void Start()
     {
@@ -138,8 +203,8 @@ public class Scene_Designer : MonoBehaviour {
         SIMULATOR.SendMessage("CancelRepeats");
         SIMULATOR.SendMessage("Reset_Opti");
         SIMULATOR.SendMessage("ResetAll");
-        AgX_Interface.AgX_Assembly.SetToNull();
-        AgX_Interface.Agx_Simulation.Stop();
+        /*AgX_Interface.AgX_Assembly.SetToNull();
+        AgX_Interface.Agx_Simulation.RemoveSimObjects();*/
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
         //StartDesigner = false;
         //finalizeButton.SetActive(true);
@@ -510,7 +575,7 @@ public class Scene_Designer : MonoBehaviour {
             {
                 if((bltrfb[i]).isOn)
                 {
-                    distSensors.Add(DefineDistanceSensor(i,10,0.5, "Plastic", 1, new AgX_Interface.Vector3(0.01, 0.01, 0.01) ) );
+                    distSensors.Add(DefineDistanceSensor(i,10,0.05, "Plastic", 1, new AgX_Interface.Vector3(0.01, 0.01, 0.01) ) );
                     Debug.Log("Added dist sensor at: " + i);
                 }
             }
@@ -1064,6 +1129,13 @@ public class Scene_Designer : MonoBehaviour {
         string path = analyticsPathName.text + @"\" + analyticsFileName.text;
         if (File.Exists(path))
             File.Delete(path);
+    }
+    public void toggleAnalyticsVis(bool toggle)
+    {
+        if (toggle)
+            Analytics_Visualization.Enabled = true;
+        else
+            Analytics_Visualization.Enabled = false;
     }
 
     /*---------------------------------------------------Defining robot---------------------------------------------------*/

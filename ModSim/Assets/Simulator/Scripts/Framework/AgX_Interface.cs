@@ -14,15 +14,19 @@ namespace AgX_Interface
 {
     public static class AgX_Assembly
     {
-        static agxSDK.Assembly robotAssembly = new agxSDK.Assembly();
+        static agxSDK.Assembly robotAssembly;// = new agxSDK.Assembly();
 
 
         public static void AddToAssembly(agx.RigidBody body)
         {
+            if (robotAssembly == null)
+                robotAssembly = new agxSDK.Assembly();
             robotAssembly.add(body);
         }
         public static void AddToAssembly(agx.Constraint joint)
         {
+            if (robotAssembly == null)
+                robotAssembly = new agxSDK.Assembly();
             robotAssembly.add(joint);
         }
 
@@ -46,16 +50,21 @@ namespace AgX_Interface
 
         public static void AddToSim()
         {
+            if (robotAssembly == null)
+                robotAssembly = new agxSDK.Assembly();
             Agx_Simulation.sim_Instance.add(robotAssembly, true);
         }
         public static void RemoveFromSim()
         {
+            if (robotAssembly == null)
+                robotAssembly = new agxSDK.Assembly();
             Agx_Simulation.sim_Instance.remove(robotAssembly, true);
             robotAssembly = new agxSDK.Assembly();
         }
         public static void SetToNull()
         {
-            robotAssembly = new agxSDK.Assembly();
+            robotAssembly.Dispose();
+            robotAssembly = null;
         }
     }
 
@@ -192,7 +201,7 @@ namespace AgX_Interface
         }
         public double GetForce()
         {
-            return joint.getCurrentForce(0);
+            return joint.getCurrentForce(1);
         }
         public double GetAngle()
         {
