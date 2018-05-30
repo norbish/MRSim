@@ -52,14 +52,17 @@ namespace AgX_Interface
         {
             if (robotAssembly == null)
                 robotAssembly = new agxSDK.Assembly();
-            Agx_Simulation.sim_Instance.add(robotAssembly, true);
+            Agx_Simulation.sim_Instance.add(robotAssembly);
         }
         public static void RemoveFromSim()
         {
-            if (robotAssembly == null)
-                robotAssembly = new agxSDK.Assembly();
-            Agx_Simulation.sim_Instance.remove(robotAssembly, true);
-            robotAssembly = new agxSDK.Assembly();
+            if (robotAssembly != null)
+            {
+                Agx_Simulation.sim_Instance.remove(robotAssembly);
+                //robotAssembly.Dispose();
+                robotAssembly = null;
+            }
+            else UnityEngine.Debug.Log("failed)");
         }
         public static void SetToNull()
         {

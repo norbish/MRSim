@@ -35,6 +35,9 @@ public class Main : MonoBehaviour {
     
     Scenario scenario = new Scenario();
     List<SceneObject> sceneObjects = new List<SceneObject>();
+
+    Robot robot;//Global for pos/rot update
+
     //Robot OriginalRobot = new Robot();
     void Main_Initialization()
     {
@@ -294,7 +297,7 @@ public class Main : MonoBehaviour {
     }
 
 
-    Robot robot;//Global for pos/rot update
+    
 
     void Load_FrameDirectories(Robot robot)
     {
@@ -487,6 +490,7 @@ public class Main : MonoBehaviour {
     //List<Robot> robots;
     int Opti_Iterator = 0;
     double[] genom = new double[7];
+    int ct = 0;
     void OptimizationUpdate_Sim()
     {
         if (simulation_Running)//Check if simulation is paused
@@ -498,7 +502,6 @@ public class Main : MonoBehaviour {
 
                 //deletes and recreates robot
                 ResetRobot();
-                
                 //resets robot position:(gotta create AgX assembly first)
                 //robot.setPos(oldpos?);
 
@@ -512,7 +515,7 @@ public class Main : MonoBehaviour {
                     //start new iterations with new population
                     Robot_Optimization.UpdatePopulation(robot);//Update the populations
 
-                    ResetRobot();
+                    //ResetRobot();
                     Opti_Iterator = 0;
 
                     genom = Robot_Optimization.currentBestGenome;
@@ -538,9 +541,9 @@ public class Main : MonoBehaviour {
     {
 
         /* 1.attempt: */
-        
+        //AgX_Assembly.RemoveFromSim();
         robot.RemovePhysicsObjects();
-        robot = new Robot();
+        //robot = null;
         robot = Load_Robot(Deserialize<Scenario>(Application.streamingAssetsPath + "/XML/Scenario.xml").robot);//new robot
         
 
@@ -572,9 +575,6 @@ public class Main : MonoBehaviour {
         Load_Scene(scen.scene);
         robot = Load_Robot(scen.robot);
         */
-
-        
-
     }
 
     void CreateOptimizations()
