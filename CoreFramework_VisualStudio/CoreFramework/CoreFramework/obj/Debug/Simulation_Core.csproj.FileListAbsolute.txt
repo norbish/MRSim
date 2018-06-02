@@ -1,0 +1,9 @@
+C:\Users\torsu\source\repos\CoreFramework\CoreFramework\bin\Debug\Simulation_Core.dll
+C:\Users\torsu\source\repos\CoreFramework\CoreFramework\bin\Debug\Simulation_Core.pdb
+C:\Users\torsu\source\repos\CoreFramework\CoreFramework\bin\Debug\AgX_Interface.dll
+C:\Users\torsu\source\repos\CoreFramework\CoreFramework\bin\Debug\agxDotNet.dll
+C:\Users\torsu\source\repos\CoreFramework\CoreFramework\bin\Debug\AgX_Interface.pdb
+C:\Users\torsu\source\repos\CoreFramework\CoreFramework\obj\Debug\Simulation_Core.csprojResolveAssemblyReference.cache
+C:\Users\torsu\source\repos\CoreFramework\CoreFramework\obj\Debug\Simulation_Core.csproj.CoreCompileInputs.cache
+C:\Users\torsu\source\repos\CoreFramework\CoreFramework\obj\Debug\Simulation_Core.dll
+C:\Users\torsu\source\repos\CoreFramework\CoreFramework\obj\Debug\Simulation_Core.pdb
