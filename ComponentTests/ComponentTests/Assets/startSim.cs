@@ -54,7 +54,7 @@ public class startSim : MonoBehaviour {
             type = "Hinge",
             lowerRangeLimit = -Math.PI/2,
             upperRangeLimit = Math.PI/2,
-            max_vel = 0.3,
+            max_vel = Math.PI/6,
             Kp = 3
         };
 
@@ -64,6 +64,10 @@ public class startSim : MonoBehaviour {
 
         //Add module to robot:
         robot.Add_Module(module);
+
+        //Add second module to robot:
+        //robot.Add_Module(module2,new Simulation_Core.Joint());
+
         //Initialize robot:
         robot.Initialize();
 
@@ -81,12 +85,9 @@ public class startSim : MonoBehaviour {
         };
         sceneobj.Initialize();
         
-        //Load vis from mesh and robot:
+        //Load vis from mesh and robot + scene object:
         Load_Vis();
-        //visualize scene object:
-        sceneobjvis = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        sceneobjvis.transform.localScale = AgxHelper(sceneobj.size*2);
-        sceneobjvis.transform.position = new UnityEngine.Vector3(0,-2,0);
+
         //Start sim update loop:
         InvokeRepeating("Update_Sim", 0.01f, 0.01f);
     }
@@ -139,7 +140,14 @@ public class startSim : MonoBehaviour {
             mesh[i].uv = AgxHelper(robot.modules[0].frames[i].meshUvs);
             mesh[i].triangles = robot.modules[0].frames[i].meshTriangles;
         }
+        //Scene object
+        sceneobjvis = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        sceneobjvis.transform.localScale = AgxHelper(sceneobj.size * 2);
+        sceneobjvis.transform.position = AgxHelper(sceneobj.position);
     }
+
+
+    //Helpers:
 
         UnityEngine.Vector3 AgxHelper(AgX_Interface.Vector3 vec)
     {
